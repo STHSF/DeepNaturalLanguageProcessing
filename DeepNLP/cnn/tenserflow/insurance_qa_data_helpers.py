@@ -6,18 +6,19 @@ import random
 empty_vector = []
 for i in range(0, 100):
     empty_vector.append(float(0.0))
+
 onevector = []
-for i in range(0, 10):
+for j in range(0, 10):
     onevector.append(float(1))
+
 zerovector = []
-for i in range(0, 10):
+for k in range(0, 10):
     zerovector.append(float(0))
 
 
 def build_vocab():
     code = int(0)
-    vocab = {}
-    vocab['UNKNOWN'] = code
+    vocab = {'UNKNOWN': code}
     code += 1
     for line in open('/export/jw/cnn/insuranceQA/train'):
         items = line.strip().split(' ')
