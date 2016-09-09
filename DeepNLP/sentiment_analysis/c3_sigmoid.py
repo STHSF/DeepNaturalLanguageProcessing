@@ -21,8 +21,10 @@ def test_sigmoid_basic():
     x = np.array([[1, 2], [-1, -2]])
     f = sigmoid(x)
     g = sigmoid_grad(f)
+
     print f
     assert np.amax(f - np.array([[0.73105858, 0.88079708], [0.26894142, 0.11920292]])) <= 1e-6
+
     print g
     assert np.amax(g - np.array([[0.19661193, 0.10499359], [0.19661193, 0.10499359]])) <= 1e-6
     print "You should verify these results!\n"

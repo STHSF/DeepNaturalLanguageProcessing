@@ -10,12 +10,12 @@ from c6_sgd import load_saved_params, sgd
 from c8_softmaxreg import softmaxRegression, getSentenceFeature, accuracy, softmax_wrapper
 
 # Try different regularizations and pick the best!
-REGULARIZATION = None
+# REGULARIZATION = None
 
 REGULARIZATION = [0.0, 0.00001, 0.00003, 0.0001, 0.0003, 0.001, 0.003, 0.01]
 
 # Load the dataset   
-dataset = Stanfordsentiment()
+dataset = StanfordSentiment()
 tokens = dataset.tokens()
 nWords = len(tokens)
 
@@ -50,8 +50,9 @@ for regularization in REGULARIZATION:
     print "Training for reg=%f" % regularization
 
     # We will do batch optimization
-    weights = sgd(lambda weights: softmax_wrapper(trainFeatures, trainLabels,
-                                                  weights, regularization), weights, 3.0, 10000, PRINT_EVERY=100)
+    weights = sgd(
+        lambda weights: softmax_wrapper(trainFeatures, trainLabels, weights, regularization),
+        weights, 3.0, 10000, PRINT_EVERY=100)
 
     # Test on train set
     _, _, pred = softmaxRegression(trainFeatures, trainLabels, weights)
@@ -63,23 +64,23 @@ for regularization in REGULARIZATION:
     devAccuracy = accuracy(devLabels, pred)
     print "Dev accuracy (%%): %f" % devAccuracy
 
-# Save the results and weights
-results.append({
-    "reg": regularization,
-    "weights": weights,
-    "train": trainAccuracy,
-    "dev": devAccuracy})
+    # Save the results and weights
+    results.append({
+        "reg": regularization,
+        "weights": weights,
+        "train": trainAccuracy,
+        "dev": devAccuracy})
 
-# Print the accuracies
-print ""
-print "=== Recap ==="
-print "Reg\t\tTrain\t\tDev"
-for result in results:
-    print "%E\t%f\t%f" % (
-        result["reg"],
-        result["train"],
-        result["dev"])
-print ""
+    # Print the accuracies
+    print ""
+    print "=== Recap ==="
+    print "Reg\t\tTrain\t\tDev"
+    for result in results:
+        print "%E\t%f\t%f" % (
+            result["reg"],
+            result["train"],
+            result["dev"])
+    print ""
 
 # Pick the best regularization parameters
 BEST_REGULARIZATION = None

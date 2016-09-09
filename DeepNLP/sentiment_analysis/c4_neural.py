@@ -9,6 +9,7 @@ from c2_gradcheck import gradcheck_naive
 
 
 def forward_backward_prop(data, labels, params, dimensions):
+
     # Distribute elements in params to W1 b1 W2 b2
     ofs = 0
     Dx, H, Dy = (dimensions[0], dimensions[1], dimensions[2])
