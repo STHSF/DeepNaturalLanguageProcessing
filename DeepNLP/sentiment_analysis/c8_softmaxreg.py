@@ -83,8 +83,8 @@ def sanity_check():
         words, dummy_labels[i] = dataset.getRandomTrainSentence()
         dummy_features[i, :] = getSentenceFeature(tokens, wordVectors, words)
     print "==== Gradient check for softmax regression ===="
-    gradcheck_naive(lambda weights: softmaxRegression(dummy_features,
-                                                      dummy_labels, weights, 1.0, noprediction=True), dummy_weights)
+    gradcheck_naive(lambda weights: softmaxRegression(dummy_features, dummy_labels, weights, 1.0,
+                                                      nopredictions=True), dummy_weights)
 
     print "\n=== Results ==="
     print softmaxRegression(dummy_features, dummy_labels, dummy_weights, 1.0)

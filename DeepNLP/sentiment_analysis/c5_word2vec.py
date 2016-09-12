@@ -17,7 +17,8 @@ def normalizeRows(x):
     return x
 
 
-def test_normalize_rows():
+def normalize_rows_test():
+
     print "Testing normalizeRows..."
     x = normalizeRows(np.array([[3.0, 4.0], [1, 2]]))
     print x
@@ -81,6 +82,7 @@ def skipgram(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     cost = 0.0
     gradIn = np.zeros(inputVectors.shape)
     gradOut = np.zeros(outputVectors.shape)
+
     for cwd in contextWords:  # contextWords is of 2C length
         idx = tokens[cwd]
         cc, gp, gg = word2vecCostAndGradient(predicted, idx, outputVectors, dataset)
@@ -108,6 +110,7 @@ def cbow(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
 
     cost, gp, gradOut = word2vecCostAndGradient(predicted, tokens[currentWord], outputVectors, dataset)
     gradIn = np.zeros(inputVectors.shape)
+
     for idx in indices:
         gradIn[idx, :] += gp
 
@@ -122,6 +125,7 @@ def word2vec_sgd_wrapper(word2vecModel, tokens, wordVectors, dataset, C,
     N = wordVectors.shape[0]
     inputVectors = wordVectors[:N / 2, :]
     outputVectors = wordVectors[N / 2:, :]
+
     for i in xrange(batchsize):  # train word2vecModel for 50 times
         C1 = random.randint(1, C)
         centerword, context = dataset.getRandomContext(C1)  # randomly choose 1 word, and generate a context of it
@@ -142,7 +146,7 @@ def word2vec_sgd_wrapper(word2vecModel, tokens, wordVectors, dataset, C,
 
 # 应该是的，W1 W2 就是词向量的矩阵，但是我给忘了原理
 
-def test_word2vec():
+def word2vec_test():
     dataset = type('dummy', (), {})()  # create a dynamic object and then add attributes to it
 
     def dummySampleTokenIdx():  # generate 1 integer between (0,4)
@@ -163,12 +167,14 @@ def test_word2vec():
     # but in real training, this matrix is a well trained data
     dummy_vectors = normalizeRows(np.random.randn(10, 3))  # generate matrix in shape=(10,3),
     dummy_tokens = dict([("a", 0), ("b", 1), ("c", 2), ("d", 3), ("e", 4)])  # {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4}
+
     print "==== Gradient check for skip-gram ===="
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(skipgram, dummy_tokens, vec, dataset, 5),
                     dummy_vectors)  # vec is dummy_vectors
     gradcheck_naive(
         lambda vec: word2vec_sgd_wrapper(skipgram, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient),
         dummy_vectors)
+
     print "\n==== Gradient check for CBOW      ===="
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(cbow, dummy_tokens, vec, dataset, 5), dummy_vectors)
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(cbow, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient),
@@ -179,11 +185,12 @@ def test_word2vec():
                    dataset)
     print skipgram("c", 1, ["a", "b"], dummy_tokens, dummy_vectors[:5, :], dummy_vectors[5:, :], dataset,
                    negSamplingCostAndGradient)
+
     print cbow("a", 2, ["a", "b", "c", "a"], dummy_tokens, dummy_vectors[:5, :], dummy_vectors[5:, :], dataset)
     print cbow("a", 2, ["a", "b", "a", "c"], dummy_tokens, dummy_vectors[:5, :], dummy_vectors[5:, :], dataset,
                negSamplingCostAndGradient)
 
 
 if __name__ == "__main__":
-    test_normalize_rows()
-    test_word2vec()
+    normalize_rows_test()
+    word2vec_test()
