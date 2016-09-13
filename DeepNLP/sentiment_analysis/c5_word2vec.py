@@ -11,8 +11,9 @@ from c3_sigmoid import sigmoid, sigmoid_grad
 
 # Each element is divided by square root of square sum of relative row
 def normalizeRows(x):
-    N = x.shape[0]
-    x /= np.sqrt(np.sum(x ** 2, axis=1)).reshape((N, 1)) + 1e-30
+
+    num = x.shape[0]
+    x /= np.sqrt(np.sum(x ** 2, axis=1)).reshape((num, 1)) + 1e-30
 
     return x
 
@@ -35,10 +36,10 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     delta = probabilities
     delta[target] -= 1
 
-    N = delta.shape[0]  # delta.shape = (5,)
+    num = delta.shape[0]  # delta.shape = (5,)
     D = predicted.shape[0]  # predicted.shape = (3,)
-    grad = delta.reshape((N, 1)) * predicted.reshape((1, D))
-    gradPred = (delta.reshape((1, N)).dot(outputVectors)).flatten()
+    grad = delta.reshape((num, 1)) * predicted.reshape((1, D))
+    gradPred = (delta.reshape((1, num)).dot(outputVectors)).flatten()
 
     return cost, gradPred, grad
 
@@ -105,11 +106,13 @@ def cbow(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     predicted = np.zeros((D,))
 
     indices = [tokens[cwd] for cwd in contextWords]
+
     for idx in indices:
         predicted += inputVectors[idx, :]
 
-    cost, gp, gradOut = word2vecCostAndGradient(predicted, tokens[currentWord], outputVectors, dataset)
     gradIn = np.zeros(inputVectors.shape)
+
+    cost, gp, gradOut = word2vecCostAndGradient(predicted, tokens[currentWord], outputVectors, dataset)
 
     for idx in indices:
         gradIn[idx, :] += gp
@@ -122,11 +125,13 @@ def word2vec_sgd_wrapper(word2vecModel, tokens, wordVectors, dataset, C,
     batchsize = 50
     cost = 0.0
     grad = np.zeros(wordVectors.shape)  # each element in wordVectors has a gradient
-    N = wordVectors.shape[0]
-    inputVectors = wordVectors[:N / 2, :]
-    outputVectors = wordVectors[N / 2:, :]
+    num = wordVectors.shape[0]
+
+    inputVectors = wordVectors[:num / 2, :]
+    outputVectors = wordVectors[num / 2:, :]
 
     for i in xrange(batchsize):  # train word2vecModel for 50 times
+
         C1 = random.randint(1, C)
         centerword, context = dataset.getRandomContext(C1)  # randomly choose 1 word, and generate a context of it
 
@@ -135,11 +140,12 @@ def word2vec_sgd_wrapper(word2vecModel, tokens, wordVectors, dataset, C,
         else:
             denom = 1
 
-        c, gin, gout = word2vecModel(centerword, C1, context, tokens, inputVectors, outputVectors, dataset,
-                                     word2vecCostAndGradient)
+        c, gin, gout = word2vecModel(centerword, C1, context, tokens, inputVectors,
+                                     outputVectors, dataset, word2vecCostAndGradient)
+
         cost += c / batchsize / denom  # calculate the average
-        grad[:N / 2, :] += gin / batchsize / denom
-        grad[N / 2:, :] += gout / batchsize / denom
+        grad[:num / 2, :] += gin / batchsize / denom
+        grad[num / 2:, :] += gout / batchsize / denom
 
     return cost, grad  # 在run里，sgd返回的是wordvectors，但sgd返回的东西是由wrapper决定的，难道wrapper的gra就是那个wordvectors吗
 
