@@ -25,7 +25,7 @@ def softmax(x):
     return x
 
 
-def test_softmax_basic():
+def softmax_basic_test():
 
     print "Running basic tests..."
     test1 = softmax(np.array([1, 2]))
@@ -44,4 +44,4 @@ def test_softmax_basic():
 
 
 if __name__ == "__main__":
-    test_softmax_basic()
+    softmax_basic_test()

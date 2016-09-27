@@ -33,6 +33,7 @@ def save_params(iter, params):
 
 
 def sgd(f, x0, step, iterations, postprocessing=None, useSaved=False, PRINT_EVERY=10):
+
     """ Stochastic Gradient Descent """
     ANNEAL_EVERY = 20000
 

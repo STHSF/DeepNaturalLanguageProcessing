@@ -26,12 +26,15 @@ def gradcheck_naive(f, x):
         random.setstate(rndstate)
         fxh, _ = f(x)
         x[ix] -= 2 * h
+
         random.setstate(rndstate)
         fxnh, _ = f(x)
         x[ix] += h
+
         numgrad = (fxh - fxnh) / 2 / h
         # To compare gradient calculated by formular and calculus
         reldiff = abs(numgrad - grad[ix]) / max(1, abs(numgrad), abs(grad[ix]))
+
         if reldiff > 1e-5:
             print "Gradient check failed."
             print "First gradient error found at index %s" % str(ix)

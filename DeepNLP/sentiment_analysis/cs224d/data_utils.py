@@ -8,12 +8,13 @@ import random
 
 
 class StanfordSentiment:
-    def __init__(self, path=None, tablesize=1000000):
+
+    def __init__(self, path=None, table_size=1000000):
         if not path:
             path = "/Users/li/Kunyan/virtualenv/DeepNLP/sentiment_analysis/cs224d/datasets/stanfordSentimentTreebank"
 
         self.path = path
-        self.tablesize = tablesize
+        self.tableSize = table_size
 
     def tokens(self):
         if hasattr(self, "_tokens") and self._tokens:
@@ -46,8 +47,9 @@ class StanfordSentiment:
         self._wordcount = wordcount
         self._revtokens = revtokens
         return self._tokens
-    
+
     def sentences(self):
+
         if hasattr(self, "_sentences") and self._sentences:
             return self._sentences
 
@@ -216,12 +218,12 @@ class StanfordSentiment:
             i += 1
 
         samplingFreq /= np.sum(samplingFreq)
-        samplingFreq = np.cumsum(samplingFreq) * self.tablesize
+        samplingFreq = np.cumsum(samplingFreq) * self.tableSize
 
-        self._sampleTable = [0] * self.tablesize
+        self._sampleTable = [0] * self.tableSize
 
         j = 0
-        for i in xrange(self.tablesize):
+        for i in xrange(self.tableSize):
             while i > samplingFreq[j]:
                 j += 1
             self._sampleTable[i] = j
@@ -246,4 +248,4 @@ class StanfordSentiment:
         return self._rejectProb
 
     def sampleTokenIdx(self):
-        return self.sampleTable()[random.randint(0, self.tablesize - 1)]
+        return self.sampleTable()[random.randint(0, self.tableSize - 1)]

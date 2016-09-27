@@ -1,7 +1,11 @@
+#!/usr/bin/env python
 # coding=utf-8
+
 import tensorflow as tf
 import numpy as np
 
+
+"""单层神经网络"""
 # 导入随机定义训练的数据x和y
 x_data = np.random.rand(100).astype(np.float32)
 y_data = x_data * 0.1 + 0.3

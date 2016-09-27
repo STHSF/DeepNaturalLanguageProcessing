@@ -16,7 +16,7 @@ def sigmoid_grad(f):
     return f
 
 
-def test_sigmoid_basic():
+def sigmoid_basic():
     print "Running basic tests..."
     x = np.array([[1, 2], [-1, -2]])
     f = sigmoid(x)
@@ -31,4 +31,4 @@ def test_sigmoid_basic():
 
 
 if __name__ == "__main__":
-    test_sigmoid_basic()
+    sigmoid_basic()
