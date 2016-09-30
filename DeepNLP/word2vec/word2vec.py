@@ -4,17 +4,14 @@
 """生成词向量空间"""
 
 # import modules & set up logging
-import gensim
+from gensim.models.word2vec import Word2Vec
 import logging
 import os
 
 # logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
-sentencestest = [['中国', '人'], ['美国', '人']]
-# # train word2vec on the two sentences
+# sentencestest = [['中国', '人'], ['美国', '人']]
 # model = gensim.models.Word2Vec(sentences, min_count=1)
-#
-# print model["中国"]
 
 
 class MySentences1(object):
@@ -41,14 +38,17 @@ class MySentences(object):
                 yield line.split(",")
 
 #  a memory-friendly iterator
-# sentences = MySentences('/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data')
-sentences = MySentences('/Users/li/Kunyan/DataSet/trainingSets') # a memory-friendly iterator
-model = gensim.models.Word2Vec(sentences, min_count=2, workers=4)
+sentences = MySentences('/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data')
+# sentences = MySentences('/Users/li/Kunyan/DataSet/trainingSets')
+model = Word2Vec(sentences, min_count=2, workers=4)
 
-print model["纤维"]
-dd = model.most_similar("纤维")
-for i in dd:
-    print i[0]
+# print model["保险"]
+# dd = model.most_similar("中国")
+
+for words in sentences:
+    for word in words:
+        print word,
+
 
 
 # model.save('/tmp/mymodel')
