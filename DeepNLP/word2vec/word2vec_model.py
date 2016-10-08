@@ -22,7 +22,6 @@ label = np.concatenate((np.ones(len(pos_file)), np.zeros(len(neg_file))))
 # 训练集,测试集
 x_train, x_test, y_train, y_test = train_test_split(np.concatenate((pos_file, neg_file)), label, test_size=0.2)
 
-
 # def text_clean(corpus):
 #     corpus = [z.lower().replace('\n', " ").split() for z in corpus]
 #     return corpus
