@@ -3,10 +3,19 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 
-train_vecs = ''
-label_train = ''
-test_vecs = ''
-label_test = ''
+import data_processing
+# 读入数据
+pos_file_path = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data/test3.txt'
+neg_file_path = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data/test2.txt'
+
+tmp = data_processing.read_data(pos_file_path, neg_file_path)
+res = data_processing.data_split(tmp[0], tmp[1])
+x_train = res[0]
+x_test = res[1]
+label_train = res[2]
+label_test = res[3]
+
+
 
 # 分类训练
 lr = SGDClassifier(loss='log', penalty='l1')

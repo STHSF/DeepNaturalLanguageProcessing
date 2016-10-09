@@ -31,6 +31,15 @@ def word2vec_test():
     n_dim = 200
     min_count = 2
     w2c_model = word2vec_model(x_train, n_dim, min_count)
+    # res = w2c_model.most_similar(positive=['纤维', '批次'], negative=['成分'], topn=1)
+    #
+    # w2c_model.doesnt_match("我 爱 中国".split())
+    #
+    # var = w2c_model.similarity('纤维', '批次')
+    # print var
+    # res = w2c_model.most_similar("纤维")
+    # for i in res:
+    #     print i[0],
     dd = w2c_model.most_similar("纤维")
     for i in dd:
         print i[0],
