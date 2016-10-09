@@ -21,7 +21,7 @@ with open(neg_file_path, 'r') as input_file:
 label = np.concatenate((np.ones(len(pos_file)), np.zeros(len(neg_file))))
 
 # 训练集,测试集
-x_train, x_test, y_train, y_test = train_test_split(np.concatenate((pos_file, neg_file)), label, test_size=0.2)
+x_train, x_test, y_train, y_test = train_test_split(np.concatenate((pos_file, neg_file)), label, test_size=0)
 
 
 def text_clean(corpus):
@@ -31,18 +31,15 @@ def text_clean(corpus):
 x_train = text_clean(x_train)
 # x_test = text_clean(x_test)
 
-for i in x_train:
-    for j in i:
-        print(j,)
+n_dim = 200
+min_count = 2
+word2vec_model = Word2Vec(size=n_dim, min_count=min_count, workers=4)
+#
+word2vec_model.build_vocab(x_train)
 
-n_dim = 30
-word2vec_model = Word2Vec(n_dim, min_count=10)
-#
-# word2vec_model.build_vocab(x_train)
-#
-# word2vec_model.train(x_train)
-#
-# word2vec_model.save('/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/word2vecmodel')
+word2vec_model.train(x_train)
+
+word2vec_model.save('/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/word2vecmodel/mymodel')
 
 
 
