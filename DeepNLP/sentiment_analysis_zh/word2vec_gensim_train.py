@@ -23,13 +23,15 @@ word2vec_model = Word2Vec.load(model_path)
 # #using gzipped/bz2 input works too, no need to unzip:
 # model = Word2Vec.load_word2vec_format('/tmp/vectors.bin.gz', binary=True)
 
-res = word2vec_model.most_similar(positive=['纤维', '批次'], negative=['成分'], topn=1)
-for i in res:
-    print i[0],
+# res = word2vec_model.most_similar(positive=['纤维', '批次'], negative=['成分'], topn=1)
 #
 # word2vec_model.doesnt_match("我 爱 中国".split())
 #
-# word2vec_model.similarity('男人', '女人')
+var = word2vec_model.similarity('纤维', '批次')
+print var
+res = word2vec_model.most_similar("纤维")
+for i in res:
+    print i[0],
 
 
 # 将一篇文章中的词向量的平均值作为输入文本的向量

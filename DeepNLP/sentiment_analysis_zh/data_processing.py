@@ -69,3 +69,8 @@ def data_split(pos_file,neg_file):
 
     res = (x_train, x_test, y_train, y_test)
     return res
+
+
+def text_clean(corpus):
+    corpus = [z.lower().replace('\n', " ").split(",") for z in corpus]
+    return corpus
