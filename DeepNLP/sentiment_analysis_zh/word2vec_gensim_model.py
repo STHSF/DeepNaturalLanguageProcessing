@@ -43,12 +43,12 @@ class MySentences(object):
 #  a memory-friendly iterator
 # sentences = MySentences('/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data')
 sentences = MySentences('/Users/li/Kunyan/DataSet/trainingSets') # a memory-friendly iterator
-model = gensim.models.Word2Vec(sentences, min_count=2, workers=4)
+model = gensim.models.Word2Vec(sentences, min_count=2, size=200,workers=4)
 
-print model["纤维"]
+print(model["纤维"])
 dd = model.most_similar("纤维")
 for i in dd:
-    print i[0]
+    print(i,)
 
 
 # model.save('/tmp/mymodel')

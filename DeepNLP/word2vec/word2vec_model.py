@@ -6,14 +6,15 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import roc_curve, auc
 from gensim.models.word2vec import Word2Vec
 import numpy as np
-import matplotlib.pyplot as plt
-
 
 # 读入数据
-with open("path", "r") as input_file:
+pos_file_path = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data/test3.txt'
+neg_file_path = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data/test2.txt'
+
+with open(pos_file_path, "r") as input_file:
     pos_file = input_file.readlines()
 
-with open('/path', 'r') as input_file:
+with open(neg_file_path, 'r') as input_file:
     neg_file = input_file.readlines()
 
 # 标签
@@ -22,20 +23,26 @@ label = np.concatenate((np.ones(len(pos_file)), np.zeros(len(neg_file))))
 # 训练集,测试集
 x_train, x_test, y_train, y_test = train_test_split(np.concatenate((pos_file, neg_file)), label, test_size=0.2)
 
-# def text_clean(corpus):
-#     corpus = [z.lower().replace('\n', " ").split() for z in corpus]
-#     return corpus
-#
-# x_train = text_clean(x_train)
+
+def text_clean(corpus):
+    corpus = [z.lower().replace('\n', " ").split(",") for z in corpus]
+    return corpus
+
+x_train = text_clean(x_train)
 # x_test = text_clean(x_test)
 
-n_dim = 300
-imdb_w2c = Word2Vec(n_dim, min_count=100)
-imdb_w2c.build_vocab(x_train)
+for i in x_train:
+    for j in i:
+        print(j,)
 
-imdb_w2c.train(x_train)
-
-imdb_w2c.save('/tmp/mymodel')
+n_dim = 30
+word2vec_model = Word2Vec(n_dim, min_count=10)
+#
+# word2vec_model.build_vocab(x_train)
+#
+# word2vec_model.train(x_train)
+#
+# word2vec_model.save('/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/word2vecmodel')
 
 
 

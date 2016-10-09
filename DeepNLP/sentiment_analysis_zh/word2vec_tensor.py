@@ -29,7 +29,10 @@ class Word2Vec_model(tf.test.TestCase):
         FLAGS.min_count = 0
         word2vec.main([])
 
+
 Word2Vec_model.setUp()
 Word2Vec_model.word2vec_model()
+
+
 
 

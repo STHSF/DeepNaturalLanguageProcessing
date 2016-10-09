@@ -63,7 +63,7 @@ test_vecs = scale(test_vecs)
 lr = SGDClassifier(loss='log', penalty='l1')
 lr.fit(train_vecs, y_train)
 
-print 'Test Accuracy: %.2f'%lr.score(test_vecs, y_test)
+print('Test Accuracy: %.2f'%lr.score(test_vecs, y_test))
 
 
 pred_probas = lr.predict_proba(test_vecs)[:, 1]

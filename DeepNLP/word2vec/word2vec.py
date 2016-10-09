@@ -40,7 +40,7 @@ class MySentences(object):
 #  a memory-friendly iterator
 sentences = MySentences('/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data')
 # sentences = MySentences('/Users/li/Kunyan/DataSet/trainingSets')
-model = Word2Vec(sentences, min_count=2, workers=4)
+# model = Word2Vec(sentences, min_count=2, workers=4)
 
 # print model["保险"]
 # dd = model.most_similar("中国")
