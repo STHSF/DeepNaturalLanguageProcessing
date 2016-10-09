@@ -60,7 +60,7 @@ def read_data(pos_file_path,neg_file_path):
 
 
 # 数据预处理,设置标签,训练集测试集准备
-def data_split(pos_file,neg_file):
+def data_split(pos_file, neg_file):
     # 标签
     label = np.concatenate((np.ones(len(pos_file)), np.zeros(len(neg_file))))
 
@@ -72,5 +72,5 @@ def data_split(pos_file,neg_file):
 
 
 def text_clean(corpus):
-    corpus = [z.lower().replace('\n', " ").split(" ") for z in corpus]
+    corpus = [z.lower().replace('\n', ' ').split(',') for z in corpus]
     return corpus

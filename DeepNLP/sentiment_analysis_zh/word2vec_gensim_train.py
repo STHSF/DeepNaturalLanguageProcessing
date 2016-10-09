@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""生成词向量空间"""
+"""生成文本向量空间"""
 
 # import modules & set up logging
 from sklearn.preprocessing import scale
