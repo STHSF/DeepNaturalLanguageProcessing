@@ -51,7 +51,7 @@ def text_vecs(x_train, x_test, n_dim, word2vec_model):
 
 def model_load_test():
 
-    model_path = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/word2vecmodel/mymodel'
+    model_path = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/word2vecmodel/mymodel'
     w2c_model = Word2Vec.load(model_path)
     # res = w2c_model.most_similar(positive=['纤维', '批次'], negative=['成分'], topn=1)
     #
