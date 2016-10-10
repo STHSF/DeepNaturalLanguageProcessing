@@ -19,12 +19,12 @@ import os
 
 
 # 生成word2vec模型
-def word2vec_model(data, size, min_count):
-    w2c_model = gensim.models.Word2Vec(data, min_count=2, size=200, workers=4)
 
-    # w2c_model = Word2Vec(data, size=size, min_count=min_count, workers=4)
-    # w2c_model.build_vocab(data)
-    # w2c_model.train(data)
+def word2vec_model(data, size, min_c):
+
+    w2c_model = Word2Vec(size=size, min_count=min_c, workers=4)
+    w2c_model.build_vocab(data)
+    w2c_model.train(data)
 
     return w2c_model
 
@@ -35,14 +35,12 @@ def word2vec_test():
     pos_file_path = globe.file_pos
     neg_file_path = globe.file_neg
 
-    tmp = data_processing.read_data_1(pos_file_path, neg_file_path)
-    # res = data_processing.data_split(tmp[0], tmp[1])
-    # x_train = res[0]
-    # x_train = data_processing.text_clean(x_train)
+    tmp = data_processing.read_data(pos_file_path, neg_file_path)
+    res = data_processing.data_split(tmp[0], tmp[1])
+    x_train = res[0]
+    x_train = data_processing.text_clean(x_train)
     n_dim = 200
     min_count = 2
-
-    x_train = tmp[0]
 
     model = gensim.models.Word2Vec(x_train, min_count=0, size=200, workers=4)
 
@@ -58,11 +56,7 @@ def word2vec_test():
     # for i in res:
     #     print i[0],
 
-    # word = "纤维" #.decode('utf-8')
-    # print word
-
-
-    dd = model.most_similar('成分')
+    dd = model.most_similar("批次")
     for i in dd:
         print i[0],
 
@@ -75,6 +69,7 @@ if __name__ == "__main__":
     res = data_processing.data_split(tmp[0], tmp[1])
     x_train = res[0]
     x_train = data_processing.text_clean(x_train)
+
     n_dim = 200
     min_count = 2
     model_path = globe.model_path

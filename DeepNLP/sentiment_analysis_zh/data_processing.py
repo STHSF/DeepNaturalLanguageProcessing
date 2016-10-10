@@ -53,54 +53,35 @@ sys.setdefaultencoding('utf8')
 
 
 # 按照标签读取数据
-def read_data_1(pos_file_path, neg_file_path):
-    with open(pos_file_path, "r") as input_file:
+#
+# def read_data(pos_file_path, neg_file_path):
+#     with open(pos_file_path) as input_file:
+#         pos_file = input_file.readlines()
+#         resp = []
+#         for p in pos_file:
+#             resp.append(p.split(","))
+#
+#     with open(neg_file_path) as input_file:
+#         neg_file = input_file.readlines()
+#         resn = []
+#         for n in neg_file:
+#             resn.append(n.split(","))
+#
+#     res = (resp, resn)
+#     return res
+
+def read_data(pos_file_path, neg_file_path):
+    with open(pos_file_path) as input_file:
         pos_file = input_file.readlines()
-        resp = []
-        for p in pos_file:
-            resp.append(p.split(","))
 
-    with open(neg_file_path, 'r') as input_file:
+    with open(neg_file_path) as input_file:
         neg_file = input_file.readlines()
-        resn = []
-        for n in neg_file:
-            resn.append(n.split(","))
-
-    res = (resp, resn)
-    return res
-
-
-# 按照标签读取数据
-def read_data_2(pos_file_path, neg_file_path):
-    pos_file = open(pos_file_path).readlines()
-    neg_file = open(neg_file_path).readlines()
-
-    resp = []
-    for p in pos_file:
-        resp.append(p.split(","))
-
-    resn = []
-    for n in neg_file:
-        resn.append(n.split(","))
 
     res = (pos_file, neg_file)
     return res
 
-
-# 按照标签读取数据
-def read_data(pos_file_path, neg_file_path):
-    res = open(pos_file_path)
-    res2 = []
-    for r in res:
-        res2.append(r.split(","))
-
-    return res2
-
 # 数据预处理,设置标签,训练集测试集准备
 def data_split(pos_file, neg_file):
-
-    print len(pos_file)
-    print len(neg_file)
     # 标签
     label = np.concatenate((np.ones(len(pos_file)), np.zeros(len(neg_file))))
 
@@ -112,28 +93,5 @@ def data_split(pos_file, neg_file):
 
 
 def text_clean(corpus):
-    corpus = [z.lower().replace('\n', " ").split(" ") for z in corpus]
+    corpus = [z.lower().replace('\n', ' ').split(',') for z in corpus]
     return corpus
-
-
-class MySentences1(object):
-    def __init__(self, dir_name):
-        self.dir_name = dir_name
-        self.do()
-
-    def do(self):
-        res = []
-        for file_name in os.listdir(self.dir_name):
-            for line in open(os.path.join(self.dir_name, file_name)).readlines():
-                res.append(line.strip())
-        return res
-
-
-class MySentences(object):
-    def __init__(self, dir_name):
-        self.dir_name = dir_name
-
-    def __iter__(self):
-        for file_name in os.listdir(self.dir_name):
-            for line in open(os.path.join(self.dir_name, file_name)):
-                yield line.split(",")
