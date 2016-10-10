@@ -51,9 +51,15 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 def read_data(pos_file_path, neg_file_path):
     with open(pos_file_path) as input_file:
         pos_file = input_file.readlines()
+        tmp = []
+        for i in pos_file:
+            tmp.append(i.split(","))
 
     with open(neg_file_path) as input_file:
         neg_file = input_file.readlines()
+        tmp = []
+        for i in pos_file:
+            tmp.append(i.split(","))
 
     res = (pos_file, neg_file)
     return res
