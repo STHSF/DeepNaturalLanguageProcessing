@@ -9,7 +9,12 @@ import numpy as np
 import logging
 import os
 
-logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
+
+# logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+
 
 # sentencestest = [['中国', '人'], ['美国', '人']]
 # # train word2vec on the two sentences
@@ -48,6 +53,23 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 
 
 # 按照标签读取数据
+#
+# def read_data(pos_file_path, neg_file_path):
+#     with open(pos_file_path) as input_file:
+#         pos_file = input_file.readlines()
+#         resp = []
+#         for p in pos_file:
+#             resp.append(p.split(","))
+#
+#     with open(neg_file_path) as input_file:
+#         neg_file = input_file.readlines()
+#         resn = []
+#         for n in neg_file:
+#             resn.append(n.split(","))
+#
+#     res = (resp, resn)
+#     return res
+
 def read_data(pos_file_path, neg_file_path):
     with open(pos_file_path) as input_file:
         pos_file = input_file.readlines()
@@ -57,7 +79,6 @@ def read_data(pos_file_path, neg_file_path):
 
     res = (pos_file, neg_file)
     return res
-
 
 # 数据预处理,设置标签,训练集测试集准备
 def data_split(pos_file, neg_file):
