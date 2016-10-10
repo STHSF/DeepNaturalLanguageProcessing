@@ -7,10 +7,10 @@
 """
 
 import jieba
+import globe
 
-input_txt = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data/input/myInput.txt'
-output_txt = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data/input/myOutput.txt'
-
+input_txt = globe.input_txt
+output_txt = globe.output_txt
 
 def split_sentence(input_file, output_file):
     fin = open(input_file, 'r')  # 以读的方式打开文件

@@ -11,8 +11,8 @@ import word2vec_gensim_train
 
 
 # 读入数据
-pos_file_path = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data/test3.txt'
-neg_file_path = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data/test2.txt'
+pos_file_path = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/data/test3.txt'
+neg_file_path = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/data/test2.txt'
 
 tmp = data_processing.read_data(pos_file_path, neg_file_path)
 res = data_processing.data_split(tmp[0], tmp[1])
@@ -25,7 +25,7 @@ x_test = data_processing.text_clean(x_test)
 
 # 生成文本向量
 n_dim = 200
-model_path = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/word2vecmodel/mymodel'
+model_path = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/word2vecmodel/mymodel'
 
 word2vec_model = Word2Vec.load(model_path)
 vecs = word2vec_gensim_train.text_vecs(x_train, x_test, n_dim, word2vec_model)

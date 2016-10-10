@@ -44,7 +44,7 @@ def text_vecs(x_train, x_test, n_dim, word2vec_model):
 
 def model_load_test():
 
-    model_path = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/word2vecmodel/mymodel'
+    model_path = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/word2vecmodel/mymodel'
     w2c_model = Word2Vec.load(model_path)
     # model = Word2Vec.load_word2vec_format('/tmp/vectors.txt', binary=False)
     # #using gzipped/bz2 input works too, no need to unzip:
