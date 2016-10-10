@@ -48,11 +48,11 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 
 
 # 按照标签读取数据
-def read_data(pos_file_path,neg_file_path):
-    with open(pos_file_path, "r") as input_file:
+def read_data(pos_file_path, neg_file_path):
+    with open(pos_file_path) as input_file:
         pos_file = input_file.readlines()
 
-    with open(neg_file_path, 'r') as input_file:
+    with open(neg_file_path) as input_file:
         neg_file = input_file.readlines()
 
     res = (pos_file, neg_file)

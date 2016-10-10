@@ -8,16 +8,9 @@ from sklearn.preprocessing import scale
 from gensim.models import Word2Vec
 import numpy as np
 import logging
-import os
 
-# n_dim = 300
-# model_path = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/word2vecmodel/mymodel'
-#
-# word2vec_model = Word2Vec.load(model_path)
 
-# model = Word2Vec.load_word2vec_format('/tmp/vectors.txt', binary=False)
-# #using gzipped/bz2 input works too, no need to unzip:
-# model = Word2Vec.load_word2vec_format('/tmp/vectors.bin.gz', binary=True)
+logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 
 # 将一篇文章中的词向量的平均值作为输入文本的向量
@@ -53,13 +46,16 @@ def model_load_test():
 
     model_path = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/word2vecmodel/mymodel'
     w2c_model = Word2Vec.load(model_path)
+    # model = Word2Vec.load_word2vec_format('/tmp/vectors.txt', binary=False)
+    # #using gzipped/bz2 input works too, no need to unzip:
+    # model = Word2Vec.load_word2vec_format('/tmp/vectors.bin.gz', binary=True)
     # res = w2c_model.most_similar(positive=['纤维', '批次'], negative=['成分'], topn=1)
     #
     # w2c_model.doesnt_match("我 爱 中国".split())
     #
     # var = w2c_model.similarity('纤维', '批次')
     # print var
-    res = w2c_model.most_similar("纤维")
+    res = w2c_model.most_similar("批次")
     for i in res:
         print i[0],
 
