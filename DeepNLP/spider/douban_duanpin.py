@@ -18,7 +18,7 @@ def ask_url(url):
     try:
         response = urllib2.urlopen(request)  # 取得响应
         html = response.read()  # 获取网页内容
-        # print html
+        print html
     except urllib2.URLError, e:
         if hasattr(e, "code"):
             print e.code
@@ -32,24 +32,20 @@ def get_data(base_url1, base_url2):
 
     # 找到作者
     pattern_author = re.compile(r'<a.+people.+">(.+)</a>')
-    # pattern_author = re.compile(r'<a href=".*" class="">(.+)</a>', re.DOTALL)
 
     # 找到评论内容
-    # pattern_subject_link = re.compile(r'<a href="(.+subject.+)" title="(.+)">')
     pattern_content = re.compile(r'<p class=""> (.+).*</p>', re.DOTALL)
 
     # 找到推荐等级
-    # pattern_star = re.compile(r'<span class="allstar\d+" title="(.+)"></span>')
     pattern_star = re.compile(r'<span class="allstar(\d+) rating" title=".*"></span>')
 
     # 找到有用数
-    # pattern_use = re.compile(r'<em id="ucount\d+u">(\d+)</em>')
     pattern_use = re.compile(r'<span class="votes pr5">(\d+).*</span>', re.DOTALL)
 
     remove = re.compile(r'<.+?>')  # 去除标签
 
     data_list = []
-    for i in range(0, 3):  # 总共54页
+    for i in range(0, 30):  # 总共54页
         url = base_url1 + str(i * 20) + base_url2   # 更新url,每页有20篇文章
         html = ask_url(url)
         soup = BeautifulSoup(html)
@@ -60,11 +56,11 @@ def get_data(base_url1, base_url2):
             # print item
 
             author = re.findall(pattern_author, item)[0]
-            print author
+            # print author
             data.append(author)  # 添加作者
 
-            star = re.findall(pattern_star, item)[0]
-            print star
+            star = re.findall(pattern_star, item)
+            # print star
             data.append(star)  # 添加推荐等级
 
             use = re.findall(pattern_use, item)
@@ -73,14 +69,13 @@ def get_data(base_url1, base_url2):
                 use = use[0]
             else:
                 use = 0
-            print use
-
+            # print use
             data.append(use)  # 添加有用数
             data_list.append(data)
 
             # 从当前网页中爬取相应数据
             review_content = re.findall(pattern_content, item)[0]
-            print review_content
+            # print review_content
             data.append(review_content)  # 添加评论正文
 
     return data_list
@@ -108,8 +103,8 @@ def main():
     base_url2 = '&limit=20&sort=new_score'
     data_list = get_data(base_url1, base_url2)
     print len(data_list)
-    # save_path = u'豆瓣影评数据.xlsx'
-    # save_data(data_list, save_path)
+    save_path = u'豆瓣影评数据.xls'
+    save_data(data_list, save_path)
 
 if __name__ == "__main__":
     main()
