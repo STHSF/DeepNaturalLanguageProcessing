@@ -86,6 +86,7 @@ def read_data(pos_file_path, neg_file_path):
     res = (pos_file, neg_file)
     return res
 
+
 # 数据预处理,设置标签,训练集测试集准备
 def data_split(pos_file, neg_file):
     # 标签
