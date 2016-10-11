@@ -47,7 +47,7 @@ def get_data(base_url1, base_url2):
     remove = re.compile(r'<.+?>')  # 去除标签
 
     data_list = []
-    for i in range(0, 300):  # 总共54页
+    for i in range(0, 3):  # 总共54页
         url = base_url1 + str(i * 20) + base_url2   # 更新url,每页有20篇文章
         html = url_request(url)
         soup = BeautifulSoup(html)

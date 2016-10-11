@@ -87,3 +87,15 @@ ENV/
 
 # Rope project settings
 .ropeproject
+.idea/*
+DeepNLP/sentiment_analysis/cs224d/datasets/__MACOSX
+DeepNLP/sentiment_analysis/cs224d/datasets/stanfordSentimentTreebank/
+DeepNLP/env/
+/DeepNLP/sentiment_analysis/cs224d/datasets/__MACOSX/
+/DeepNLP/sentiment_analysis/cs224d/datasets/stanfordSentimentTreebank/
+/DeepNLP/embedding/data
+/DeepNLP/embedding/text8.zip
+word2vecmodel
+word2vec/text8
+MNIST_data/
+
