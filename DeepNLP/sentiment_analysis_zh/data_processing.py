@@ -38,17 +38,6 @@ sys.setdefaultencoding('utf8')
 #                 res.append(line.strip())
 #         return res
 
-
-# 读取文件夹中的所有数据
-# class MySentences(object):
-#     def __init__(self, dir_name):
-#         self.dir_name = dir_name
-#
-# def __iter__(self):
-#     for file_name in os.listdir(self.dir_name):
-#         for line in open(os.path.join(self.dir_name, file_name)):
-#             yield line.split(",")
-
 # #  a memory-friendly iterator
 # sentences = MySentences('/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data')
 # sentences = MySentences('/Users/li/Kunyan/DataSet/trainingSets')  # a memory-friendly iterator

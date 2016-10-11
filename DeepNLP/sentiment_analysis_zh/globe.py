@@ -5,12 +5,13 @@
 # 全局变量模块
 
 # corpus
-input_txt = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/data/input/myInput.txt'
-output_txt = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/data/input/myOutput.txt'
-stopword = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/data/stopword.txt'
+# input_txt = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/data/input/myInput.txt'
+# output_txt = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/data/input/myOutput.txt'
+# stopword = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/data/stopword.txt'
 
 input_txt = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data/input/myInput.txt'
 output_txt = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data/input/myOutput.txt'
+stopword = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data/stopword.txt'
 
 data_patent = ''
 data_process_result = '/home/zhangxin/work/DeepSentiment/data/tagging/result.txt'

@@ -2,13 +2,6 @@
 # coding:utf-8
 # -*- coding: utf-8 -*-
 
-import sys
-
-reload(sys)
-sys.setdefaultencoding('utf8')
-
-"""生成词向量空间"""
-
 import gensim
 from gensim.models import Word2Vec
 import data_processing
@@ -16,12 +9,16 @@ import logging
 import globe
 import os
 
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
 
-# logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+"""生成词向量空间"""
+
+logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 
 # 生成word2vec模型
-
 def word2vec_model(data, size, min_c):
     w2c_model = Word2Vec(size=size, min_count=min_c, workers=4)
     w2c_model.build_vocab(data)
