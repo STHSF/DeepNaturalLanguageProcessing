@@ -13,8 +13,10 @@ sys.setdefaultencoding('utf8')
 
 
 # 得到页面全部内容
-def ask_url(url):
+def url_request(url):
     request = urllib2.Request(url)  # 发送请求
+    request.add_header('User-Agent',
+                       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36')
     try:
         response = urllib2.urlopen(request)  # 取得响应
         html = response.read()  # 获取网页内容
@@ -47,7 +49,7 @@ def get_data(base_url1, base_url2):
     data_list = []
     for i in range(0, 30):  # 总共54页
         url = base_url1 + str(i * 20) + base_url2   # 更新url,每页有20篇文章
-        html = ask_url(url)
+        html = url_request(url)
         soup = BeautifulSoup(html)
         # 找到每一个影评项
         for item in soup.find_all('div', class_='comment'):
