@@ -33,7 +33,7 @@ def word2vec_test_zx():
     :return:
     """
     sentence_process = data_processing.MySentences(globe.data_process_result)
-    n_dim = 200
+    n_dim = globe.n_dim
     min_count = 2
     model = word2vec_model(sentence_process, n_dim, min_count)
     model.save(globe.model_path)

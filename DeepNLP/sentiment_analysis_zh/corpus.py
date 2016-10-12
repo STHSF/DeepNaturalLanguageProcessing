@@ -15,7 +15,6 @@ reload(sys)
 sys.setdefaultencoding('utf8')
 
 
-
 def split_sentence(input_file, output_file):
     fin = open(input_file, 'r')  # 以读的方式打开文件
     fout = open(output_file, 'w')  # 以写得方式打开文件

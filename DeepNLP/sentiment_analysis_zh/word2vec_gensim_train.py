@@ -79,7 +79,7 @@ def model_load_test():
 
 
 if __name__ == "__main__":
-    model_load_test()
+    # model_load_test()
     doc_vec = text_vecs_zx()
     count = 1
     for d in doc_vec:

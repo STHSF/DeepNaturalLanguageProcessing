@@ -4,7 +4,7 @@ from sklearn.preprocessing import scale
 from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
-
+import globe
 import data_processing
 import word2vec_gensim_model
 import word2vec_gensim_train
@@ -26,9 +26,9 @@ x_train = data_processing.text_clean(x_train)
 x_test = data_processing.text_clean(x_test)
 
 # 生成文本向量
-n_dim = 200
+n_dim = globe.n_dim
 # model_path = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/word2vecmodel/mymodel'
-model_path = '/Users/li/workshop/DataSet/sentiment/mymodel'
+model_path = globe.model_path
 
 word2vec_model = Word2Vec.load(model_path)
 vecs = word2vec_gensim_train.text_vecs(x_train, x_test, n_dim, word2vec_model)
