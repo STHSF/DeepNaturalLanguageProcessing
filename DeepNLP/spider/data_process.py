@@ -21,7 +21,7 @@ def read_data(file_path, sheet_name):
         # 星级大于30的为正向情感评论
         if row[1] >= '30':
             pos_res.append(row[3].replace(' ', '').replace('\n', '').replace('\t', '').replace('\r', ''))
-        # 星级小雨30的为负评论
+        # 星级小于30的为负评论
         if row[1] < '30':
             neg_res.append(row[3].replace(' ', '').replace('\n', '').replace('\t', '').replace('\r', ''))
         # data.append(pos_res, neg_res)

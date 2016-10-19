@@ -31,7 +31,7 @@ def build_word2vec(text, size, word2vec_model):
 def text_vecs(x_train, x_test, n_dim, word2vec_model):
     # 训练集文本向量
     train_vecs = np.concatenate([build_word2vec(z, n_dim, word2vec_model) for z in x_train])
-    train_vecs = scale(train_vecs)
+    train_vecs = scale(train_vecs)  # 归一化
     # 测试集处理
     word2vec_model.train(x_test)
     test_vecs = np.concatenate([build_word2vec(z, n_dim, word2vec_model) for z in x_test])
@@ -52,6 +52,7 @@ def text_vecs_zx():
         for doc in data:
             word = doc.split(",")
             doc_vec_temp = build_word2vec(word, globe.n_dim, w2v_model)
+            doc_vec_temp = scale(doc_vec_temp)  # 归一化
             doc_vec.append((label, doc_vec_temp))
     return doc_vec
 
