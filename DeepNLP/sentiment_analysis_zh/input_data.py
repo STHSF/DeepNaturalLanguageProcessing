@@ -1,35 +1,179 @@
 # coding=utf-8
+from tensorflow.contrib.learn.python.learn.datasets import base
+from tensorflow.python.framework import dtypes
 from gensim.models import Word2Vec
+import tensorflow as tf
+import numpy as np
 import globe
 import data_processing
 import word2vec_gensim_train
 
 
-def read_data_sets():
-
+def dd():
     # 读入数据
-    # pos_file_path = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/data/test3.txt'
-    # neg_file_path = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/data/test2.txt'
-    pos_file_path = '/Users/li/workshop/DataSet/sentiment/train/result_pos.txt'
-    neg_file_path = '/Users/li/workshop/DataSet/sentiment/train/result_neg.txt'
+    pos_file_path = globe.pos_file_path
+    neg_file_path = globe.neg_file_path
 
     tmp = data_processing.read_data(pos_file_path, neg_file_path)
     res = data_processing.data_split(tmp[0], tmp[1])
-    x_train = res[0]
-    x_test = res[1]
-    label_train = res[2]
-    label_test = res[3]
-    x_train = data_processing.text_clean(x_train)
-    x_test = data_processing.text_clean(x_test)
+    (train_data, test_data, train_labels, test_labels) = (res[0], res[1], res[2], res[3])
+    train_data = data_processing.text_clean(train_data)
+    test_data = data_processing.text_clean(test_data)
 
     # 生成文本向量
     n_dim = globe.n_dim
-    # model_path = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/word2vecmodel/mymodel'
     model_path = globe.model_path
 
     word2vec_model = Word2Vec.load(model_path)
-    vecs = word2vec_gensim_train.text_vecs(x_train, x_test, n_dim, word2vec_model)
-    train_vecs = vecs[0]
-    test_vecs = vecs[1]
+    vecs = word2vec_gensim_train.text_vecs(train_data, test_data, n_dim, word2vec_model)
+    train_data_vecs = vecs[0]
+    print train_data_vecs.shape
+    test_data_vecs = vecs[1]
+    print test_data_vecs.shape
 
-    return ((train_vecs,label_train), (test_vecs, label_test))
+    train = (train_data_vecs, train_labels)
+    test = (test_data_vecs, test_labels)
+    return train, test
+
+
+def _read32(bytestream):
+    dt = np.dtype(np.uint32).newbyteorder('>')
+    return np.frombuffer(bytestream.read(4), dtype=dt)[0]
+
+
+def extract_images(filename):
+    """Extract the images into a 4D uint8 numpy array [index, y, x, depth]."""
+    with open(filename, 'rb') as bytestream:
+        num_images = _read32(bytestream)
+        rows = _read32(bytestream)
+        cols = _read32(bytestream)
+        buf = bytestream.read(rows * cols * num_images)
+        data = np.frombuffer(buf, dtype=np.uint8)
+        data = data.reshape(num_images, rows, cols, 1)
+    return data
+
+
+def dense_to_one_hot(labels_dense, num_classes):
+    """Convert class labels from scalars to one-hot vectors."""
+    num_labels = labels_dense.shape[0]
+    index_offset = np.arange(num_labels) * num_classes
+    labels_one_hot = np.zeros((num_labels, num_classes))
+    labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
+    return labels_one_hot
+
+
+def extract_labels(filename, one_hot=False, num_classes=10):
+    """Extract the labels into a 1D uint8 numpy array [index]."""
+    print('Extracting', filename)
+    with open(filename, 'rb') as bytestream:
+        num_items = _read32(bytestream)
+        buf = bytestream.read(num_items)
+        labels = np.frombuffer(buf, dtype=np.uint8)
+        if one_hot:
+            return dense_to_one_hot(labels, num_classes)
+    return labels
+
+
+class DataSet(object):
+
+    def __init__(self, data, labels):
+        """Construct a DataSet.
+        one_hot arg is used only if fake_data is true.  `dtype` can be either
+        `uint8` to leave the input as `[0, 255]`, or `float32` to rescale into
+        `[0, 1]`.
+        """
+        self._data = data
+        self._labels = labels
+        self._epochs_completed = 0
+        self._index_in_epoch = 0
+        self._num_examples = data.shape[0]
+
+        # 数据归一化
+
+
+
+    @property
+    def data(self):
+        return self._data
+
+    @property
+    def labels(self):
+        return self._labels
+
+    @property
+    def num_examples(self):
+        return self._num_examples
+
+    @property
+    def epochs_completed(self):
+        return self._epochs_completed
+
+    def next_batch(self, batch_size):
+        """Return the next `batch_size` examples from this data set."""
+        start = self._index_in_epoch
+        self._index_in_epoch += batch_size
+        if self._index_in_epoch > self._num_examples:
+            # Finished epoch
+            self._epochs_completed += 1
+            # Shuffle the data
+            perm = np.arange(self._num_examples)
+            np.random.shuffle(perm)
+            self._data = self._data[perm]
+            self._labels = self._labels[perm]
+            # Start next epoch
+            start = 0
+            self._index_in_epoch = batch_size
+            assert batch_size <= self._num_examples
+        end = self._index_in_epoch
+        return self._data[start:end], self._labels[start:end]
+
+
+def read_data_sets():
+
+    # train_data = '/Users/li/workshop/DataSet/sentiment/train/result_pos.txt'
+    # train_labels = '/Users/li/workshop/DataSet/sentiment/train/result_pos.txt'
+    # test_data = '/Users/li/workshop/DataSet/sentiment/train/result_pos.txt'
+    # test_labels = '/Users/li/workshop/DataSet/sentiment/train/result_pos.txt'
+    #
+    # train_data = base.load_csv_without_header(train_data, train_dir,
+    #                                           features_dtype=tf.float32)
+    #
+    # train_labels_file = base.load_csv_without_header(train_labels, train_dir,
+    #                                                  features_dtype=tf.float32)
+    #
+    # train_labels = extract_labels(train_labels_file, one_hot=one_hot)
+    #
+    # test_data = base.load_csv_without_header(test_data, train_dir,
+    #                                          features_dtype=tf.float32)
+    # test_labels_file = base.load_csv_without_header(test_labels, train_dir,
+    #                                                 features_dtype=tf.float32)
+    # test_labels = extract_labels(test_labels_file, one_hot=one_hot)
+
+    data = dd()
+
+    train_data = data[0][0]
+    train_labels = data[0][1]
+
+    test_data = data[1][0]
+    test_labels = data[1][1]
+
+    validation_size = 500
+    validation_data = train_data[:validation_size]
+    validation_labels = train_labels[:validation_size]
+    train_data = train_data[validation_size:]
+    train_labels = train_labels[validation_size:]
+
+    train = DataSet(train_data, train_labels)
+    validation = DataSet(validation_data, validation_labels)
+    test = DataSet(test_data, test_labels)
+
+    return base.Datasets(train=train, validation=validation, test=test)
+
+
+def load_data():
+    dd()
+    return read_data_sets()
+
+if __name__ == '__main__':
+    dd()
+

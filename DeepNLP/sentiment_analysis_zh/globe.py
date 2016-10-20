@@ -48,3 +48,9 @@ model_path = '/Users/li/workshop/MyRepository/DeepNaturalLanguageProcessing/Deep
 # w2v模型的参数
 n_dim = 200
 min_count = 2
+
+# pos_file_path = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/data/test3.txt'
+# neg_file_path = '/home/zhangxin/work/workplace_python/DeepNaturalLanguageProcessing/DeepNLP/data/test2.txt'
+
+pos_file_path = '/Users/li/workshop/DataSet/sentiment/train/result_pos.txt'
+neg_file_path = '/Users/li/workshop/DataSet/sentiment/train/result_neg.txt'

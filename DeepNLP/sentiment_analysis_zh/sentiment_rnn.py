@@ -5,9 +5,9 @@
 初步思路使用RNN
 """
 
-
 import tensorflow as tf
 import input_data
+import globe
 
 # set random seed for comparing the two result calculations
 tf.set_random_seed(1)
@@ -18,12 +18,12 @@ training_data = input_data.read_data_sets()
 # hyper_parameters
 lr = 0.001
 training_iters = 100000
-batch_size = 128
+batch_size = 1200
 
 n_inputs = 1   # data input size
-n_steps = 100    # time steps
+n_steps = globe.n_dim  # time steps
 n_hidden_units = 128   # neurons in hidden layer
-n_classes = 10      # classes
+n_classes = 2      # classes
 
 # tf Graph input
 x = tf.placeholder(tf.float32, [None, n_steps, n_inputs])
@@ -104,7 +104,9 @@ with tf.Session() as sess:
     while step * batch_size < training_iters:
         batch_xs, batch_ys = training_data.train.next_batch(batch_size)
         batch_xs = batch_xs.reshape([batch_size, n_steps, n_inputs])
-        sess.run([train], feed_dict={x: batch_xs, y: batch_ys, })
+        # print len(batch_xs[3])
+        # print len(batch_ys)
+        sess.run([train], feed_dict={x: batch_xs, y: batch_ys})
         if step % 20 == 0:
-            print(sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys, }))
+            print(sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys}))
         step += 1
