@@ -7,21 +7,21 @@
 
 
 import tensorflow as tf
-from tensorflow.examples.tutorials.mnist import input_data
+import input_data
 
 # set random seed for comparing the two result calculations
 tf.set_random_seed(1)
 
 # this is data
-mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+training_data = input_data.read_data_sets()
 
-# hyperparameters
+# hyper_parameters
 lr = 0.001
 training_iters = 100000
 batch_size = 128
 
-n_inputs = 28   # data input size
-n_steps = 28    # time steps
+n_inputs = 1   # data input size
+n_steps = 100    # time steps
 n_hidden_units = 128   # neurons in hidden layer
 n_classes = 10      # classes
 
@@ -45,7 +45,7 @@ biases = {
 }
 
 
-def RNN(input_data, weights, biases):
+def rnn(input_data, weights, biases):
     # hidden layer for input to cell
     ########################################
 
@@ -89,7 +89,7 @@ def RNN(input_data, weights, biases):
     return results
 
 
-predict = RNN(x, weights, biases)
+predict = rnn(x, weights, biases)
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(predict, y))
 train = tf.train.AdamOptimizer(lr).minimize(cost)
 
@@ -102,7 +102,7 @@ with tf.Session() as sess:
     sess.run(init)
     step = 0
     while step * batch_size < training_iters:
-        batch_xs, batch_ys = mnist.train.next_batch(batch_size)
+        batch_xs, batch_ys = training_data.train.next_batch(batch_size)
         batch_xs = batch_xs.reshape([batch_size, n_steps, n_inputs])
         sess.run([train], feed_dict={x: batch_xs, y: batch_ys, })
         if step % 20 == 0:
