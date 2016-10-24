@@ -17,6 +17,7 @@ def dd():
     tmp = data_processing.read_data(pos_file_path, neg_file_path)
     res = data_processing.data_split(tmp[0], tmp[1])
     (train_data, test_data, train_labels, test_labels) = (res[0], res[1], res[2], res[3])
+    # print train_labels[0]
     train_data = data_processing.text_clean(train_data)
     test_data = data_processing.text_clean(test_data)
 
@@ -27,13 +28,11 @@ def dd():
     word2vec_model = Word2Vec.load(model_path)
     vecs = word2vec_gensim_train.text_vecs(train_data, test_data, n_dim, word2vec_model)
     train_data_vecs = vecs[0]
-    print train_data_vecs.shape
+    # print train_data_vecs.shape
     test_data_vecs = vecs[1]
-    print test_data_vecs.shape
+    # print test_data_vecs.shape
 
-    train = (train_data_vecs, train_labels)
-    test = (test_data_vecs, test_labels)
-    return train, test
+    return train_data_vecs, train_labels, test_data_vecs, test_labels
 
 
 def _read32(bytestream):
@@ -55,6 +54,7 @@ def extract_images(filename):
 
 def dense_to_one_hot(labels_dense, num_classes):
     """Convert class labels from scalars to one-hot vectors."""
+    print labels_dense.dtype
     num_labels = labels_dense.shape[0]
     index_offset = np.arange(num_labels) * num_classes
     labels_one_hot = np.zeros((num_labels, num_classes))
@@ -62,15 +62,11 @@ def dense_to_one_hot(labels_dense, num_classes):
     return labels_one_hot
 
 
-def extract_labels(filename, one_hot=False, num_classes=10):
+def extract_labels(labels, one_hot=False, num_classes=2):
     """Extract the labels into a 1D uint8 numpy array [index]."""
-    print('Extracting', filename)
-    with open(filename, 'rb') as bytestream:
-        num_items = _read32(bytestream)
-        buf = bytestream.read(num_items)
-        labels = np.frombuffer(buf, dtype=np.uint8)
-        if one_hot:
-            return dense_to_one_hot(labels, num_classes)
+    print labels.shape
+    if one_hot:
+        return dense_to_one_hot(labels.astype(np.uint8), num_classes)
     return labels
 
 
@@ -78,19 +74,16 @@ class DataSet(object):
 
     def __init__(self, data, labels):
         """Construct a DataSet.
-        one_hot arg is used only if fake_data is true.  `dtype` can be either
-        `uint8` to leave the input as `[0, 255]`, or `float32` to rescale into
-        `[0, 1]`.
         """
         self._data = data
         self._labels = labels
         self._epochs_completed = 0
         self._index_in_epoch = 0
         self._num_examples = data.shape[0]
+        print 'num_examples'
+        print data.shape[0]
 
         # 数据归一化
-
-
 
     @property
     def data(self):
@@ -151,11 +144,15 @@ def read_data_sets():
 
     data = dd()
 
-    train_data = data[0][0]
-    train_labels = data[0][1]
+    train_data = data[0]
+    # train_label = np.reshape(data[1], (data[1].shape[0],))
+    # print train_label.shape
+    train_labels = extract_labels(data[1], one_hot=True)
 
-    test_data = data[1][0]
-    test_labels = data[1][1]
+    test_data = data[2]
+    # test_label = np.reshape(data[3], (data[1].shape[0], 1))
+    test_labels = extract_labels(data[3], one_hot=True)
+    # print train_label.shape
 
     validation_size = 500
     validation_data = train_data[:validation_size]
@@ -164,16 +161,18 @@ def read_data_sets():
     train_labels = train_labels[validation_size:]
 
     train = DataSet(train_data, train_labels)
+    print train.data[0], train.labels[0]
     validation = DataSet(validation_data, validation_labels)
     test = DataSet(test_data, test_labels)
 
     return base.Datasets(train=train, validation=validation, test=test)
 
 
-def load_data():
-    dd()
-    return read_data_sets()
+# def load_data():
+#     return read_data_sets()
 
 if __name__ == '__main__':
-    dd()
+    # dd()
+    read_data_sets()
+
 

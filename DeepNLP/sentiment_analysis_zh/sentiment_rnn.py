@@ -67,12 +67,6 @@ def rnn(input_data, weights, biases):
     # lstm cell is divided into two parts (c_state, h_state)
     _init_state = lstm_cell.zero_state(batch_size, dtype=tf.float32)
 
-    # You have 2 options for following step.
-    # 1: tf.nn.rnn(cell, inputs);
-    # 2: tf.nn.dynamic_rnn(cell, inputs).
-    # If use option 1, you have to modified the shape of data_in, go and check out this:
-    # https://github.com/aymericdamien/TensorFlow-Examples/blob/master/examples/3_NeuralNetworks/recurrent_network.py
-    # In here, we go for option 2.
     # dynamic_rnn receive Tensor (batch, steps, inputs) or (steps, batch, inputs) as data_in.
     # Make sure the time_major is changed accordingly.
     outputs, final_state = tf.nn.dynamic_rnn(lstm_cell, data_in, initial_state=_init_state, time_major=False)
@@ -104,8 +98,6 @@ with tf.Session() as sess:
     while step * batch_size < training_iters:
         batch_xs, batch_ys = training_data.train.next_batch(batch_size)
         batch_xs = batch_xs.reshape([batch_size, n_steps, n_inputs])
-        # print len(batch_xs[3])
-        # print len(batch_ys)
         sess.run([train], feed_dict={x: batch_xs, y: batch_ys})
         if step % 20 == 0:
             print(sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys}))
