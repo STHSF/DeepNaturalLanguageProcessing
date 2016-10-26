@@ -4,15 +4,24 @@ from tensorflow.python.framework import dtypes
 from gensim.models import Word2Vec
 import tensorflow as tf
 import numpy as np
+import logging
 import globe
 import data_processing
 import word2vec_gensim_train
 
+logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
-def dd():
-    # 读入数据
-    pos_file_path = globe.pos_file_path
-    neg_file_path = globe.neg_file_path
+
+def _data_read(pos_file_path, neg_file_path, model_path):
+    """read data word2vec model from file path,
+    Args:
+        pos_file_path: Positive file path.
+        neg_file_path: Negative file path.
+    Returns:
+        A list contains training data with labels and test data with labels.
+    Raises:
+           IOError: An error occurred accessing the bigtable.Table object.
+    """
 
     tmp = data_processing.read_data(pos_file_path, neg_file_path)
     res = data_processing.data_split(tmp[0], tmp[1])
@@ -21,15 +30,20 @@ def dd():
     train_data = data_processing.text_clean(train_data)
     test_data = data_processing.text_clean(test_data)
 
-    # 生成文本向量
+    # 词向量的维度
     n_dim = globe.n_dim
-    model_path = globe.model_path
+    # load word2vec model from model path
+    text_vecs = []
+    try:
+        word2vec_model = Word2Vec.load(model_path)
 
-    word2vec_model = Word2Vec.load(model_path)
-    vecs = word2vec_gensim_train.text_vecs(train_data, test_data, n_dim, word2vec_model)
-    train_data_vecs = vecs[0]
+        text_vecs = word2vec_gensim_train.text_vecs(train_data, test_data, n_dim, word2vec_model)
+    except IOError:
+        pass
+    # 生成文本向量
+    train_data_vecs = text_vecs[0]
     # print train_data_vecs.shape
-    test_data_vecs = vecs[1]
+    test_data_vecs = text_vecs[1]
     # print test_data_vecs.shape
 
     return train_data_vecs, train_labels, test_data_vecs, test_labels
@@ -54,7 +68,7 @@ def extract_images(filename):
 
 def dense_to_one_hot(labels_dense, num_classes):
     """Convert class labels from scalars to one-hot vectors."""
-    print labels_dense.dtype
+    # print labels_dense.dtype
     num_labels = labels_dense.shape[0]
     index_offset = np.arange(num_labels) * num_classes
     labels_one_hot = np.zeros((num_labels, num_classes))
@@ -64,24 +78,27 @@ def dense_to_one_hot(labels_dense, num_classes):
 
 def extract_labels(labels, one_hot=False, num_classes=2):
     """Extract the labels into a 1D uint8 numpy array [index]."""
-    print labels.shape
+    # print labels.shape
     if one_hot:
         return dense_to_one_hot(labels.astype(np.uint8), num_classes)
     return labels
 
 
 class DataSet(object):
+    """Construct a DataSet.
+    Attributes:
+        data: text vectors
+        labels: labels of every data
+    """
 
     def __init__(self, data, labels):
-        """Construct a DataSet.
+        """inits DataSet.
         """
         self._data = data
         self._labels = labels
         self._epochs_completed = 0
         self._index_in_epoch = 0
         self._num_examples = data.shape[0]
-        print 'num_examples'
-        print data.shape[0]
 
         # 数据归一化
 
@@ -123,6 +140,11 @@ class DataSet(object):
 
 def read_data_sets():
 
+    # 读入数据
+    pos_file_path = globe.pos_file_path
+    neg_file_path = globe.neg_file_path
+    w2c_model_path = globe.model_path
+
     # train_data = '/Users/li/workshop/DataSet/sentiment/train/result_pos.txt'
     # train_labels = '/Users/li/workshop/DataSet/sentiment/train/result_pos.txt'
     # test_data = '/Users/li/workshop/DataSet/sentiment/train/result_pos.txt'
@@ -142,16 +164,16 @@ def read_data_sets():
     #                                                 features_dtype=tf.float32)
     # test_labels = extract_labels(test_labels_file, one_hot=one_hot)
 
-    data = dd()
+    raw_data = _data_read(pos_file_path, neg_file_path, w2c_model_path)
 
-    train_data = data[0]
-    # train_label = np.reshape(data[1], (data[1].shape[0],))
+    train_data = raw_data[0]
+    # train_label = np.reshape(raw_data[1], (raw_data[1].shape[0],))
     # print train_label.shape
-    train_labels = extract_labels(data[1], one_hot=True)
+    train_labels = extract_labels(raw_data[1], one_hot=True)
 
-    test_data = data[2]
-    # test_label = np.reshape(data[3], (data[1].shape[0], 1))
-    test_labels = extract_labels(data[3], one_hot=True)
+    test_data = raw_data[2]
+    # test_label = np.reshape(raw_data[3], (raw_data[1].shape[0], 1))
+    test_labels = extract_labels(raw_data[3], one_hot=True)
     # print train_label.shape
 
     validation_size = 500
@@ -161,18 +183,16 @@ def read_data_sets():
     train_labels = train_labels[validation_size:]
 
     train = DataSet(train_data, train_labels)
-    print train.data[0], train.labels[0]
+    # print train.raw_data[0], train.labels[0]
     validation = DataSet(validation_data, validation_labels)
     test = DataSet(test_data, test_labels)
 
     return base.Datasets(train=train, validation=validation, test=test)
 
-
 # def load_data():
 #     return read_data_sets()
 
 if __name__ == '__main__':
-    # dd()
     read_data_sets()
 
 
