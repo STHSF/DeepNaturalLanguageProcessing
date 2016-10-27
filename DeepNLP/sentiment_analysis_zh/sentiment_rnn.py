@@ -18,11 +18,11 @@ training_data = input_data.read_data_sets()
 # hyper_parameters
 lr = 0.001
 training_iters = 100000
-batch_size = 50
+batch_size = 100
 
 n_inputs = 1   # data input size
 n_steps = globe.n_dim  # time steps
-n_hidden_units = 128   # neurons in hidden layer
+n_hidden_units = 200   # neurons in hidden layer
 n_classes = 2      # classes
 
 # tf Graph input
@@ -31,16 +31,16 @@ y = tf.placeholder(tf.float32, [None, n_classes])
 
 # Define weights
 weights = {
-    # (28, 128)
+    # (1, 200)
     'in': tf.Variable(tf.random_normal([n_inputs, n_hidden_units])),
-    # (128, 10)
+    # (200, 2)
     'out': tf.Variable(tf.random_normal([n_hidden_units, n_classes]))
 }
 
 biases = {
-    # (128, )
+    # (200, )
     'in': tf.Variable(tf.constant(0.1, shape=[n_hidden_units, ])),
-    # (10, )
+    # (2, )
     'out': tf.Variable(tf.constant(0.1, shape=[n_classes, ]))
 }
 
@@ -50,13 +50,13 @@ def rnn(input_data, weights, biases):
     ########################################
 
     # transpose the inputs shape from
-    # X ==> (128 batch * 28 steps, 28 inputs)
+    # X ==> (100 batch * 200 steps, 1 inputs)
     input_data = tf.reshape(input_data, [-1, n_inputs])
 
     # into hidden
-    # data_in = (128 batch * 28 steps, 128 hidden)
+    # data_in = (100 batch * 200 steps, 100 hidden)
     data_in = tf.matmul(input_data, weights['in']) + biases['in']
-    # data_in ==> (128 batch, 28 steps, 128 hidden)
+    # data_in ==> (100 batch, 200 steps, 100 hidden)
     data_in = tf.reshape(data_in, [-1, n_steps, n_hidden_units])
 
     # cell
@@ -64,6 +64,10 @@ def rnn(input_data, weights, biases):
 
     # basic LSTM Cell.
     lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden_units, forget_bias=1.0, state_is_tuple=True)
+
+    # DropoutWrapper
+
+
     # lstm cell is divided into two parts (c_state, h_state)
     _init_state = lstm_cell.zero_state(batch_size, dtype=tf.float32)
 
