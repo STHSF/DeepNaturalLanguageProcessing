@@ -5,6 +5,7 @@
 
 # import modules & set up logging
 from sklearn.preprocessing import scale
+from sklearn.model_selection import train_test_split
 from gensim.models import Word2Vec
 import numpy as np
 import logging
@@ -45,15 +46,22 @@ def text_vecs(x_train, x_test, n_dim, word2vec_model):
 def text_vecs_zx():
     w2v_model = Word2Vec.load(globe.model_path)
     train_data = globe.train_data
-    doc_vec = []
+    doc_vec_label = []
     for d in train_data:
         label = d[0]
         data = open(d[1])
         for doc in data:
             word = doc.split(",")
             doc_vec_temp = build_word2vec(word, globe.n_dim, w2v_model)
-            doc_vec.append((label, doc_vec_temp))
-    return doc_vec
+            doc_vec_label.append((label, doc_vec_temp))
+    return doc_vec_label
+
+
+# 训练集和测试集分割
+def train_test(doc_vec_label):
+    train, test = train_test_split(doc_vec_label, test_size=0.2)
+    res = (train, test)
+    return res
 
 
 def model_load_test():
