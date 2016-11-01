@@ -32,11 +32,25 @@ def split_sentence(input_file, output_file):
     fout.close()
 
 
+# 文本处理
+def sentence(file_parent_path):
+    file_seg = {}
+    for file_name in os.listdir(file_parent_path):
+        file_path = os.path.join(file_parent_path, file_name)
+        data = open(file_path)
+        result = ""
+        for d in data:
+            temp = d.replace(" ", "").strip()
+            result += filter_stop_word(list(jieba.cut(temp)))
+        file_seg[file_name] = result
+        data.close()
+    return file_seg
+
 count = 0
 
 
 # 文本处理并写出
-def sentence(file_parent_path, out):
+def sentence_out(file_parent_path, out):
     global count
     for file_name in os.listdir(file_parent_path):
         count += 1
@@ -79,4 +93,6 @@ def do():
 
 
 if __name__ == "__main__":
-    do()
+    result = sentence('/home/zhangxin/work/workplace_python/DeepSentiment/data/predict_test/')
+    for r in result:
+        print r

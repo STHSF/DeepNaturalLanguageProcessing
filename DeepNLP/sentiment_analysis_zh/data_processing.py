@@ -38,17 +38,6 @@ sys.setdefaultencoding('utf8')
 #                 res.append(line.strip())
 #         return res
 
-
-# 读取文件夹中的所有数据
-# class MySentences(object):
-#     def __init__(self, dir_name):
-#         self.dir_name = dir_name
-#
-# def __iter__(self):
-#     for file_name in os.listdir(self.dir_name):
-#         for line in open(os.path.join(self.dir_name, file_name)):
-#             yield line.split(",")
-
 # #  a memory-friendly iterator
 # sentences = MySentences('/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data')
 # sentences = MySentences('/Users/li/Kunyan/DataSet/trainingSets')  # a memory-friendly iterator
@@ -67,9 +56,15 @@ class MySentences(object):
 def read_data(pos_file_path, neg_file_path):
     with open(pos_file_path) as input_file:
         pos_file = input_file.readlines()
+        tmp = []
+        for i in pos_file:
+            tmp.append(i.split(","))
 
     with open(neg_file_path) as input_file:
         neg_file = input_file.readlines()
+        tmp = []
+        for i in pos_file:
+            tmp.append(i.split(","))
 
     res = (pos_file, neg_file)
     return res
@@ -81,9 +76,10 @@ def data_split(pos_file, neg_file):
     label = np.concatenate((np.ones(len(pos_file)), np.zeros(len(neg_file))))
 
     # 训练集,测试集
-    x_train, x_test, y_train, y_test = train_test_split(np.concatenate((pos_file, neg_file)), label, test_size=0.1)
+    train_data, test_data, train_labels, test_labels = train_test_split(np.concatenate((pos_file, neg_file)), label,
+                                                                        test_size=0.1)
 
-    res = (x_train, x_test, y_train, y_test)
+    res = (train_data, test_data, train_labels, test_labels)
     return res
 
 
