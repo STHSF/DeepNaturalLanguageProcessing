@@ -8,6 +8,7 @@ import logging
 import globe
 import data_processing
 import word2vec_gensim_train
+import corpus
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
@@ -26,6 +27,7 @@ def _data_read(pos_file_path, neg_file_path, model_path):
     tmp = data_processing.read_data(pos_file_path, neg_file_path)
     res = data_processing.data_split(tmp[0], tmp[1])
     (train_data, test_data, train_labels, test_labels) = (res[0], res[1], res[2], res[3])
+
     # print train_labels[0]
     train_data = data_processing.text_clean(train_data)
     test_data = data_processing.text_clean(test_data)
@@ -137,9 +139,27 @@ class DataSet(object):
         end = self._index_in_epoch
         return self._data[start:end], self._labels[start:end]
 
+    def next_batch_data(self, batch_size):
+        """Return the next `batch_size` examples from this data set."""
+        start = self._index_in_epoch
+        self._index_in_epoch += batch_size
+        if self._index_in_epoch > self._num_examples:
+            # Finished epoch
+            self._epochs_completed += 1
+            # Shuffle the data
+            perm = np.arange(self._num_examples)
+            np.random.shuffle(perm)
+            self._data = self._data[perm]
+            # self._labels = self._labels[perm]
+            # Start next epoch
+            start = 0
+            self._index_in_epoch = batch_size
+            assert batch_size <= self._num_examples
+        end = self._index_in_epoch
+        return self._data[start:end]  # , self._labels[start:end]
+
 
 def read_data_sets():
-
     # 读入数据
     pos_file_path = globe.pos_file_path
     neg_file_path = globe.neg_file_path
@@ -183,16 +203,42 @@ def read_data_sets():
     train_labels = train_labels[validation_size:]
 
     train = DataSet(train_data, train_labels)
-    # print train.raw_data[0], train.labels[0]
+    # print train.data[0], train.labels[0]
     validation = DataSet(validation_data, validation_labels)
     test = DataSet(test_data, test_labels)
 
     return base.Datasets(train=train, validation=validation, test=test)
+
+
+def read_data_sets_predict():
+
+    # 读入数据,并切词\去停处理
+    predict_parent_file = globe.predict_parent_file
+    file_seg = corpus.sentence(predict_parent_file)
+
+    # 构建word2vec词向量
+    w2c_model_path = globe.model_path
+
+    text_vecs = {}
+    try:
+        word2vec_model = Word2Vec.load(w2c_model_path)
+
+        for title in file_seg.keys():
+            # print '【标题】', title
+            # print '【正文】', file_seg[title]
+
+            doc = file_seg[title]
+            doc_vec = word2vec_gensim_train.doc_vecs_zx(doc, word2vec_model)
+            # text_vecs.append(doc_vec)
+            text_vecs[title] = doc_vec
+    except IOError:
+        pass
+
+    return text_vecs
+
 
 # def load_data():
 #     return read_data_sets()
 
 if __name__ == '__main__':
     read_data_sets()
-
-
