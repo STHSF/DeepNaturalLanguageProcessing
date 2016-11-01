@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 """
-初步思路使用RNN
+使用RNN
 """
 
+import matplotlib.pyplot as plt
 import tensorflow as tf
 import input_data
 import globe
-import matplotlib.pyplot as plt
 
 # set random seed for comparing the two result calculations
 tf.set_random_seed(1)
@@ -46,7 +46,7 @@ biases = {
 }
 
 
-def rnn(input_data, weights, biases):
+def rnn(input_data, weights, biases, is_training=True):
     keep_prob = 1
     num_layers = 2
     # hidden layer for input to cell
@@ -69,11 +69,10 @@ def rnn(input_data, weights, biases):
     lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden_units, forget_bias=1.0, state_is_tuple=True)
 
     # DropoutWrapper
-    if keep_prob < 1:
+    if is_training and keep_prob < 1:
         lstm_cell = tf.nn.rnn_cell.DropoutWrapper(lstm_cell, output_keep_prob=keep_prob)
 
     lstm_cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * num_layers, state_is_tuple=True)
-
 
     # lstm cell is divided into two parts (c_state, h_state)
     _init_state = lstm_cell.zero_state(batch_size, dtype=tf.float32)
@@ -111,25 +110,30 @@ with tf.Session() as sess:
 
     while step * batch_size < training_iters:
         batch_xs, batch_ys = training_data.train.next_batch(batch_size)
-        # print 'batch_xs'
-        # print batch_xs.shape
         batch_xs = batch_xs.reshape([batch_size, n_steps, n_inputs])
         sess.run([train], feed_dict={x: batch_xs, y: batch_ys})
 
         # accuracy
         acc = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys})
         acc_array.append(acc)
-        if step % 20 == 0:
+        if step % 40 == 0:
             prediction_value = sess.run(predict, feed_dict={x: batch_xs, y: batch_ys})
             # plot the prediction
             # lines = ax.plot(batch_xs, prediction_value, 'r-', lw=2)
             print acc
         step += 1
 
-# plot accuracy
-fig = plt.figure()
-ax = fig.add_subplot(1, 1, 1)
-lines = ax.plot(acc_array, '-', lw=2)
-y_text = ax.ylabel('精度')
-ax.setp(y_text, size='medium', name='helvetica', weight='light', color='r')
-plt.show()
+    test_batch_xs, test_batch_ys = training_data.test.next_batch(batch_size)
+    test_batch_xs = test_batch_xs.reshape([batch_size, n_steps, n_inputs])
+    test_acc = sess.run(accuracy, feed_dict={x: test_batch_xs, y: test_batch_ys})
+    print('test_acc:%d', test_acc)
+
+
+
+# # plot accuracy
+# fig = plt.figure()
+# ax = fig.add_subplot(1, 1, 1)
+# lines = ax.plot(acc_array, '-', lw=2)
+# y_text = ax.ylabel('精度')
+# ax.setp(y_text, size='medium', name='helvetica', weight='light', color='r')
+# plt.show()

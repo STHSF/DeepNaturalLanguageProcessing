@@ -36,7 +36,7 @@ flags.DEFINE_integer("concurrent_steps", 12,
                      "The number of concurrent training steps.")
 flags.DEFINE_integer("window_size", 5,
                      "The number of words to predict to the left and right "
-                     "of the target word.")
+                     "of the _targets word.")
 flags.DEFINE_integer("min_count", 5,
                      "The minimum number of word occurrences for it to be "
                      "included in the vocabulary.")
@@ -90,7 +90,7 @@ class Options(object):
     # Number of examples for one training step.
     self.batch_size = FLAGS.batch_size
 
-    # The number of words to predict to the left and right of the target word.
+    # The number of words to predict to the left and right of the _targets word.
     self.window_size = FLAGS.window_size
 
     # The minimum number of word occurrences for it to be included in the
@@ -281,7 +281,7 @@ class Word2Vec(object):
     # near: c_emb + (b_emb - a_emb), which has the shape [N, emb_dim].
     target = c_emb + (b_emb - a_emb)
 
-    # Compute cosine distance between each pair of target and vocab.
+    # Compute cosine distance between each pair of _targets and vocab.
     # dist has shape [N, vocab_size].
     dist = tf.matmul(target, nemb, transpose_b=True)
 

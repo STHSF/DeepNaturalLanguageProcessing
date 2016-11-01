@@ -183,7 +183,6 @@ def read_data_sets():
     train_labels = train_labels[validation_size:]
 
     train = DataSet(train_data, train_labels)
-    # print train.raw_data[0], train.labels[0]
     validation = DataSet(validation_data, validation_labels)
     test = DataSet(test_data, test_labels)
 

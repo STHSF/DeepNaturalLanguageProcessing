@@ -58,7 +58,7 @@ def skipgram(filename, batch_size, window_size=None, min_count=None,
     filename: A `string`. The corpus's text file name.
     batch_size: An `int`. The size of produced batch.
     window_size: An optional `int`. Defaults to `5`.
-      The number of words to predict to the left and right of the target.
+      The number of words to predict to the left and right of the _targets.
     min_count: An optional `int`. Defaults to `5`.
       The minimum number of word occurrences for it to be included in the
       vocabulary.
