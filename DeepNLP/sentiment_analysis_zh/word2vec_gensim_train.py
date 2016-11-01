@@ -5,6 +5,7 @@
 
 # import modules & set up logging
 from sklearn.preprocessing import scale
+from sklearn.model_selection import train_test_split
 from gensim.models import Word2Vec
 import numpy as np
 import logging
@@ -57,18 +58,32 @@ def text_vecs_zx():
     return doc_vec
 
 
+# 文档转向量空间模型
+# def doc_vecs_zx(file_seg, word2vec_model):
+#     file_vec = {}
+#     for key_title in file_seg.keys:
+#         doc = file_seg[key_title]
+#         word = doc.split(",")
+#         doc_vec = build_word2vec(word, globe.n_dim, word2vec_model)
+#         doc_vec = scale(doc_vec)  # 归一化
+#         file_vec[key_title] = doc_vec
+#     return file_vec
+
+# 文档转向量空间模型
+def doc_vecs_zx(doc, word2vec_model):
+    word = doc.split(",")
+    doc_vec = build_word2vec(word, globe.n_dim, word2vec_model)
+    # print doc_vec
+
+    # doc_vec = scale(doc_vec)  # 归一化 ，，如果进行归一化，词向量全部变为 0，诡异！！
+    # print doc_vec
+
+    return doc_vec
+
+
 def model_load_test():
     model_path = globe.model_path
     w2c_model = Word2Vec.load(model_path)
-    # model = Word2Vec.load_word2vec_format('/tmp/vectors.txt', binary=False)
-    # #using gzipped/bz2 input works too, no need to unzip:
-    # model = Word2Vec.load_word2vec_format('/tmp/vectors.bin.gz', binary=True)
-    # res = w2c_model.most_similar(positive=['纤维', '批次'], negative=['成分'], topn=1)
-    #
-    # w2c_model.doesnt_match("我 爱 中国".split())
-    #
-    # var = w2c_model.similarity('纤维', '批次')
-    # print var
 
     print '[中国] ', " ".join([word[0] for word in w2c_model.most_similar("中国")])
     print '[万科] ', " ".join([word[0] for word in w2c_model.most_similar("万科")])
@@ -80,9 +95,10 @@ def model_load_test():
 
 
 if __name__ == "__main__":
-    # model_load_test()
-    doc_vec = text_vecs_zx()
-    count = 1
-    for d in doc_vec:
-        print count, d[0], len(d[1])
-        count += 1
+    model_load_test()
+
+    # doc_vec = text_vecs_zx()
+    # count = 1
+    # for d in doc_vec:
+    #     print count, d[0], len(d[1])
+    #     count += 1
