@@ -116,38 +116,34 @@ with tf.Session() as sess:
 
     while step * batch_size < training_iters:
         batch_xs, batch_ys = training_data.train.next_batch(batch_size)
-        print batch_xs
+        # print batch_xs
         # print '【前】', batch_xs.shape
         batch_xs = batch_xs.reshape([batch_size, n_steps, n_inputs])
-
         sess.run([train], feed_dict={x: batch_xs, y: batch_ys})
 
         # accuracy
         acc = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys})
         acc_array.append(acc)
-        if step % 20 == 0:
-            prediction_value = sess.run(predict, feed_dict={x: batch_xs, y: batch_ys})
-            # plot the prediction
-            # lines = ax.plot(batch_xs, prediction_value, 'r-', lw=2)
-            print acc
+        if step % 200 == 0:
+            # prediction_value = sess.run(predict, feed_dict={x: batch_xs, y: batch_ys})
+            print "train_acc", acc, "%"
         step += 1
-
-        test_batch_xs, test_batch_ys = training_data.test.next_batch(batch_size)
-        test_batch_xs = test_batch_xs.reshape([batch_size, n_steps, n_inputs])
-        test_acc = sess.run(accuracy, feed_dict={x: test_batch_xs, y: test_batch_ys})
-        print ("test_acc: %d" % test_acc)
+    # test accuracy
+    test_batch_xs, test_batch_ys = training_data.test.next_batch(batch_size)
+    test_batch_xs = test_batch_xs.reshape([batch_size, n_steps, n_inputs])
+    test_acc = sess.run(accuracy, feed_dict={x: test_batch_xs, y: test_batch_ys})
+    print "test_acc:", test_acc, "%"
 
     # 模型保存
-
     # saver_path = saver.save(sess, "/home/zhangxin/work/workplace_python/DeepSentiment/data/rnn_model/model.ckpt")
     # print "Model saved in file: ", saver_path
 
-    # plot accuracy
+    # plot train accuracy
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    lines = ax.plot(acc_array, '-', lw=2)
-    y_text = ax.ylabel('精度')
-    ax.setp(y_text, size='medium', name='helvetica', weight='light', color='r')
+    lines = ax.plot(acc_array, '.-')
+    plt.xlabel("num iters")
+    plt.ylabel("train accuracy(%)")
     plt.show()
 
 # # 模型保存
