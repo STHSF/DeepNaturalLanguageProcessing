@@ -22,8 +22,8 @@ lr = 0.001
 training_iters = 100000
 batch_size = 100
 
-n_inputs = 1  # data input size，输入层神经元
-n_steps = globe.n_dim  # time steps， w2v 维度
+n_inputs = globe.n_dim  # data input size，输入层神经元
+n_steps = 1   # time steps， w2v 维度
 n_hidden_units = 200  # neurons in hidden layer，隐藏层神经元个数
 n_classes = 2  # classes 二分类
 
@@ -33,7 +33,7 @@ y = tf.placeholder(tf.float32, [None, n_classes])
 
 # Define weights
 weights = {
-    # (1, 200)
+    # (200, 200)
     'in': tf.Variable(tf.random_normal([n_inputs, n_hidden_units])),
     # (200, 2)
     'out': tf.Variable(tf.random_normal([n_hidden_units, n_classes]))
@@ -131,6 +131,11 @@ with tf.Session() as sess:
             # lines = ax.plot(batch_xs, prediction_value, 'r-', lw=2)
             print acc
         step += 1
+
+        test_batch_xs, test_batch_ys = training_data.test.next_batch(batch_size)
+        test_batch_xs = test_batch_xs.reshape([batch_size, n_steps, n_inputs])
+        test_acc = sess.run(accuracy, feed_dict={x: test_batch_xs, y: test_batch_ys})
+        print ("test_acc: %d" % test_acc)
 
     # 模型保存
 
