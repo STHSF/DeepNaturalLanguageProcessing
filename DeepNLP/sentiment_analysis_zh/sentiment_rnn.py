@@ -116,7 +116,6 @@ with tf.Session() as sess:
 
     while step * batch_size < training_iters:
         batch_xs, batch_ys = training_data.train.next_batch(batch_size)
-        # print batch_xs
         # print '【前】', batch_xs.shape
         batch_xs = batch_xs.reshape([batch_size, n_steps, n_inputs])
         sess.run([train], feed_dict={x: batch_xs, y: batch_ys})
@@ -142,19 +141,6 @@ with tf.Session() as sess:
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     lines = ax.plot(acc_array, '.-')
-    plt.xlabel("num iters")
+    plt.xlabel("num iters", fontsize='medium', color='r')
     plt.ylabel("train accuracy(%)")
     plt.show()
-
-# # 模型保存
-# saver = tf.train.Saver()
-# saver_path = saver.save(sess, "/home/zhangxin/work/workplace_python/DeepSentiment/data/rnn_model")
-# print "Model saved in file: ", saver_path
-#
-# # plot accuracy
-# fig = plt.figure()
-# ax = fig.add_subplot(1, 1, 1)
-# lines = ax.plot(acc_array, '-', lw=2)
-# y_text = ax.ylabel('Precision')
-# ax.setp(y_text, size='medium', name='helvetica', weight='light', color='r')
-# plt.show()
