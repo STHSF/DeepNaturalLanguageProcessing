@@ -133,8 +133,8 @@ with tf.Session() as sess:
 
     # 模型保存
 
-    # saver_path = saver.save(sess, "/home/zhangxin/work/workplace_python/DeepSentiment/data/rnn_model/model.ckpt")
-    # print "Model saved in file: ", saver_path
+    saver_path = saver.save(sess, "/home/zhangxin/work/workplace_python/DeepSentiment/data/rnn_model/model.ckpt")
+    print "Model saved in file: ", saver_path
 
     # plot accuracy
     fig = plt.figure()
