@@ -160,6 +160,7 @@ class DataSet(object):
 
 
 def read_data_sets():
+
     # 读入数据
     pos_file_path = globe.pos_file_path
     neg_file_path = globe.neg_file_path
@@ -203,7 +204,7 @@ def read_data_sets():
     train_labels = train_labels[validation_size:]
 
     train = DataSet(train_data, train_labels)
-    # print train.data[0], train.labels[0]
+    # print train.raw_data[0], train.labels[0]
     validation = DataSet(validation_data, validation_labels)
     test = DataSet(test_data, test_labels)
 
@@ -242,3 +243,5 @@ def read_data_sets_predict():
 
 if __name__ == '__main__':
     read_data_sets()
+
+

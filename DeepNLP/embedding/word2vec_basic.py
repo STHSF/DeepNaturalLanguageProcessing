@@ -83,13 +83,13 @@ def generate_batch(batch_size, num_skips, skip_window):
     assert num_skips <= 2 * skip_window
     batch = np.ndarray(shape=(batch_size), dtype=np.int32)
     labels = np.ndarray(shape=(batch_size, 1), dtype=np.int32)
-    span = 2 * skip_window + 1  # [ skip_window target skip_window ]
+    span = 2 * skip_window + 1  # [ skip_window _targets skip_window ]
     buffer = collections.deque(maxlen=span)
     for _ in range(span):
         buffer.append(data[data_index])
         data_index = (data_index + 1) % len(data)
     for i in range(batch_size // num_skips):
-        target = skip_window  # target label at the center of the buffer
+        target = skip_window  # _targets label at the center of the buffer
         targets_to_avoid = [skip_window]
         for j in range(num_skips):
             while target in targets_to_avoid:

@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-初步思路使用RNN
+使用RNN
 """
 
+import matplotlib.pyplot as plt
 import tensorflow as tf
 import input_data
 import globe
@@ -18,8 +19,8 @@ training_data = input_data.read_data_sets()
 
 # hyper_parameters
 lr = 0.001
-training_iters = 20000
-batch_size = 100  # 一次取100个样本？？？？
+training_iters = 100000
+batch_size = 100
 
 n_inputs = 1  # data input size，输入层神经元
 n_steps = globe.n_dim  # time steps， w2v 维度
@@ -46,7 +47,7 @@ biases = {
 }
 
 
-def rnn(input_data, weights, biases):
+def rnn(input_data, weights, biases, is_training=True):
     keep_prob = 1
     num_layers = 2
     # hidden layer for input to cell
@@ -73,7 +74,7 @@ def rnn(input_data, weights, biases):
     lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden_units, forget_bias=1.0, state_is_tuple=True)
 
     # DropoutWrapper
-    if keep_prob < 1:
+    if is_training and keep_prob < 1:
         lstm_cell = tf.nn.rnn_cell.DropoutWrapper(lstm_cell, output_keep_prob=keep_prob)
 
     lstm_cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * num_layers, state_is_tuple=True)
