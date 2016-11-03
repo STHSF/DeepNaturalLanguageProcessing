@@ -133,7 +133,7 @@ with tf.Session() as sess:
         test_batch_xs = test_batch_xs.reshape([batch_size, n_steps, embeding_size])
         test_acc = sess.run(accuracy, feed_dict={x: test_batch_xs, y: test_batch_ys})
         print "test_acc:", test_acc, "%"
-        test_step +=1
+        test_step += 1
 
     # 模型保存
     # saver_path = saver.save(sess, "/home/zhangxin/work/workplace_python/DeepSentiment/data/rnn_model/model.ckpt")
