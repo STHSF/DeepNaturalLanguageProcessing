@@ -132,10 +132,12 @@ with tf.Session() as sess:
 
     # test accuracy
     test_step = 0
-    while test_step * batch_size < 400:
+    test_accuracy = []
+    while test_step * batch_size < 10000:
         test_batch_xs, test_batch_ys = training_data.test.next_batch(batch_size)
         test_batch_xs = test_batch_xs.reshape([batch_size, n_steps, embeding_size])
         test_acc = sess.run(accuracy, feed_dict={x: test_batch_xs, y: test_batch_ys})
+        test_accuracy.append(test_acc)
         print "test_acc:", test_acc, "%"
         test_step += 1
 
@@ -146,7 +148,11 @@ with tf.Session() as sess:
     # plot train accuracy
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    lines = ax.plot(acc_array, '.-')
-    plt.xlabel("num iters", fontsize='medium', color='r')
-    plt.ylabel("train accuracy(%)")
+    ax.set_ylim([0, 1.5])
+    lines = ax.plot(acc_array, '.', label='train accuracy')
+    lines2 = ax.plot(test_accuracy, '-', label='test accuracy')
+    plt.xlabel("Iters")
+    plt.ylabel("Accuracy(%)")
+    plt.grid(True)
+    plt.legend(bbox_to_anchor=(1.0, 1), loc=1, borderaxespad=0.)
     plt.show()

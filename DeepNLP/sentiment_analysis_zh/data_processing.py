@@ -77,7 +77,7 @@ def data_split(pos_file, neg_file):
 
     # 训练集,测试集
     train_data, test_data, train_labels, test_labels = train_test_split(np.concatenate((pos_file, neg_file)), label,
-                                                                        test_size=0.1)
+                                                                        test_size=0.5)
 
     res = (train_data, test_data, train_labels, test_labels)
     return res
