@@ -22,8 +22,8 @@ lr = 0.001
 training_iters = 100000
 batch_size = 100
 
-n_inputs = 1  # data input size，输入层神经元
-n_steps = globe.n_dim  # time steps， w2v 维度
+n_inputs = 200  # data input size，输入层神经元
+n_steps = 1 #globe.n_dim  # time steps， w2v 维度
 n_hidden_units = 200  # neurons in hidden layer，隐藏层神经元个数
 n_classes = 2  # classes 二分类
 
@@ -82,6 +82,9 @@ def rnn(input_data, weights, biases, is_training=True):
     # lstm cell is divided into two parts (c_state, h_state)
     _init_state = lstm_cell.zero_state(batch_size, dtype=tf.float32)
 
+    if is_training and keep_prob < 1:
+        data_in = tf.nn.dropout(data_in, keep_prob)
+
     # dynamic_rnn receive Tensor (batch, steps, inputs) or (steps, batch, inputs) as data_in.
     # Make sure the time_major is changed accordingly.
     outputs, final_state = tf.nn.dynamic_rnn(lstm_cell, data_in, initial_state=_init_state, time_major=False)
@@ -116,7 +119,7 @@ with tf.Session() as sess:
 
     while step * batch_size < training_iters:
         batch_xs, batch_ys = training_data.train.next_batch(batch_size)
-        print batch_xs
+        # print batch_xs
         # print '【前】', batch_xs.shape
         batch_xs = batch_xs.reshape([batch_size, n_steps, n_inputs])
 
@@ -132,18 +135,29 @@ with tf.Session() as sess:
             print acc
         step += 1
 
+    # 测试集测试
+    step = 0
+    acc = []
+    while step * 200 < 600:
+        batch_xs, batch_ys = training_data.test.next_batch(200)
+        batch_xs = batch_xs.reshape([200, n_steps, n_inputs])
+        acc = sess.run([accuracy], feed_dict={x: batch_xs, y: batch_ys})
+        print 'Acc ', acc
+        step += 1
+
+
     # 模型保存
 
-    saver_path = saver.save(sess, "/home/zhangxin/work/workplace_python/DeepSentiment/data/rnn_model/model.ckpt")
-    print "Model saved in file: ", saver_path
+    # saver_path = saver.save(sess, globe.model_rnn_path)
+    # print "Model saved in file: ", saver_path
 
     # plot accuracy
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-    lines = ax.plot(acc_array, '-', lw=2)
-    y_text = ax.ylabel('精度')
-    ax.setp(y_text, size='medium', name='helvetica', weight='light', color='r')
-    plt.show()
+    # fig = plt.figure()
+    # ax = fig.add_subplot(1, 1, 1)
+    # lines = ax.plot(acc_array, '-', lw=2)
+    # y_text = ax.ylabel('精度')
+    # ax.setp(y_text, size='medium', name='helvetica', weight='light', color='r')
+    # plt.show()
 
 # # 模型保存
 # saver = tf.train.Saver()
