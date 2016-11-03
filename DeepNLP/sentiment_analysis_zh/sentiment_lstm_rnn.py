@@ -26,16 +26,18 @@ class SentimentModel(object):
     def __init__(self, is_training, config):
         self.batch_size = batch_size = config.batch_size
         self.num_steps = num_steps = config.num_steps
-        size = config.hidden_size
+        num_hidden_units = config.hidden_size
         vocab_size = config.vocab_size
+        num_inputs = config.num_inputs   # num_dim = 1
+        num_classes = config.classes
 
-        self._input_data = tf.placeholder(tf.int32, [batch_size, num_steps])
-        self._targets = tf.placeholder(tf.int32, [batch_size, num_steps])
+        self._input_data = tf.placeholder(tf.float32, [None, num_inputs, num_steps])
+        self._targets = tf.placeholder(tf.float32, [None, num_classes])
 
         # Slightly better results can be obtained with forget gate biases
         # initialized to 1 but the hyperparameters of the model would need to be
         # different than reported in the paper.
-        lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(size, forget_bias=0.0, state_is_tuple=True)
+        lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(num_hidden_units, forget_bias=0.0, state_is_tuple=True)
         if is_training and config.keep_prob < 1:
             lstm_cell = tf.nn.rnn_cell.DropoutWrapper(
                 lstm_cell, output_keep_prob=config.keep_prob)
@@ -45,7 +47,7 @@ class SentimentModel(object):
 
         # with tf.device("/cpu:0"):
         #     embedding = tf.get_variable(
-        #         "embedding", [vocab_size, size], dtype=data_type())
+        #         "embedding", [vocab_size, num_hidden_units], dtype=data_type())
         #     inputs = tf.nn.embedding_lookup(embedding, self._input_data)
         #
         # if is_training and config.keep_prob < 1:
@@ -67,18 +69,19 @@ class SentimentModel(object):
             for time_step in range(num_steps):
                 if time_step > 0:
                     tf.get_variable_scope().reuse_variables()
-                (cell_output, state) = lstm_cell(input_data[:, time_step, :], state)
+                (cell_output, state) = lstm_cell(self._input_data[:, time_step, :], state)
                 outputs.append(cell_output)
 
-        output = tf.reshape(tf.concat(1, outputs), [-1, size])
+        output = tf.reshape(tf.concat(1, outputs), [-1, num_hidden_units])
 
-        softmax_w = tf.get_variable("softmax_w", [size, vocab_size], dtype=data_type())
+        softmax_w = tf.get_variable("softmax_w", [num_hidden_units, vocab_size], dtype=data_type())
         softmax_b = tf.get_variable("softmax_b", [vocab_size], dtype=data_type())
         logits = tf.matmul(output, softmax_w) + softmax_b
 
         loss = tf.nn.seq2seq.sequence_loss_by_example([logits],
                                                       [tf.reshape(self._targets, [-1])],
                                                       [tf.ones([batch_size * num_steps], dtype=data_type())])
+
         self._cost = cost = tf.reduce_sum(loss) / batch_size
         self._final_state = state
 

@@ -199,6 +199,7 @@ def read_data_sets():
     #     print 'L ',l
 
     test_data = raw_data[2]
+    # print test_data.shape
     # test_label = np.reshape(raw_data[3], (raw_data[1].shape[0], 1))
     test_labels = extract_labels(raw_data[3], one_hot=True)
     # print train_label.shape

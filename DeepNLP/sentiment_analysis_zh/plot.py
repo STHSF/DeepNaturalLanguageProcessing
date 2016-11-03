@@ -14,6 +14,14 @@ b = [0.65, 0.72, 0.7, 0.74, 0.67, 0.78, 0.78, 0.77, 0.68, 0.75, 0.75, 0.76, 0.75
 # lines = ax.plot(b, '*', lw=2)
 # plt.show()
 
+# c = np.array([[1,2,3,4],[4,5,6,7],[7,8,9,0]])
+# print c[1:2], c.shape
+input_data = "av"
+targets = 'b'
+feed_dict = {}
+feed_dict[input_data] = a
+feed_dict[targets] = b
+feed_dict["d"] = a
+for i in feed_dict.keys():
+    print i
 
-c = np.array([[1,2,3,4],[4,5,6,7],[7,8,9,0]])
-print c[1:2], c.shape
