@@ -105,6 +105,10 @@ class DataSet(object):
         # 数据归一化
 
     @property
+    def length(self):
+        return self.length
+
+    @property
     def data(self):
         return self._data
 
@@ -191,6 +195,8 @@ def read_data_sets():
     # train_label = np.reshape(raw_data[1], (raw_data[1].shape[0],))
     # print train_label.shape
     train_labels = extract_labels(raw_data[1], one_hot=True)
+    # for l in train_labels:
+    #     print 'L ',l
 
     test_data = raw_data[2]
     # print test_data.shape

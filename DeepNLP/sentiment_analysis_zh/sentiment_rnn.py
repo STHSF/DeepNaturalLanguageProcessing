@@ -80,6 +80,9 @@ def rnn(input_data, weights, biases, is_training=True):
     # lstm cell is divided into two parts (c_state, h_state)
     _init_state = lstm_cell.zero_state(batch_size, dtype=tf.float32)
 
+    if is_training and keep_prob < 1:
+        data_in = tf.nn.dropout(data_in, keep_prob)
+
     # dynamic_rnn receive Tensor (batch, steps, inputs) or (steps, batch, inputs) as data_in.
     # Make sure the time_major is changed accordingly.
     outputs, final_state = tf.nn.dynamic_rnn(lstm_cell, data_in, initial_state=_init_state, time_major=False)
@@ -114,6 +117,7 @@ with tf.Session() as sess:
 
     while step * batch_size < training_iters:
         batch_xs, batch_ys = training_data.train.next_batch(batch_size)
+
         # print '【前】', batch_xs.shape
         batch_xs = batch_xs.reshape([batch_size, n_steps, embeding_size])
         sess.run([train], feed_dict={x: batch_xs, y: batch_ys})
@@ -136,7 +140,7 @@ with tf.Session() as sess:
         test_step +=1
 
     # 模型保存
-    # saver_path = saver.save(sess, "/home/zhangxin/work/workplace_python/DeepSentiment/data/rnn_model/model.ckpt")
+    # saver_path = saver.save(sess, globe.model_rnn_path)
     # print "Model saved in file: ", saver_path
 
     # plot train accuracy
