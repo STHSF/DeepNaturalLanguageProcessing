@@ -4,12 +4,10 @@
 """
 使用RNN
 """
-
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import input_data
 import globe
-import matplotlib.pyplot as plt
 
 # set random seed for comparing the two result calculations
 tf.set_random_seed(1)
@@ -22,19 +20,20 @@ lr = 0.001
 training_iters = 100000
 batch_size = 100
 
-n_inputs = globe.n_dim  # data input size，输入层神经元
-n_steps = 1   # time steps， w2v 维度
+# n_inputs = globe.n_dim  # data input size，输入层神经元, 词向量的维度
+embeding_size = globe.n_dim  # data input size，输入层神经元
+n_steps = 1   # time steps
 n_hidden_units = 200  # neurons in hidden layer，隐藏层神经元个数
 n_classes = 2  # classes 二分类
 
 # tf Graph input
-x = tf.placeholder(tf.float32, [None, n_steps, n_inputs])
+x = tf.placeholder(tf.float32, [None, n_steps, embeding_size])
 y = tf.placeholder(tf.float32, [None, n_classes])
 
 # Define weights
 weights = {
     # (200, 200)
-    'in': tf.Variable(tf.random_normal([n_inputs, n_hidden_units])),
+    'in': tf.Variable(tf.random_normal([embeding_size, n_hidden_units])),
     # (200, 2)
     'out': tf.Variable(tf.random_normal([n_hidden_units, n_classes]))
 }
@@ -58,7 +57,7 @@ def rnn(input_data, weights, biases, is_training=True):
     # transpose the inputs shape from
     # X ==> (100 batch * 200 steps, 1 inputs)
     # x ==> 每次循环提供100篇文档作为输入，每篇文档是一个200维度的向量，
-    input_data = tf.reshape(input_data, [-1, n_inputs])
+    input_data = tf.reshape(input_data, [-1, embeding_size])
 
     # into hidden
     # data_in = (100 batch * 200 steps, 100 hidden)
@@ -69,7 +68,6 @@ def rnn(input_data, weights, biases, is_training=True):
 
     # cell
     ##########################################
-
     # basic LSTM Cell.
     lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden_units, forget_bias=1.0, state_is_tuple=True)
 
@@ -117,7 +115,7 @@ with tf.Session() as sess:
     while step * batch_size < training_iters:
         batch_xs, batch_ys = training_data.train.next_batch(batch_size)
         # print '【前】', batch_xs.shape
-        batch_xs = batch_xs.reshape([batch_size, n_steps, n_inputs])
+        batch_xs = batch_xs.reshape([batch_size, n_steps, embeding_size])
         sess.run([train], feed_dict={x: batch_xs, y: batch_ys})
 
         # accuracy
@@ -129,7 +127,7 @@ with tf.Session() as sess:
         step += 1
     # test accuracy
     test_batch_xs, test_batch_ys = training_data.test.next_batch(batch_size)
-    test_batch_xs = test_batch_xs.reshape([batch_size, n_steps, n_inputs])
+    test_batch_xs = test_batch_xs.reshape([batch_size, n_steps, embeding_size])
     test_acc = sess.run(accuracy, feed_dict={x: test_batch_xs, y: test_batch_ys})
     print "test_acc:", test_acc, "%"
 
