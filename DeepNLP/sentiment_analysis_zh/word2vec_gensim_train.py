@@ -15,7 +15,7 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 
 
 # 将一篇文章中的词向量的平均值作为输入文本的向量
-def build_word2vec(text, size, word2vec_model):
+def build_doc2vec(text, size, word2vec_model):
     vec = np.zeros(size).reshape((1, size))
     count = 0.
     for word in text:
@@ -31,11 +31,11 @@ def build_word2vec(text, size, word2vec_model):
 
 def text_vecs(x_train, x_test, n_dim, word2vec_model):
     # 训练集文本向量
-    train_vecs = np.concatenate([build_word2vec(z, n_dim, word2vec_model) for z in x_train])
+    train_vecs = np.concatenate([build_doc2vec(z, n_dim, word2vec_model) for z in x_train])
     train_vecs = scale(train_vecs)  # 归一化
     # 测试集处理
     word2vec_model.train(x_test)
-    test_vecs = np.concatenate([build_word2vec(z, n_dim, word2vec_model) for z in x_test])
+    test_vecs = np.concatenate([build_doc2vec(z, n_dim, word2vec_model) for z in x_test])
     test_vecs = scale(test_vecs)
 
     res = (train_vecs, test_vecs)
@@ -52,7 +52,7 @@ def text_vecs_zx():
         data = open(d[1])
         for doc in data:
             word = doc.split(",")
-            doc_vec_temp = build_word2vec(word, globe.n_dim, w2v_model)
+            doc_vec_temp = build_doc2vec(word, globe.n_dim, w2v_model)
             doc_vec_temp = scale(doc_vec_temp)  # 归一化
             doc_vec.append((label, doc_vec_temp))
     return doc_vec
@@ -64,7 +64,7 @@ def text_vecs_zx():
 #     for key_title in file_seg.keys:
 #         doc = file_seg[key_title]
 #         word = doc.split(",")
-#         doc_vec = build_word2vec(word, globe.n_dim, word2vec_model)
+#         doc_vec = build_doc2vec(word, globe.n_dim, word2vec_model)
 #         doc_vec = scale(doc_vec)  # 归一化
 #         file_vec[key_title] = doc_vec
 #     return file_vec
@@ -72,7 +72,7 @@ def text_vecs_zx():
 # 文档转向量空间模型
 def doc_vecs_zx(doc, word2vec_model):
     word = doc.split(",")
-    doc_vec = build_word2vec(word, globe.n_dim, word2vec_model)
+    doc_vec = build_doc2vec(word, globe.n_dim, word2vec_model)
     # print doc_vec
 
     # doc_vec = scale(doc_vec)  # 归一化 ，，如果进行归一化，词向量全部变为 0，诡异！！

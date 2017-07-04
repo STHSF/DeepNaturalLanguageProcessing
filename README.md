@@ -1,8 +1,9 @@
 # DeepNaturallanguageprocessing
 
-自然语言处理深度学习学习笔记
+自然语言处理深度学习笔记
 
 ## sentiment_analysis
+文本情感分析
 
 ## sentiment_analysis_zh
-中文深度自然语言处理
+深度中文自然语言处理

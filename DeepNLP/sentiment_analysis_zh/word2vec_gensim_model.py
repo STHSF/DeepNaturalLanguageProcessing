@@ -4,6 +4,7 @@
 
 import gensim
 from gensim.models import Word2Vec
+from multiprocessing import cpu_count
 import data_processing
 import logging
 import globe
@@ -20,7 +21,7 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 
 # 生成word2vec模型
 def word2vec_model(data, size, min_c):
-    w2c_model = Word2Vec(size=size, min_count=min_c, workers=4)
+    w2c_model = Word2Vec(size=size, min_count=min_c, workers=cpu_count())
     w2c_model.build_vocab(data)
     w2c_model.train(data)
 
@@ -48,6 +49,10 @@ def word2vec_test():
     res = data_processing.data_split(tmp[0], tmp[1])
     x_train = res[0]
     x_train = data_processing.text_clean(x_train)
+
+    for i in x_train:
+        for j in i:
+            print j,
     n_dim = 200
     min_count = 2
 
@@ -71,9 +76,9 @@ def word2vec_test():
 
 
 if __name__ == "__main__":
-    # word2vec_test()
+    word2vec_test()
 
-    word2vec_test_zx()
+    # word2vec_test_zx()
 
     # pos_file_path = globe.file_pos
     # neg_file_path = globe.file_neg

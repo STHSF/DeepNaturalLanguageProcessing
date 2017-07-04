@@ -32,7 +32,7 @@ def split_sentence(input_file, output_file):
     fout.close()
 
 
-# 文本处理
+# 文本处理,去停用词等
 def sentence(file_parent_path):
     file_seg = {}
     for file_name in os.listdir(file_parent_path):

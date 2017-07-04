@@ -98,4 +98,15 @@ DeepNLP/env/
 word2vecmodel
 word2vec/text8
 MNIST_data/
+spider/豆瓣影评数据.xls
+*.pyc
+embedding
 
+
+/DeepNLP/sentiment_analysis_zh/globe.py
+/DeepNLP/sentiment_analysis_zh/plot.py
+/DeepNLP/sentiment_analysis_zh/data/
+.DS_Store
+.idea/
+DeepNLP/anna.ipynb
+DeepNLP/language_model/anna/checkpoints/

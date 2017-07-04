@@ -61,8 +61,8 @@
 #               ('pos', '/Users/li/workshop/DataSet/sentiment/train/result_pos.txt')]
 
 # file_parent = '/Users/li/workshop/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data'
-# file_neg = '/Users/li/workshop/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data/test3.txt'
-# file_pos = '/Users/li/workshop/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data/test2.txt'
+file_neg = '/Users/li/workshop/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data/test3.txt'
+file_pos = '/Users/li/workshop/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data/test2.txt'
 model_path = '/Users/li/workshop/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/word2vecmodel/model'
 
 # w2v模型的参数

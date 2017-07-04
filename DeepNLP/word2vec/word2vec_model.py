@@ -6,6 +6,8 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import roc_curve, auc
 from gensim.models.word2vec import Word2Vec
 import numpy as np
+import multiprocessing
+
 
 # 读入数据
 pos_file_path = '/Users/li/Kunyan/MyRepository/DeepNaturalLanguageProcessing/DeepNLP/data/test3.txt'
@@ -33,7 +35,7 @@ x_train = text_clean(x_train)
 
 n_dim = 200
 min_count = 2
-word2vec_model = Word2Vec(size=n_dim, min_count=min_count, workers=4)
+word2vec_model = Word2Vec(size=n_dim, min_count=min_count, workers=multiprocessing.cpu_count())
 #
 word2vec_model.build_vocab(x_train)
 

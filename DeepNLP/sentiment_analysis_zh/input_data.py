@@ -13,15 +13,16 @@ import corpus
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 
-def _data_read(pos_file_path, neg_file_path, model_path):
-    """read data word2vec model from file path,
+def _data_read(pos_file_path, neg_file_path, w2c_model_path):
+    """read data and word2vec model from file path,
     Args:
         pos_file_path: Positive file path.
         neg_file_path: Negative file path.
+        w2c_model_path: word2vec model path
     Returns:
-        A list contains training data with labels and test data with labels.
+        A list contains train and test data with labels.
     Raises:
-           IOError: An error occurred accessing the bigtable.Table object.
+        IOError: An error occurred accessing the bigtable.Table object.
     """
 
     tmp = data_processing.read_data(pos_file_path, neg_file_path)
@@ -34,18 +35,19 @@ def _data_read(pos_file_path, neg_file_path, model_path):
 
     # 词向量的维度
     n_dim = globe.n_dim
-    # load word2vec model from model path
-    text_vecs = []
+    doc_vecs = []
     try:
-        word2vec_model = Word2Vec.load(model_path)
+        # load word2vec model from model path
+        word2vec_model = Word2Vec.load(w2c_model_path)
 
-        text_vecs = word2vec_gensim_train.text_vecs(train_data, test_data, n_dim, word2vec_model)
+        doc_vecs = word2vec_gensim_train.text_vecs(train_data, test_data, n_dim, word2vec_model)
     except IOError:
         pass
+
     # 生成文本向量
-    train_data_vecs = text_vecs[0]
+    train_data_vecs = doc_vecs[0]
     # print train_data_vecs.shape
-    test_data_vecs = text_vecs[1]
+    test_data_vecs = doc_vecs[1]
     # print test_data_vecs.shape
 
     return train_data_vecs, train_labels, test_data_vecs, test_labels
@@ -56,16 +58,16 @@ def _read32(bytestream):
     return np.frombuffer(bytestream.read(4), dtype=dt)[0]
 
 
-def extract_images(filename):
-    """Extract the images into a 4D uint8 numpy array [index, y, x, depth]."""
-    with open(filename, 'rb') as bytestream:
-        num_images = _read32(bytestream)
-        rows = _read32(bytestream)
-        cols = _read32(bytestream)
-        buf = bytestream.read(rows * cols * num_images)
-        data = np.frombuffer(buf, dtype=np.uint8)
-        data = data.reshape(num_images, rows, cols, 1)
-    return data
+# def extract_images(filename):
+#     """Extract the images into a 4D uint8 numpy array [index, y, x, depth]."""
+#     with open(filename, 'rb') as bytestream:
+#         num_images = _read32(bytestream)
+#         rows = _read32(bytestream)
+#         cols = _read32(bytestream)
+#         buf = bytestream.read(rows * cols * num_images)
+#         data = np.frombuffer(buf, dtype=np.uint8)
+#         data = data.reshape(num_images, rows, cols, 1)
+#     return data
 
 
 def dense_to_one_hot(labels_dense, num_classes):
@@ -92,7 +94,6 @@ class DataSet(object):
         data: text vectors
         labels: labels of every data
     """
-
     def __init__(self, data, labels):
         """inits DataSet.
         """
@@ -243,7 +244,6 @@ def read_data_sets_predict():
         pass
 
     return text_vecs
-
 
 # def load_data():
 #     return read_data_sets()
