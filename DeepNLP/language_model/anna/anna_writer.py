@@ -197,3 +197,5 @@ if __name__ == '__main__':
                       '训练步数: {}... '.format(counter),
                       '训练误差: {:.4f}... '.format(batch_loss),
                       '{:.4f} sec/batch'.format((end - start)))
+
+            # if counter
