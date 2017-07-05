@@ -110,3 +110,4 @@ embedding
 .idea/
 DeepNLP/anna.ipynb
 DeepNLP/language_model/anna/checkpoints/
+/DeepNLP/language_model/anna/ex.py
