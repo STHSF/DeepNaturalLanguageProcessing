@@ -54,7 +54,7 @@ def sentence_out(file_parent_path, out):
     global count
     for file_name in os.listdir(file_parent_path):
         count += 1
-        print '正在处理：', count
+        print('正在处理：', count)
         file_path = os.path.join(file_parent_path, file_name)
         data = open(file_path)
         result = ""
@@ -95,4 +95,4 @@ def do():
 if __name__ == "__main__":
     result = sentence('/home/zhangxin/work/workplace_python/DeepSentiment/data/predict_test/')
     for r in result:
-        print r
+        print(r)

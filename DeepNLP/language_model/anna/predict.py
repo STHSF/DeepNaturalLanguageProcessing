@@ -59,8 +59,8 @@ def generate_bath(arr, batch_size, seq_length):
 
 batches = generate_bath(encode, 10, 50)
 x, y = next(batches)
-print('x.shape', np.shape(x))
-print('x', x[:10, :10])
+print('inputs.shape', np.shape(x))
+print('inputs', x[:10, :10])
 print('y.shape', np.shape(y))
 print('y', y[:10, :10])
 
@@ -250,7 +250,7 @@ def sample(checkpoint, n_samples, lstm_size, vocab_size, prime="The "):
     """
     # 将输入的单词转换为单个字符组成的list
     samples = [c for c in prime]
-    # sampling=True意味着batch的size=1 x 1
+    # sampling=True意味着batch的size=1 inputs 1
     model = CharRNN(len(vocab), lstm_size=lstm_size, sampling=True)
     saver = tf.train.Saver()
     with tf.Session() as sess:

@@ -5,18 +5,18 @@ import random
 
 
 # Function:
-# for each element in x
+# for each element in inputs
 # compare derivative calculated by formular and calculus
 # f: 1st parameter is cost function, 2nd parameter is gradient
 def gradcheck_naive(f, x):
     # Return an object capturing the current internal state of the generator
     rndstate = random.getstate()  # why use state??????
     random.setstate(rndstate)
-    fx, grad = f(x)  # fx=np.sum(x ** 2), grad=x * 2
+    fx, grad = f(x)  # fx=np.sum(inputs ** 2), grad=inputs * 2
     h = 1e-4
 
     # Efficient multi-dimensional iterator object to iterate over arrays
-    # Iterate over all indexes in x
+    # Iterate over all indexes in inputs
     it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
 
     while not it.finished:

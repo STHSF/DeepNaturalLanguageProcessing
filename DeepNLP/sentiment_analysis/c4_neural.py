@@ -48,10 +48,10 @@ def sanity_check():
     print "Running sanity check..."
 
     N = 20
-    dimensions = [10, 5, 10]  # Dimension of x, H, y=labels
+    dimensions = [10, 5, 10]  # Dimension of inputs, H, y=labels
     data = np.random.randn(N, dimensions[0])  # data.shape, labels.shape = (20, 10)
-    labels = np.zeros((N, dimensions[2]))  # Data has 10 columns = 10 input x vectors
-    for i in xrange(N):  # Data has 20 rows = each x has 20 features
+    labels = np.zeros((N, dimensions[2]))  # Data has 10 columns = 10 input inputs vectors
+    for i in xrange(N):  # Data has 20 rows = each inputs has 20 features
         labels[i, random.randint(0, dimensions[2] - 1)] = 1  # each row randomly set a position to 1
     # each vector xi belongs to 1 class
 

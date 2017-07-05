@@ -59,7 +59,7 @@ def _read32(bytestream):
 
 
 # def extract_images(filename):
-#     """Extract the images into a 4D uint8 numpy array [index, y, x, depth]."""
+#     """Extract the images into a 4D uint8 numpy array [index, y, inputs, depth]."""
 #     with open(filename, 'rb') as bytestream:
 #         num_images = _read32(bytestream)
 #         rows = _read32(bytestream)

@@ -9,7 +9,7 @@ def sigmoid(x):
     return x
 
 
-# input f is the sigmoid function value of your original input x
+# input f is the sigmoid function value of your original input inputs
 def sigmoid_grad(f):
     f *= 1 - f
 

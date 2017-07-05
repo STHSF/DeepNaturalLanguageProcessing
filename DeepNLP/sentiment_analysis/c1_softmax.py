@@ -7,15 +7,15 @@ import random
 
 def softmax(x):
 
-    # x=np.array([[1001,1002],[3,4]])
-    if len(x.shape) > 1:  # x.shape=(2, 2)  len(x.shape)=2
-        tmp = np.max(x, axis=1)  # np.max(x, axis = 1)=array([1002,  4])， max in each row
-        x -= tmp.reshape((x.shape[0], 1))  # tmp.reshape((x.shape[0], 1))， tmp becomes 2row1column
+    # inputs=np.array([[1001,1002],[3,4]])
+    if len(x.shape) > 1:  # inputs.shape=(2, 2)  len(inputs.shape)=2
+        tmp = np.max(x, axis=1)  # np.max(inputs, axis = 1)=array([1002,  4])， max in each row
+        x -= tmp.reshape((x.shape[0], 1))  # tmp.reshape((inputs.shape[0], 1))， tmp becomes 2row1column
         x = np.exp(x)  # xi - max this row, then exp
         tmp = np.sum(x, axis=1)  # array([ 1.36787944,  1.36787944])，sum of each row
         x /= tmp.reshape((x.shape[0], 1))  # xi / sum this row
 
-    else:  # x=[1,2]   x.shape=(2,)   len(x.shape)=1
+    else:  # inputs=[1,2]   inputs.shape=(2,)   len(inputs.shape)=1
         tmp = np.max(x)
         x -= tmp
         x = np.exp(x)

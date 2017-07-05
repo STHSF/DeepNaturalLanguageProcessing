@@ -136,13 +136,13 @@ with tf.Session() as sess:
     # batch_xs = batch_xs.reshape([batch_size, n_steps, n_inputs])
     #
     # # 预测结果
-    # result = sess.run([predict], feed_dict={x: batch_xs})
+    # result = sess.run([predict], feed_dict={inputs: batch_xs})
     # print result[0]
     #
     # # 精确度
     # batch_ys = ny.array(batch_ys)
     # batch_ys = batch_ys.reshape([-1, 2])
-    # acc = sess.run([accuracy], feed_dict={x: batch_xs, y: batch_ys})
+    # acc = sess.run([accuracy], feed_dict={inputs: batch_xs, y: batch_ys})
     # print 'Acc ', acc
 
     # 原始测试集测试输出，batch_size 任意，可改可不改
@@ -151,6 +151,6 @@ with tf.Session() as sess:
     # while step * batch_size < 600:
     #     batch_xs, batch_ys = training_data.test.next_batch(batch_size)
     #     batch_xs = batch_xs.reshape([batch_size, n_steps, n_inputs])
-    #     acc = sess.run([accuracy], feed_dict={x: batch_xs, y: batch_ys})
+    #     acc = sess.run([accuracy], feed_dict={inputs: batch_xs, y: batch_ys})
     #     print 'Acc ', acc
     #     step += 1

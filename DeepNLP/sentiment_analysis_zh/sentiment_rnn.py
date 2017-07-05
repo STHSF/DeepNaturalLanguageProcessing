@@ -56,7 +56,7 @@ def rnn(input_data, weights, biases, is_training=True):
 
     # transpose the inputs shape from
     # X ==> (100 batch * 200 steps, 1 inputs)
-    # x ==> 每次循环提供100篇文档作为输入，每篇文档是一个200维度的向量，
+    # inputs ==> 每次循环提供100篇文档作为输入，每篇文档是一个200维度的向量，
     input_data = tf.reshape(input_data, [-1, embeding_size])
 
     # into hidden
@@ -126,8 +126,8 @@ with tf.Session() as sess:
         acc = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys})
         acc_array.append(acc)
         if step % 200 == 0:
-            # prediction_value = sess.run(predict, feed_dict={x: batch_xs, y: batch_ys})
-            print "train_acc", acc, "%"
+            # prediction_value = sess.run(predict, feed_dict={inputs: batch_xs, y: batch_ys})
+            print("train_acc", acc, "%")
         step += 1
 
     # test accuracy
@@ -138,7 +138,7 @@ with tf.Session() as sess:
         test_batch_xs = test_batch_xs.reshape([batch_size, n_steps, embeding_size])
         test_acc = sess.run(accuracy, feed_dict={x: test_batch_xs, y: test_batch_ys})
         test_accuracy.append(test_acc)
-        print "test_acc:", test_acc, "%"
+        print("test_acc:", test_acc, "%")
         test_step += 1
 
     # 模型保存

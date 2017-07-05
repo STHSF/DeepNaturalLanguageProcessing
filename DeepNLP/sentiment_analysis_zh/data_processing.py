@@ -94,7 +94,7 @@ def do():
     sen = MySentences("/home/zhangxin/work/DeepSentiment/data/tagging/result.txt")
     count = 1
     for s in sen:
-        print count, " ".join(s)
+        print(count, " ".join(s))
         count += 1
 
 
