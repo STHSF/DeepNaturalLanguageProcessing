@@ -480,7 +480,7 @@ class Word2Vec(object):
     return "unknown"
 
   def nearby(self, words, num=20):
-    """Prints out nearby words given a list of words."""
+    """Prints prediction nearby words given a list of words."""
     ids = np.array([self._word2id.get(x, 0) for x in words])
     vals, idx = self._session.run(
         [self._nearby_val, self._nearby_idx], {self._nearby_word: ids})

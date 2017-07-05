@@ -35,14 +35,14 @@ weights = {
     # (200, 200)
     'in': tf.Variable(tf.random_normal([embeding_size, n_hidden_units])),
     # (200, 2)
-    'out': tf.Variable(tf.random_normal([n_hidden_units, n_classes]))
+    'prediction': tf.Variable(tf.random_normal([n_hidden_units, n_classes]))
 }
 
 biases = {
     # (200, )
     'in': tf.Variable(tf.constant(0.1, shape=[n_hidden_units, ])),
     # (2, )
-    'out': tf.Variable(tf.constant(0.1, shape=[n_classes, ]))
+    'prediction': tf.Variable(tf.constant(0.1, shape=[n_classes, ]))
 }
 
 
@@ -89,12 +89,12 @@ def rnn(input_data, weights, biases, is_training=True):
 
     # hidden layer for output as the final results
     #############################################
-    # results = tf.matmul(final_state[1], weights['out']) + biases['out']
+    # results = tf.matmul(final_state[1], weights['prediction']) + biases['prediction']
 
     # # or
     # unpack to list [(batch, outputs)..] * steps
     outputs = tf.unpack(tf.transpose(outputs, [1, 0, 2]))  # states is the last outputs
-    results = tf.matmul(outputs[-1], weights['out']) + biases['out']
+    results = tf.matmul(outputs[-1], weights['prediction']) + biases['prediction']
 
     return results
 

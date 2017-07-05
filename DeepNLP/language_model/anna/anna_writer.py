@@ -28,8 +28,6 @@ int_to_vocab = dict(enumerate(vocab))
 # print('int_to_vocab\n', int_to_vocab)
 
 encoded = np.array([vocab_to_int[c] for c in text], dtype=np.int32)
-
-
 # print('encoded\n', encoded)
 # print('encoded_shape\n', np.shape(encoded))
 
@@ -48,19 +46,11 @@ def get_batch(array, batch_size, seq_length):
 
         yield x, y
 
-# batches = get_batch(encoded, 10, 50)
-# x, y = next(batches)
-# print('inputs.shape', np.shape(x))
-# print('inputs', x[:10, :10])
-# print('y.shape', np.shape(y))
-# print('y', y[:10, :10])
-
 
 class language_model():
-    def __init__(self, batch_size, seq_length, learning_rate, num_layers, hidden_units, keep_prob, grad_clip,
-                 num_classes, is_training):
-        self.batch_size = batch_size
-        self.seq_length = seq_length
+    def __init__(self, num_classes, batch_size=100, seq_length=50, learning_rate=0.01, num_layers=5, hidden_units=128,
+                 keep_prob=0.8, grad_clip=5, is_training=True):
+
         self.learning_rate = learning_rate
         self.num_layers = num_layers
         self.hidden_units = hidden_units
@@ -68,6 +58,13 @@ class language_model():
         self.keep_prob = keep_prob
         self.grad_clip = grad_clip
         self.num_classes = num_classes
+
+        if self.is_training:
+            self.batch_size = batch_size
+            self.seq_length = seq_length
+        else:
+            self.batch_size = 1
+            self.seq_length = 1
 
         with tf.name_scope('add_input_layer'):
             self.add_input_layer()
@@ -122,9 +119,9 @@ class language_model():
         with tf.name_scope('wx_plus_b'):
             self.logits = tf.matmul(x, sofmax_w) + softmax_b
 
-        self.out = tf.nn.softmax(logits=self.logits, name='prediction')
+        self.prediction = tf.nn.softmax(logits=self.logits, name='prediction')
 
-        return self.out, self.logits
+        return self.prediction, self.logits
 
     def compute_cost(self):
         # One-hot编码
@@ -158,10 +155,12 @@ class conf():
     # 每n轮进行一次变量保存
     save_every_n = 200
 
-if __name__ == '__main__':
-    language_model = language_model(conf.batch_size, conf.num_steps, conf.learning_rate, conf.num_layers,
-                                    conf.lstm_size, conf.keep_prob, conf.grad_clip, conf.num_classes, True)
 
+def train(language_model):
+
+    language_model = language_model(conf.num_classes, conf.batch_size, conf.num_steps, conf.learning_rate,
+                                    conf.num_layers, conf.lstm_size, conf.keep_prob, conf.grad_clip, is_training=True)
+    saver = tf.train.Saver(max_to_keep=100)
     sess = tf.Session()
     merged = tf.summary.merge_all()
     writer = tf.summary.FileWriter("logs", sess.graph)
@@ -187,15 +186,75 @@ if __name__ == '__main__':
 
             #
             _, batch_loss, new_state, predict = sess.run(
-                [language_model.optimizer, language_model.loss, language_model.final_state, language_model.out],
+                [language_model.optimizer, language_model.loss, language_model.final_state, language_model.prediction],
                 feed_dict=feed_dict)
 
             end = time.time()
             # control the print lines
             if counter % 100 == 0:
-                print('轮数: {}/{}... '.format(e + 1,conf.epochs),
+                print('轮数: {}/{}... '.format(e + 1, conf.epochs),
                       '训练步数: {}... '.format(counter),
                       '训练误差: {:.4f}... '.format(batch_loss),
                       '{:.4f} sec/batch'.format((end - start)))
 
-            # if counter
+            if counter % conf.save_every_n == 0:
+                saver.save(sess, 'checkpoints/i{}_l{}.ckpt'.format(counter, conf.lstm_size))
+    saver.save(sess, "checkpoints/i{}_l{}.ckpt".format(counter, conf.lstm_size))
+
+
+def pick_top_n(preds, vocab_size, top_n=5):
+    """
+    从预测结果中选取前top_n个最可能的字符
+
+    preds: 预测结果
+    vocab_size
+    top_n
+    """
+    p = np.squeeze(preds)
+    # 将除了top_n个预测值的位置都置为0
+    p[np.argsort(p)[:-top_n]] = 0
+    # 归一化概率
+    p = p / np.sum(p)
+    # 随机选取一个字符
+    c = np.random.choice(vocab_size, 1, p=p)[0]
+    return c
+
+
+def generate_samples(checkpoint, hidden_units,num_samples ,prime='The '):
+
+    samples = [char for char in prime]
+    language_model = language_model(conf.num_classes,conf.batch_size, conf.num_steps, conf.learning_rate, conf.num_layers,
+                                    conf.lstm_size, conf.keep_prob, conf.grad_clip, False)
+    saver = tf.train.Saver()
+
+    with tf.Session as sess:
+        saver.restore(sess, checkpoint)
+        new_state = sess.run(language_model.initial_state)
+
+        for c in prime:
+            x = np.zeros((1, 1))
+            x[0, 0] = vocab_to_int[c]
+            feed_dict = {language_model.inputs: x,
+                    language_model.initial_state: new_state}
+            predicts, final_state = sess.run([language_model.prediction, language_model.final_state], feed_dict=feed_dict)
+
+        c = pick_top_n(predicts, len(vocab))
+        samples.append(int_to_vocab[c])
+
+        for i in range(num_samples):
+            x[0, 0] = c
+            feed_dict = {language_model.inputs: x, language_model.initial_state: new_state}
+            preds, new_state = sess.run([language_model.prediction, language_model.final_state],
+                                        feed_dict=feed_dict)
+
+            c = pick_top_n(preds, len(vocab))
+            samples.append(int_to_vocab[c])
+    return ''.join(samples)
+
+
+tf.train.latest_checkpoint('checkpoints')
+
+# 选用最终的训练参数作为输入进行文本生成
+checkpoint = tf.train.latest_checkpoint('checkpoints')
+samp = generate_samples(checkpoint, 2000, conf.lstm_size, len(vocab), prime="The")
+print(samp)

@@ -35,14 +35,14 @@ weights = {
     # (1, 200)
     'in': tf.Variable(tf.random_normal([n_inputs, n_hidden_units])),
     # (200, 2)
-    'out': tf.Variable(tf.random_normal([n_hidden_units, n_classes]))
+    'prediction': tf.Variable(tf.random_normal([n_hidden_units, n_classes]))
 }
 
 biases = {
     # (200, )
     'in': tf.Variable(tf.constant(0.1, shape=[n_hidden_units, ])),
     # (2, )
-    'out': tf.Variable(tf.constant(0.1, shape=[n_classes, ]))
+    'prediction': tf.Variable(tf.constant(0.1, shape=[n_classes, ]))
 }
 
 
@@ -81,7 +81,7 @@ def rnn(input_data, weights, biases):
 
     # hidden layer for output as the final results
     #############################################
-    # results = tf.matmul(final_state[1], weights['out']) + biases['out']
+    # results = tf.matmul(final_state[1], weights['prediction']) + biases['prediction']
 
     outputs_temp = tf.transpose(outputs, [1, 0, 2])
 
@@ -89,7 +89,7 @@ def rnn(input_data, weights, biases):
     # unpack to list [(batch, outputs)..] * steps
     outputs = tf.unpack(outputs_temp)  # states is the last outputs   tf.transpose转置函数
 
-    results = tf.matmul(outputs[-1], weights['out']) + biases['out']  # outputs[-1]表示取最后一个
+    results = tf.matmul(outputs[-1], weights['prediction']) + biases['prediction']  # outputs[-1]表示取最后一个
 
     return results
 
