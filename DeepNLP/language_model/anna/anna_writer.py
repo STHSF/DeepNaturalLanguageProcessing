@@ -47,7 +47,7 @@ def get_batch(array, batch_size, seq_length):
         yield x, y
 
 
-class language_model():
+class language_model:
     def __init__(self, num_classes, batch_size=100, seq_length=50, learning_rate=0.01, num_layers=5, hidden_units=128,
                  keep_prob=0.8, grad_clip=5, is_training=True):
 
@@ -141,7 +141,7 @@ class language_model():
         return self.optimizer
 
 
-class conf():
+class conf:
     batch_size = 100  # Sequences per batch
     num_steps = 100  # Number of sequence steps per batch
     lstm_size = 512  # Size of hidden layers in LSTMs
@@ -157,7 +157,6 @@ class conf():
 
 
 def train(language_model):
-
     language_model = language_model(conf.num_classes, conf.batch_size, conf.num_steps, conf.learning_rate,
                                     conf.num_layers, conf.lstm_size, conf.keep_prob, conf.grad_clip, is_training=True)
     saver = tf.train.Saver(max_to_keep=100)
@@ -220,31 +219,36 @@ def pick_top_n(preds, vocab_size, top_n=5):
     return c
 
 
-def generate_samples(checkpoint, hidden_units,num_samples ,prime='The '):
+def generate_samples(language_model, checkpoint, num_samples, prime='The '):
 
     samples = [char for char in prime]
     language_model = language_model(conf.num_classes,conf.batch_size, conf.num_steps, conf.learning_rate, conf.num_layers,
                                     conf.lstm_size, conf.keep_prob, conf.grad_clip, False)
     saver = tf.train.Saver()
 
-    with tf.Session as sess:
+    with tf.Session() as sess:
         saver.restore(sess, checkpoint)
         new_state = sess.run(language_model.initial_state)
 
         for c in prime:
             x = np.zeros((1, 1))
             x[0, 0] = vocab_to_int[c]
-            feed_dict = {language_model.inputs: x,
-                    language_model.initial_state: new_state}
-            predicts, final_state = sess.run([language_model.prediction, language_model.final_state], feed_dict=feed_dict)
+            feed_dict = {language_model.x: x,
+                         language_model.initial_state: new_state}
+
+            predicts, final_state = sess.run([language_model.prediction,
+                                              language_model.final_state],
+                                             feed_dict=feed_dict)
 
         c = pick_top_n(predicts, len(vocab))
         samples.append(int_to_vocab[c])
 
         for i in range(num_samples):
             x[0, 0] = c
-            feed_dict = {language_model.inputs: x, language_model.initial_state: new_state}
-            preds, new_state = sess.run([language_model.prediction, language_model.final_state],
+            feed_dict = {language_model.x: x,
+                         language_model.initial_state: new_state}
+            preds, new_state = sess.run([language_model.prediction,
+                                         language_model.final_state],
                                         feed_dict=feed_dict)
 
             c = pick_top_n(preds, len(vocab))
@@ -256,5 +260,5 @@ tf.train.latest_checkpoint('checkpoints')
 
 # 选用最终的训练参数作为输入进行文本生成
 checkpoint = tf.train.latest_checkpoint('checkpoints')
-samp = generate_samples(checkpoint, 2000, conf.lstm_size, len(vocab), prime="The")
+samp = generate_samples(language_model, checkpoint, 20000, prime="The ")
 print(samp)
