@@ -13,11 +13,13 @@ import time
 import numpy as np
 import tensorflow as tf
 
+# 读取训练数据
 file_path = './data/anna.txt'
 with open(file_path) as f:
     text = f.read()
 # print('text', text)
 
+# 生成字符集合
 vocab = set(text)
 # print('vocab\n', vocab)
 print('len_vocab', len(vocab))
@@ -81,21 +83,20 @@ class language_model:
         with tf.name_scope("inputs"):
             self.x = tf.placeholder(tf.int32, shape=(self.batch_size, self.seq_length), name='inputs')
             self.y = tf.placeholder(tf.int32, shape=(self.batch_size, self.seq_length), name='targets')
-
+        # One-hot编码
         self.inputs = tf.one_hot(self.x, self.num_classes)
         # self.inputs = tf.reshape(self.y, [-1, self.num_classes])
-
         self.targets = tf.one_hot(self.y, self.num_classes)
 
     def rnn_cell(self):
         # Or GRUCell, LSTMCell(args.hiddenSize)
-        lstm_cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_units,
-                                                 state_is_tuple=True)
+        cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_units,
+                                            state_is_tuple=True)
         if not self.is_training:
-            lstm_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell,
-                                                      input_keep_prob=1.0,
-                                                      output_keep_prob=self.keep_prob)
-        return lstm_cell
+            cell = tf.contrib.rnn.DropoutWrapper(cell,
+                                                 input_keep_prob=1.0,
+                                                 output_keep_prob=self.keep_prob)
+        return cell
 
     def add_lstm_cell(self):
         lstm_cells = tf.contrib.rnn.MultiRNNCell([self.rnn_cell() for _ in range(self.num_layers)],
@@ -124,7 +125,6 @@ class language_model:
         return self.prediction, self.logits
 
     def compute_cost(self):
-        # One-hot编码
         y_reshaped = tf.reshape(self.targets, self.logits.get_shape())
 
         # Softmax cross entropy loss
@@ -156,8 +156,8 @@ class conf:
     save_every_n = 200
 
 
-def train(language_model):
-    language_model = language_model(conf.num_classes, conf.batch_size, conf.num_steps, conf.learning_rate,
+def train():
+    model = language_model(conf.num_classes, conf.batch_size, conf.num_steps, conf.learning_rate,
                                     conf.num_layers, conf.lstm_size, conf.keep_prob, conf.grad_clip, is_training=True)
     saver = tf.train.Saver(max_to_keep=100)
     sess = tf.Session()
@@ -173,28 +173,31 @@ def train(language_model):
             start = time.time()
             if e == 0:
                 feed_dict = {
-                    language_model.x: x,
-                    language_model.y: y,
+                    model.x: x,
+                    model.y: y,
                 }
             else:
                 feed_dict = {
-                    language_model.x: x,
-                    language_model.y: y,
-                    language_model.initial_state: new_state
+                    model.x: x,
+                    model.y: y,
+                    model.initial_state: new_state
                 }
 
-            #
+                #
             _, batch_loss, new_state, predict = sess.run(
-                [language_model.optimizer, language_model.loss, language_model.final_state, language_model.prediction],
+                [model.optimizer, model.loss, model.final_state, model.prediction],
                 feed_dict=feed_dict)
-
             end = time.time()
             # control the print lines
             if counter % 100 == 0:
+                result = sess.run(merged, feed_dict)
+                writer.add_summary(result, counter)
+
                 print('轮数: {}/{}... '.format(e + 1, conf.epochs),
                       '训练步数: {}... '.format(counter),
                       '训练误差: {:.4f}... '.format(batch_loss),
                       '{:.4f} sec/batch'.format((end - start)))
+
 
             if counter % conf.save_every_n == 0:
                 saver.save(sess, 'checkpoints/i{}_l{}.ckpt'.format(counter, conf.lstm_size))
@@ -219,25 +222,25 @@ def pick_top_n(preds, vocab_size, top_n=5):
     return c
 
 
-def generate_samples(language_model, checkpoint, num_samples, prime='The '):
+def generate_samples(checkpoint, num_samples, prime='The '):
 
     samples = [char for char in prime]
-    language_model = language_model(conf.num_classes,conf.batch_size, conf.num_steps, conf.learning_rate, conf.num_layers,
+    model = language_model(conf.num_classes,conf.batch_size, conf.num_steps, conf.learning_rate, conf.num_layers,
                                     conf.lstm_size, conf.keep_prob, conf.grad_clip, False)
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
         saver.restore(sess, checkpoint)
-        new_state = sess.run(language_model.initial_state)
+        new_state = sess.run(model.initial_state)
 
         for c in prime:
             x = np.zeros((1, 1))
             x[0, 0] = vocab_to_int[c]
-            feed_dict = {language_model.x: x,
-                         language_model.initial_state: new_state}
+            feed_dict = {model.x: x,
+                         model.initial_state: new_state}
 
-            predicts, final_state = sess.run([language_model.prediction,
-                                              language_model.final_state],
+            predicts, final_state = sess.run([model.prediction,
+                                              model.final_state],
                                              feed_dict=feed_dict)
 
         c = pick_top_n(predicts, len(vocab))
@@ -245,10 +248,10 @@ def generate_samples(language_model, checkpoint, num_samples, prime='The '):
 
         for i in range(num_samples):
             x[0, 0] = c
-            feed_dict = {language_model.x: x,
-                         language_model.initial_state: new_state}
-            preds, new_state = sess.run([language_model.prediction,
-                                         language_model.final_state],
+            feed_dict = {model.x: x,
+                         model.initial_state: new_state}
+            preds, new_state = sess.run([model.prediction,
+                                         model.final_state],
                                         feed_dict=feed_dict)
 
             c = pick_top_n(preds, len(vocab))
@@ -257,8 +260,7 @@ def generate_samples(language_model, checkpoint, num_samples, prime='The '):
 
 
 if __name__ == '__main__':
-
-    train(language_model)
+    train()
 
     # tf.train.latest_checkpoint('checkpoints')
 
