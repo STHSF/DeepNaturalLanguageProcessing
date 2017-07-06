@@ -256,9 +256,17 @@ def generate_samples(language_model, checkpoint, num_samples, prime='The '):
     return ''.join(samples)
 
 
-tf.train.latest_checkpoint('checkpoints')
+if __name__ == '__main__':
 
-# 选用最终的训练参数作为输入进行文本生成
-checkpoint = tf.train.latest_checkpoint('checkpoints')
-samp = generate_samples(language_model, checkpoint, 20000, prime="The ")
-print(samp)
+    train(language_model)
+
+    # tf.train.latest_checkpoint('checkpoints')
+
+    # 选用最终的训练参数作为输入进行文本生成
+    checkpoint = tf.train.latest_checkpoint('checkpoints')
+    samp = generate_samples(language_model, checkpoint, 20000, prime="The ")
+    print(samp)
+
+
+
+# 其中还存在的问题，程序每运行一次vocab_to_int都会改变，导致train和predict不能分开。
