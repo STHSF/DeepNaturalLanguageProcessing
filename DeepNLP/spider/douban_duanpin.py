@@ -9,7 +9,7 @@ import lxml
 import time
 
 import sys
-reload(sys)
+# reload(sys)
 sys.setdefaultencoding('utf8')
 
 
@@ -30,11 +30,11 @@ def url_request(url):
         response = urllib2.urlopen(request)  # 取得响应
         html = response.read()  # 获取网页内容
         # print html
-    except urllib2.URLError, e:
+    except urllib2.URLError as e:
         if hasattr(e, "code"):
-            print e.code
+            print(e.code)
         if hasattr(e, "reason"):
-            print e.reason
+            print(e.reason)
     return html
 
 
@@ -116,7 +116,7 @@ def main():
     base_url1 = 'https://movie.douban.com/subject/25815034/comments?start='
     base_url2 = '&limit=20&sort=new_score'
     data_list = get_data(base_url1, base_url2)
-    print len(data_list)
+    print(len(data_list))
     save_path = u'豆瓣影评数据.xls'
     save_data(data_list, save_path)
 

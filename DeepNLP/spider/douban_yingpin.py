@@ -17,11 +17,11 @@ def ask_url(url):
         response = urllib2.urlopen(request)  # 取得响应
         html = response.read()  # 获取网页内容
         # print html
-    except urllib2.URLError, e:
+    except urllib2.URLError as e:
         if hasattr(e, "code"):
-            print e.code
+            print(e.code)
         if hasattr(e, "reason"):
-            print e.reason
+            print(e.reason)
     return html
 
 
@@ -131,7 +131,7 @@ def get_data(base_url):
 # 将相关数据写入excel中
 def save_data(data_list, save_path):
     num = len(data_list)
-    print num
+    print(num)
     book = xlwt.Workbook(encoding='utf-8', style_compression=0)
     sheet = book.add_sheet('豆瓣影评数据获取', cell_overwrite_ok=True)
     col = ('标题', '作者', '推荐级', '回应数', '影评', '有用数')
@@ -149,7 +149,7 @@ def main():
     # base_url = 'https://movie.douban.com/subject/25815034/reviews?start='
     base_url = 'https://movie.douban.com/subject/25815034/reviews?sort=hotest&start='
     data_list = get_data(base_url)
-    print len(data_list)
+    print(len(data_list))
     # save_path = u'豆瓣最受欢迎影评.xlsx'
     # save_data(data_list, save_path)
 

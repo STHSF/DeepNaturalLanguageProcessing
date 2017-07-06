@@ -56,12 +56,12 @@ def read_data_test():
     #
     # print len(pos_res), len(neg_res), len(tmp)
     for i in tmp[0]:
-        print i
+        print(i)
 
     print('\n')
 
     for i in tmp[0]:
-        print i
+        print(i)
 
 if __name__ == "__main__":
     read_data_test()
