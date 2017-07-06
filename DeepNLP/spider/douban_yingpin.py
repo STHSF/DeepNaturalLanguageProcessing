@@ -6,7 +6,7 @@ import re
 import urllib2
 import xlwt
 import sys
-reload(sys)
+# reload(sys)
 sys.setdefaultencoding('utf8')
 
 
@@ -91,7 +91,7 @@ def get_data(base_url):
                 use = use[0]
             else:
                 use = 0
-            print use
+            print(use)
 
             data.append(use)  # 添加有用数
             data_list.append(data)

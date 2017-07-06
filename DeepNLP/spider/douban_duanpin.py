@@ -99,7 +99,7 @@ def get_data(base_url1, base_url2):
 def save_data(data_list, save_path):
 
     num = len(data_list)
-    print num
+    print(num)
     book = xlwt.Workbook(encoding='utf-8', style_compression=0)
     sheet = book.add_sheet('豆瓣影评数据', cell_overwrite_ok=True)
     col = ('作者', '推荐级', '有用数', '影评')
