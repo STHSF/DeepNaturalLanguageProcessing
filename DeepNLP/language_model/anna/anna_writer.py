@@ -24,27 +24,40 @@ vocab = set(text)
 # print('vocab\n', vocab)
 print('len_vocab', len(vocab))
 
+# 字符编码
 vocab_to_int = {char: i for i, char in enumerate(vocab)}
 # print('vocab_to_int\n', vocab_to_int)
 int_to_vocab = dict(enumerate(vocab))
 # print('int_to_vocab\n', int_to_vocab)
 
+# 文本编码
 encoded = np.array([vocab_to_int[c] for c in text], dtype=np.int32)
 # print('encoded\n', encoded)
 # print('encoded_shape\n', np.shape(encoded))
 
 
-def get_batch(array, batch_size, seq_length):
-    num_steps = batch_size * seq_length
-    n_batch = int(len(array) / num_steps)
+def get_batch(raw_data, batch_size, seq_length):
+    """
+    生成batch数据，
+    Args:
+        array:
+        batch_size:
+        seq_length:
 
-    array = array[:n_batch * num_steps]
-    array = array.reshape((batch_size, -1))
+    Returns:
 
-    for n in range(0, array.shape[1], seq_length):
-        x = array[:, n:(n + seq_length)]
-        y = np.zeros_like(x)
-        y[:, :-1], y[:, -1] = x[:, 1:], x[:, 0]
+    """
+    data = np.array(raw_data)
+    data_length = data.shape[0]
+    num_batches = (data_length - 1) // (batch_size * seq_length)
+    assert num_batches > 0, "Not enough data, even for a single batch. Try using a smaller batch_size."
+    rounded_data_len = num_batches * (batch_size * seq_length)
+    xdata = np.reshape(data[0:rounded_data_len], [batch_size, num_batches * seq_length])
+    ydata = np.reshape(data[1:rounded_data_len + 1], [batch_size, num_batches * seq_length])
+
+    for batch in range(num_batches):
+        x = xdata[:, batch * seq_length:(batch + 1) * seq_length]
+        y = ydata[:, batch * seq_length:(batch + 1) * seq_length]
 
         yield x, y
 
@@ -81,12 +94,12 @@ class language_model:
 
     def add_input_layer(self):
         with tf.name_scope("inputs"):
-            self.x = tf.placeholder(tf.int32, shape=(self.batch_size, self.seq_length), name='inputs')
-            self.y = tf.placeholder(tf.int32, shape=(self.batch_size, self.seq_length), name='targets')
+            self.x = tf.placeholder(tf.int32, shape=(self.batch_size, self.seq_length), name='inputs')    # [batch_size, seq_length]
+            self.y = tf.placeholder(tf.int32, shape=(self.batch_size, self.seq_length), name='targets')   # [batch_size, seq_length]
         # One-hot编码
-        self.inputs = tf.one_hot(self.x, self.num_classes)
+        self.inputs = tf.one_hot(self.x, self.num_classes)           # [batch_size, seq_length, num_classes]
         # self.inputs = tf.reshape(self.y, [-1, self.num_classes])
-        self.targets = tf.one_hot(self.y, self.num_classes)
+        self.targets = tf.one_hot(self.y, self.num_classes)          # [batch_size, seq_length, num_classes]
 
     def rnn_cell(self):
         # Or GRUCell, LSTMCell(args.hiddenSize)
@@ -99,6 +112,10 @@ class language_model:
         return cell
 
     def add_lstm_cell(self):
+
+        # initial_state: [batch_size, hidden_units * num_layers]
+        # cell_output: [batch_size, seq_length, hidden_units]
+        # final_state: [batch_size, hidden_units * num_layers]
         lstm_cells = tf.contrib.rnn.MultiRNNCell([self.rnn_cell() for _ in range(self.num_layers)],
                                                  state_is_tuple=True)
 
@@ -111,24 +128,24 @@ class language_model:
 
     def build_output(self):
         seq_output = tf.concat(self.cell_outputs, axis=1)
-        x = tf.reshape(seq_output, [-1, self.hidden_units])
+        y0 = tf.reshape(seq_output, [-1, self.hidden_units])    # y0: [batch_size * seq_length, hidden_units]
 
         with tf.name_scope('softmax'):
             sofmax_w = tf.Variable(tf.truncated_normal([self.hidden_units, self.num_classes], stddev=0.1))
             softmax_b = tf.Variable(tf.zeros(self.num_classes))
 
         with tf.name_scope('wx_plus_b'):
-            self.logits = tf.matmul(x, sofmax_w) + softmax_b
+            self.logits = tf.matmul(y0, sofmax_w) + softmax_b    # logits: [batch_size * seq_length, num_classes]
 
         self.prediction = tf.nn.softmax(logits=self.logits, name='prediction')
 
         return self.prediction, self.logits
 
     def compute_cost(self):
-        y_reshaped = tf.reshape(self.targets, self.logits.get_shape())
+        y_reshaped = tf.reshape(self.targets, self.logits.get_shape())    # y_reshaped: [batch_size * seq_length, num_classes]
 
         # Softmax cross entropy loss
-        loss = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=y_reshaped)
+        loss = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=y_reshaped)  # loss: [batch_size, seq_length]
         self.loss = tf.reduce_mean(loss)
         return self.loss
 
@@ -157,12 +174,21 @@ class conf:
 
 
 def train():
-    model = language_model(conf.num_classes, conf.batch_size, conf.num_steps, conf.learning_rate,
-                                    conf.num_layers, conf.lstm_size, conf.keep_prob, conf.grad_clip, is_training=True)
+    """
+    语言模型的训练
+    Returns:
+
+    """
+    model = language_model(conf.num_classes,
+                           conf.batch_size,
+                           conf.num_steps,
+                           conf.learning_rate,
+                           conf.num_layers,
+                           conf.lstm_size,
+                           conf.keep_prob,
+                           conf.grad_clip, is_training=True)
     saver = tf.train.Saver(max_to_keep=100)
     sess = tf.Session()
-    merged = tf.summary.merge_all()
-    writer = tf.summary.FileWriter("logs", sess.graph)
     sess.run(tf.global_variables_initializer())
 
     counter = 0
@@ -190,14 +216,10 @@ def train():
             end = time.time()
             # control the print lines
             if counter % 100 == 0:
-                result = sess.run(merged, feed_dict)
-                writer.add_summary(result, counter)
-
                 print('轮数: {}/{}... '.format(e + 1, conf.epochs),
                       '训练步数: {}... '.format(counter),
                       '训练误差: {:.4f}... '.format(batch_loss),
                       '{:.4f} sec/batch'.format((end - start)))
-
 
             if counter % conf.save_every_n == 0:
                 saver.save(sess, 'checkpoints/i{}_l{}.ckpt'.format(counter, conf.lstm_size))
@@ -266,7 +288,7 @@ if __name__ == '__main__':
 
     # 选用最终的训练参数作为输入进行文本生成
     checkpoint = tf.train.latest_checkpoint('checkpoints')
-    samp = generate_samples(language_model, checkpoint, 20000, prime="The ")
+    samp = generate_samples(checkpoint, 20000, prime="The ")
     print(samp)
 
 
