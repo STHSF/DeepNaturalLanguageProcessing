@@ -90,7 +90,7 @@ class language_model:
         with tf.name_scope('cost'):
             self.compute_cost()
         with tf.name_scope('train_op'):
-            self.train_op()
+            self.optimizer()
 
     def add_input_layer(self):
         self.x = tf.placeholder(tf.int32,
@@ -102,17 +102,12 @@ class language_model:
         # self.inputs = tf.reshape(self.y, [-1, self.num_classes])
         self.targets = tf.one_hot(self.y, self.num_classes)          # [batch_size, seq_length, num_classes]
 
-    def lstm_cell(self):
+    def rnn_cell(self):
         # Or GRUCell, LSTMCell(args.hiddenSize)
         #
-        with tf.variable_scope('lstm_cell'):
-            cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_units,
-                                                state_is_tuple=True)
-
-        # with tf.variable_scope('lstm_cell'):
-        #     cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_units,
-        #                                         state_is_tuple=True,
-        #                                         reuse=tf.get_variable_scope().reuse)
+        cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_units,
+                                            state_is_tuple=True,
+                                            reuse=tf.get_variable_scope().reuse)
         if self.is_training:
             cell = tf.contrib.rnn.DropoutWrapper(cell,
                                                  input_keep_prob=1.0,
@@ -124,13 +119,19 @@ class language_model:
         # initial_state: [batch_size, hidden_units * num_layers]
         # cell_output: [batch_size, seq_length, hidden_units]
         # final_state: [batch_size, hidden_units * num_layers]
-        stacked_cells = tf.contrib.rnn.MultiRNNCell([self.lstm_cell() for _ in range(self.num_layers)],
-                                                    state_is_tuple=True)
+        # multi_cells = tf.contrib.rnn.MultiRNNCell([self.lstm_cell() for _ in range(self.num_layers)],
+        #                                           state_is_tuple=True)
+
+        # 构建一个基本lstm单元
+        cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_units)
+
+        # 添加dropout
+        multi_cells = tf.contrib.rnn.DropoutWrapper(cell, output_keep_prob=self.keep_prob)
 
         with tf.name_scope('initial_state'):
-            self.initial_state = stacked_cells.zero_state(self.batch_size, dtype=tf.float32)
+            self.initial_state = multi_cells.zero_state(self.batch_size, dtype=tf.float32)
 
-        self.cell_outputs, self.final_state = tf.nn.dynamic_rnn(cell=stacked_cells,
+        self.cell_outputs, self.final_state = tf.nn.dynamic_rnn(cell=multi_cells,
                                                                 inputs=self.inputs,
                                                                 initial_state=self.initial_state)
 
@@ -160,10 +161,10 @@ class language_model:
     def optimizer(self):
         tvars = tf.trainable_variables()
         grads, _ = tf.clip_by_global_norm(tf.gradients(self.loss, tvars), self.grad_clip)
-        optimizer = tf.train.AdamOptimizer(self.learning_rate)
-        self.train_op = optimizer.apply_gradients(zip(grads, tvars))
+        train_op = tf.train.AdamOptimizer(self.learning_rate)
+        self.optimizer = train_op.apply_gradients(zip(grads, tvars))
 
-        return self.train_op
+        return self.optimizer
 
 
 class conf:
@@ -179,53 +180,6 @@ class conf:
     epochs = 1
     # 每n轮进行一次变量保存
     save_every_n = 200
-
-
-def train():
-    """
-    语言模型的训练
-    Returns:
-
-    """
-    model = language_model(conf.num_classes, conf.batch_size, conf.num_steps, conf.learning_rate, conf.num_layers,
-                           conf.lstm_size, conf.keep_prob, conf.grad_clip, is_training=True)
-    saver = tf.train.Saver(max_to_keep=100)
-
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        counter = 0
-        for e in range(conf.epochs):
-            for x, y in get_batch(encoded, conf.batch_size, conf.num_steps):
-                counter += 1
-                start = time.time()
-                if e == 0:
-                    feed_dict = {
-                        model.x: x,
-                        model.y: y,
-                    }
-                else:
-                    feed_dict = {
-                        model.x: x,
-                        model.y: y,
-                        model.initial_state: new_state
-                    }
-
-                _, batch_loss, new_state, predict = sess.run([model.train_op,
-                                                              model.loss,
-                                                              model.final_state,
-                                                              model.prediction],
-                                                             feed_dict=feed_dict)
-                end = time.time()
-                # control the print lines
-                if counter % 100 == 0:
-                    print('轮数: {}/{}... '.format(e + 1, conf.epochs),
-                          '训练步数: {}... '.format(counter),
-                          '训练误差: {:.4f}... '.format(batch_loss),
-                          '{:.4f} sec/batch'.format((end - start)))
-
-                if counter % conf.save_every_n == 0:
-                    saver.save(sess, 'checkpointss/i{}_l{}.ckpt'.format(counter, conf.lstm_size))
-        saver.save(sess, "checkpointss/i{}_l{}.ckpt".format(counter, conf.lstm_size))
 
 
 def pick_top_n(preds, vocab_size, top_n=5):
@@ -255,16 +209,18 @@ def generate_samples(checkpoint, num_samples, prime='The '):
 
     with tf.Session() as sess:
         saver.restore(sess, checkpoint)
-        new_state = sess.run(model.initial_state)
+        # new_state = sess.run(model.initial_state)
         for c in prime:
             x = np.zeros((1, 1))
             x[0, 0] = vocab_to_int[c]
             feed_dict = {model.x: x}
 
-            predicts = sess.run(model.prediction, feed_dict=feed_dict)
+            predicts, new_state = sess.run([model.prediction,
+                                            model.final_state],
+                                           feed_dict=feed_dict)
 
-            c = pick_top_n(predicts, len(vocab))
-            samples.append(int_to_vocab[c])
+        c = pick_top_n(predicts, len(vocab))
+        samples.append(int_to_vocab[c])
 
         for i in range(num_samples):
             x[0, 0] = c
@@ -279,16 +235,59 @@ def generate_samples(checkpoint, num_samples, prime='The '):
     return ''.join(samples)
 
 
-if __name__ == '__main__':
-    train()
+model = language_model(conf.num_classes,
+                       conf.batch_size,
+                       conf.num_steps,
+                       conf.learning_rate,
+                       conf.num_layers,
+                       conf.lstm_size,
+                       conf.keep_prob,
+                       conf.grad_clip, is_training=True)
+saver = tf.train.Saver(max_to_keep=100)
 
-    tf.train.latest_checkpoint('checkpointss')
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    counter = 0
+    for e in range(conf.epochs):
+        for x, y in get_batch(encoded, conf.batch_size, conf.num_steps):
+            counter += 1
+            start = time.time()
+            if e == 0:
+                feed_dict = {
+                    model.x: x,
+                    model.y: y,
+                }
+            else:
+                feed_dict = {
+                    model.x: x,
+                    model.y: y,
+                    model.initial_state: new_state
+                }
 
-    # 选用最终的训练参数作为输入进行文本生成
-    checkpoint = tf.train.latest_checkpoint('checkpointss')
-    samp = generate_samples(checkpoint, 20000, prime="The ")
-    print(samp)
+            _, batch_loss, new_state, predict = sess.run([model.optimizer,
+                                                          model.loss,
+                                                          model.final_state,
+                                                          model.prediction],
+                                                         feed_dict=feed_dict)
+            end = time.time()
+            # control the print lines
+            if counter % 100 == 0:
+                print('轮数: {}/{}... '.format(e + 1, conf.epochs),
+                      '训练步数: {}... '.format(counter),
+                      '训练误差: {:.4f}... '.format(batch_loss),
+                      '{:.4f} sec/batch'.format((end - start)))
+
+            if counter % conf.save_every_n == 0:
+                saver.save(sess, 'checkpoints/i{}_l{}.ckpt'.format(counter, conf.lstm_size))
+    saver.save(sess, "checkpoints/i{}_l{}.ckpt".format(counter, conf.lstm_size))
+
+tf.train.latest_checkpoint('checkpoints')
+
+# 选用最终的训练参数作为输入进行文本生成
+checkpoint = tf.train.latest_checkpoint('checkpoints')
+samp = generate_samples(checkpoint, 20000, prime="The ")
+print(samp)
 
 
 
-# 其中还存在的问题，程序每运行一次vocab_to_int都会改变，导致train和predict不能分开。
+    # 其中还存在的问题，程序每运行一次vocab_to_int都会改变，导致train和predict不能分开。

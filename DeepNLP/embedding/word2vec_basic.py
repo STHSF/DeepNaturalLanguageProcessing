@@ -150,7 +150,7 @@ with graph.as_default():
         tf.nn.nce_loss(nce_weights, nce_biases, embed, train_labels,
                        num_sampled, vocabulary_size))
 
-    # Construct the SGD optimizer using a learning rate of 1.0.
+    # Construct the SGD train_op using a learning rate of 1.0.
     optimizer = tf.train.GradientDescentOptimizer(1.0).minimize(loss)
 
     # Compute the cosine similarity between minibatch examples and all embeddings.
@@ -177,7 +177,7 @@ with tf.Session(graph=graph) as session:
         batch_inputs, batch_labels = generate_batch(batch_size, num_skips, skip_window)
         feed_dict = {train_inputs: batch_inputs, train_labels: batch_labels}
 
-        # We perform one update step by evaluating the optimizer op (including it
+        # We perform one update step by evaluating the train_op op (including it
         # in the list of returned values for session.run()
         _, loss_val = session.run([optimizer, loss], feed_dict=feed_dict)
         average_loss += loss_val

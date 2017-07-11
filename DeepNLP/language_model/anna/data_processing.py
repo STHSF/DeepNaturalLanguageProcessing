@@ -194,7 +194,7 @@ class CharRNN:
         # 预测结果
         self.prediction, self.logits = build_output(outputs, lstm_size, num_classes)
 
-        # Loss 和 optimizer (with gradient clipping)
+        # Loss 和 train_op (with gradient clipping)
         self.loss = build_loss(self.logits, self.targets, lstm_size, num_classes)
         self.optimizer = build_optimizer(self.loss, learning_rate, grad_clip)
 
