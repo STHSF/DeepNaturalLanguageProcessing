@@ -88,13 +88,13 @@ ENV/
 # Rope project settings
 .ropeproject
 .idea/*
-DeepNLP/sentiment_analysis/cs224d/datasets/__MACOSX
-DeepNLP/sentiment_analysis/cs224d/datasets/stanfordSentimentTreebank/
-DeepNLP/env/
-/DeepNLP/sentiment_analysis/cs224d/datasets/__MACOSX/
-/DeepNLP/sentiment_analysis/cs224d/datasets/stanfordSentimentTreebank/
-/DeepNLP/embedding/data
-/DeepNLP/embedding/text8.zip
+sentiment_analysis/sentiment_analysis/cs224d/datasets/__MACOSX
+sentiment_analysis/sentiment_analysis/cs224d/datasets/stanfordSentimentTreebank/
+sentiment_analysis/env/
+/sentiment_analysis/sentiment_analysis/cs224d/datasets/__MACOSX/
+/sentiment_analysis/sentiment_analysis/cs224d/datasets/stanfordSentimentTreebank/
+/sentiment_analysis/embedding/data
+/sentiment_analysis/embedding/text8.zip
 word2vecmodel
 word2vec/text8
 MNIST_data/
@@ -103,11 +103,11 @@ spider/豆瓣影评数据.xls
 embedding
 
 
-/DeepNLP/sentiment_analysis_zh/globe.py
-/DeepNLP/sentiment_analysis_zh/plot.py
-/DeepNLP/sentiment_analysis_zh/data/
+/sentiment_analysis/sentiment_analysis_zh/globe.py
+/sentiment_analysis/sentiment_analysis_zh/plot.py
+/sentiment_analysis/sentiment_analysis_zh/data/
 .DS_Store
 .idea/
-DeepNLP/anna.ipynb
-DeepNLP/language_model/anna/checkpoints/
-/DeepNLP/language_model/anna/ex.py
+language_model/anna.ipynb
+language_model/anna/checkpoints/
+/language_model/anna/ex.py
