@@ -65,7 +65,7 @@ def get_batch(raw_data, batch_size, seq_length):
 class language_model:
     def __init__(self, num_classes, batch_size=100, seq_length=50, learning_rate=0.01, num_layers=5, hidden_units=128,
                  keep_prob=0.8, grad_clip=5, is_training=True):
-
+        tf.reset_default_graph()  # 模型的训练和预测放在同一个文件下时如果没有这个函数会报错。
         self.learning_rate = learning_rate
         self.num_layers = num_layers
         self.hidden_units = hidden_units
@@ -291,4 +291,6 @@ if __name__ == '__main__':
 
 
 
-# 其中还存在的问题，程序每运行一次vocab_to_int都会改变，导致train和predict不能分开。
+#  问题1 其中还存在的问题，程序每运行一次vocab_to_int都会改变，导致train和predict不能分开。
+
+# 问题二，目前train和predict放在一起时会出现错误，但是分开却没有问题。
