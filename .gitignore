@@ -87,3 +87,27 @@ ENV/
 
 # Rope project settings
 .ropeproject
+.idea/*
+sentiment_analysis/sentiment_analysis/cs224d/datasets/__MACOSX
+sentiment_analysis/sentiment_analysis/cs224d/datasets/stanfordSentimentTreebank/
+sentiment_analysis/env/
+/sentiment_analysis/sentiment_analysis/cs224d/datasets/__MACOSX/
+/sentiment_analysis/sentiment_analysis/cs224d/datasets/stanfordSentimentTreebank/
+/sentiment_analysis/embedding/data
+/sentiment_analysis/embedding/text8.zip
+word2vecmodel
+word2vec/text8
+MNIST_data/
+spider/豆瓣影评数据.xls
+*.pyc
+embedding
+
+
+/sentiment_analysis/sentiment_analysis_zh/globe.py
+/sentiment_analysis/sentiment_analysis_zh/plot.py
+/sentiment_analysis/sentiment_analysis_zh/data/
+.DS_Store
+.idea/
+language_model/anna.ipynb
+language_model/anna/checkpoints/
+/language_model/anna/ex.py
