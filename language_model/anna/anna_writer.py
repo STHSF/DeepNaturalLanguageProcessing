@@ -104,7 +104,7 @@ class language_model:
 
     def lstm_cell(self):
         # Or GRUCell, LSTMCell(args.hiddenSize)
-        #
+
         with tf.variable_scope('lstm_cell'):
             cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_units,
                                                 state_is_tuple=True)
