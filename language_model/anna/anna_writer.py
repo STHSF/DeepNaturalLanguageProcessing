@@ -20,7 +20,9 @@ with open(file_path) as f:
 # print('text', text)
 
 # 生成字符集合
-vocab = set(text)
+# 使用set对列表去重，并保持列表原来的顺序
+vocab = list(set(text))
+vocab.sort(key=text.index)
 # print('vocab\n', vocab)
 print('len_vocab', len(vocab))
 
