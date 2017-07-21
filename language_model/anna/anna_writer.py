@@ -18,7 +18,6 @@ file_path = './data/anna.txt'
 with open(file_path) as f:
     text = f.read()
 # print('text', text)
-
 # 生成字符集合
 # 使用set对列表去重，并保持列表原来的顺序
 vocab = list(set(text))
@@ -27,6 +26,7 @@ vocab.sort(key=text.index)
 print('len_vocab', len(vocab))
 
 # 字符编码
+
 vocab_to_int = {char: i for i, char in enumerate(vocab)}
 # print('vocab_to_int\n', vocab_to_int)
 int_to_vocab = dict(enumerate(vocab))
