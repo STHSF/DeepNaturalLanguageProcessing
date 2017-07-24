@@ -50,7 +50,11 @@ def get_batch(raw_data, batch_size, seq_length):
 
 class language_model():
 
-    def __init__(self, batch_size, seq_length, input_dim, hidden_units, keep_prob, num_layers,learning_rate, is_training):
+    def __init__(self, vocab_size, embed_dim, batch_size,
+                 seq_length, input_dim, hidden_units, keep_prob,
+                 num_layers,learning_rate, grad_clip, is_training):
+        self.vocab_size = vocab_size
+        self.embed_dim = embed_dim
         self.batch_size = batch_size
         self.seq_length = seq_length
         self.input_dim = input_dim
@@ -58,24 +62,29 @@ class language_model():
         self.keep_prob = keep_prob
         self.is_training = is_training
         self.num_layers = num_layers
+        self.grad_clip = grad_clip
         self.learning_rate = learning_rate
-
 
     def input_layer(self):
         self.input_x = tf.placeholder(tf.float32, shape=[self.batch_size, self.seq_length], name='input_x')
         self.input_y = tf.placeholder(tf.float32, shape=[self.batch_size, self.seq_length], name='input_y')
+
+    def word_embed(self, input_data):
+        embedding = tf.Variable(tf.random_uniform([self.vocab_size, self.embed_dim], -1, 1))
+        embed = tf.nn.embedding_lookup(embedding, input_data)
+        return embed
 
     def lstm_cell(self):
         with tf.variable_scope('lstm_cell'):
             single_cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_units, state_is_tuple=True)
 
         if self.is_training:
-            lstm_cell = tf.contrib.rnn.DropoutWrapper(single_cell,
-                                                 input_keep_prob=1.0,
-                                                 output_keep_prob=self.keep_prob)
-        return lstm_cell
+            single_cell = tf.contrib.rnn.DropoutWrapper(single_cell, input_keep_prob=1.0, output_keep_prob=self.keep_prob)
+        return single_cell
 
     def add_multi_cell(self):
+
+        embed = self.word_embed(self.input_x)
         with tf.variable_scope('stacked_cell'):
             stacked_cells = tf.contrib.rnn.MultiRNNCell([self.lstm_cell() for _ in range(self.num_layers)],
                                                         state_is_tuple=True)
@@ -84,15 +93,25 @@ class language_model():
             self.initial_state = stacked_cells.zero_state(self.batch_size, dtype=tf.float32)
 
         self.cell_outputs, self.final_state = tf.nn.dynamic_rnn(cell=stacked_cells,
-                                                                inputs=self.inputs,
+                                                                inputs=embed,
                                                                 initial_state=self.initial_state)
 
-    def output(self):
-        pass
+    def output_layer(self):
 
-    def loss(self):
-        pass
+        self.logits = tf.contrib.layers.fully_connected(self.cell_outputs, self.vocab_size, activation=None)
+        self.prediction = tf.nn.softmax(self.logits, name='prediction')
+        return self.logits, self.prediction
+
+    def compute_loss(self):
+        targets = self.word_embed(self.input_y)
+        self.loss = tf.contrib.seq2seq.sequence_loss(self.logits, targets, tf.ones())
+        return self.loss
 
     def optimizer(self):
-        pass
+        tvars = tf.trainable_variables()
+        grads, _ = tf.clip_by_global_norm(tf.gradients(self.loss, tvars), self.grad_clip)
+
+        optimizer = tf.train.AdamOptimizer(self.learning_rate)
+        self.train_op = optimizer.apply_gradients(zip(grads, tvars))
+        return self.train_op
 
