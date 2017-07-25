@@ -91,8 +91,8 @@ class language_model:
             self.build_output()
         with tf.name_scope('cost'):
             self.compute_cost()
-        with tf.name_scope('train_op'):
-            self.train_op()
+        with tf.name_scope('optimizer'):
+            self.optimizer()
 
     def add_input_layer(self):
         self.x = tf.placeholder(tf.int32,
@@ -179,7 +179,7 @@ class conf:
     grad_clip = 5
     num_classes = len(vocab)
 
-    epochs = 1
+    num_epochs = 1
     # 每n轮进行一次变量保存
     save_every_n = 200
 
@@ -197,14 +197,14 @@ def train():
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         counter = 0
-        for e in range(conf.epochs):
+        for epoch in range(conf.num_epochs):
             for x, y in get_batch(encoded, conf.batch_size, conf.num_steps):
                 counter += 1
                 start = time.time()
-                if e == 0:
+                if epoch == 0:
                     feed_dict = {
                         model.x: x,
-                        model.y: y,
+                        model.y: y
                     }
                 else:
                     feed_dict = {
@@ -221,7 +221,7 @@ def train():
                 end = time.time()
                 # control the print lines
                 if counter % 100 == 0:
-                    print(u'轮数: {}/{}... '.decode('utf-8').format(e + 1, conf.epochs),
+                    print(u'轮数: {}/{}... '.decode('utf-8').format(epoch + 1, conf.num_epochs),
                           u'训练步数: {}... '.decode('utf-8').format(counter),
                           u'训练误差: {:.4f}... '.decode('utf-8').format(batch_loss),
                           u'{:.4f} sec/batch'.decode('utf-8').format((end - start)))

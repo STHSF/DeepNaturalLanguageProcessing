@@ -18,14 +18,14 @@ with open(file_path) as f:
     text = f.read()
 data = text.split()
 # print(u'词的个数：', len(data))
-print(format(data[:10]))
+# print(format(data[:10]))
 
 # 使用set对列表去重，并保持列表原来的顺序
 vocab = list(set(data))
 vocab.sort(key=data.index)
-
 vocab_to_id = {char: id for id, char in enumerate(vocab)}
 id_to_vocab = dict(enumerate(vocab))
+
 encoded = np.array([vocab_to_id[c] for c in data])
 
 
@@ -33,9 +33,7 @@ def get_batch(raw_data, batch_size, seq_length):
     data = np.array(raw_data)
     data_length = data.shape[0]
     num_steps = data_length - seq_length + 1
-    print('num_steps', num_steps)
     iterations = num_steps // batch_size
-    print('iterations', iterations)
     xdata=[]
     ydata=[]
     for i in range(num_steps-1):
@@ -48,28 +46,53 @@ def get_batch(raw_data, batch_size, seq_length):
         yield x, y
 
 
-class language_model():
+
+
+
+class language_model:
 
     def __init__(self, vocab_size, embed_dim, batch_size,
-                 seq_length, input_dim, hidden_units, keep_prob,
-                 num_layers,learning_rate, grad_clip, is_training):
+                 seq_length, hidden_units, keep_prob,
+                 num_layers, learning_rate, grad_clip, is_training):
+        tf.reset_default_graph()  # 模型的训练和预测放在同一个文件下时如果没有这个函数会报错。
         self.vocab_size = vocab_size
         self.embed_dim = embed_dim
         self.batch_size = batch_size
         self.seq_length = seq_length
-        self.input_dim = input_dim
         self.hidden_units = hidden_units
         self.keep_prob = keep_prob
-        self.is_training = is_training
         self.num_layers = num_layers
         self.grad_clip = grad_clip
         self.learning_rate = learning_rate
+        self.is_training = is_training
+
+        if self.is_training:
+            self.batch_size = batch_size
+            self.seq_length = seq_length
+        else:
+            self.batch_size = 1
+            self.seq_length = 1
+
+        with tf.name_scope('add_input_layer'):
+            self.input_layer()
+        with tf.name_scope('lstm_cell'):
+            self.lstm_cell()
+        with tf.name_scope('add_multi_cell'):
+            self.add_multi_cell()
+        with tf.name_scope('build_output'):
+            self.output_layer()
+        with tf.name_scope('cost'):
+            self.compute_loss()
+        with tf.name_scope('optimizer'):
+            self.optimizer()
 
     def input_layer(self):
-        self.input_x = tf.placeholder(tf.float32, shape=[self.batch_size, self.seq_length], name='input_x')
-        self.input_y = tf.placeholder(tf.float32, shape=[self.batch_size, self.seq_length], name='input_y')
+        self.input_x = tf.placeholder(tf.int32, shape=(self.batch_size, self.seq_length), name='input_x')
+        self.input_y = tf.placeholder(tf.int32, shape=(self.batch_size, self.seq_length), name='input_y')
 
     def word_embed(self, input_data):
+
+        # input_data = tf.placeholder(tf.int32, shape=(self.batch_size, self.seq_length), name='input_data')
         embedding = tf.Variable(tf.random_uniform([self.vocab_size, self.embed_dim], -1, 1))
         embed = tf.nn.embedding_lookup(embedding, input_data)
         return embed
@@ -78,9 +101,9 @@ class language_model():
         with tf.variable_scope('lstm_cell'):
             single_cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_units, state_is_tuple=True)
 
-        if self.is_training:
-            single_cell = tf.contrib.rnn.DropoutWrapper(single_cell, input_keep_prob=1.0, output_keep_prob=self.keep_prob)
-        return single_cell
+            if self.is_training:
+                single_cell = tf.contrib.rnn.DropoutWrapper(single_cell, input_keep_prob=1.0, output_keep_prob=self.keep_prob)
+            return single_cell
 
     def add_multi_cell(self):
 
@@ -97,21 +120,81 @@ class language_model():
                                                                 initial_state=self.initial_state)
 
     def output_layer(self):
-
-        self.logits = tf.contrib.layers.fully_connected(self.cell_outputs, self.vocab_size, activation=None)
+        self.logits = tf.contrib.layers.fully_connected(self.cell_outputs, self.vocab_size, activation_fn=None)
         self.prediction = tf.nn.softmax(self.logits, name='prediction')
         return self.logits, self.prediction
 
     def compute_loss(self):
-        targets = self.word_embed(self.input_y)
-        self.loss = tf.contrib.seq2seq.sequence_loss(self.logits, targets, tf.ones())
+        # targets = self.word_embed(self.input_y)
+        input_data_shape = tf.shape(self.input_x)
+        self.loss = tf.contrib.seq2seq.sequence_loss(self.logits, self.input_y, tf.ones([input_data_shape[0], input_data_shape[1]]))
         return self.loss
 
     def optimizer(self):
         tvars = tf.trainable_variables()
         grads, _ = tf.clip_by_global_norm(tf.gradients(self.loss, tvars), self.grad_clip)
-
         optimizer = tf.train.AdamOptimizer(self.learning_rate)
         self.train_op = optimizer.apply_gradients(zip(grads, tvars))
         return self.train_op
 
+
+class conf:
+    def __init__(self):
+        pass
+
+    batch_size = 100  # Sequences per batch
+    num_steps = 10  # Number of sequence steps per batch
+    lstm_size = 512  # Size of hidden layers in LSTMs
+    num_layers = 2  # Number of LSTM layers
+    learning_rate = 0.001  # Learning rate
+    keep_prob = 0.5  # Dropout keep probability
+    grad_clip = 5
+    vocab_size = len(id_to_vocab)
+
+    num_epochs = 1
+    # 每n轮进行一次变量保存
+    save_every_n = 200
+
+model = language_model(conf.vocab_size, 100, conf.batch_size, conf.num_steps,
+                       conf.lstm_size, conf.keep_prob, conf.num_layers,
+                       conf.learning_rate, conf.grad_clip, True)
+
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    counter = 0
+    for epoch in range(conf.num_epochs):
+        print('epoch', epoch)
+        for x, y in get_batch(encoded, conf.batch_size, conf.num_steps):
+            print('X.shape', np.shape(x))
+            print('Y.shape', np.shape(y))
+            start = time.time()
+            counter += 1
+            if epoch == 0:
+                feed_dict = {
+                    model.input_x: x,
+                    model.input_y: y
+                }
+            else:
+                feed_dict = {
+                    model.input_x: x,
+                    model.input_y: y,
+                    model.initial_state: new_state
+                }
+            _, batch_loss, new_state, predict = sess.run([model.train_op,
+                                                          model.loss,
+                                                          model.final_state,
+                                                          model.prediction],
+                                                         feed_dict=feed_dict)
+            end = time.time()
+            if counter % 100 == 0:
+                print(u'轮数: {}/{}... '.format(epoch + 1, conf.num_epochs),
+                      u'训练步数: {}... '.format(counter),
+                      u'训练误差: {:.4f}... '.format(batch_loss),
+                      u'{:.4f} sec/batch'.format((end - start)))
+            # state = sess.run(model.initial_state)
+            # feed = {
+            #     model.input_x: x,
+            #     model.input_y: y,
+            #     model.initial_state: state
+            # }
+            # train_loss, state, _ = sess.run([model.loss, model.final_state, model.train_op], feed_dict=feed)
