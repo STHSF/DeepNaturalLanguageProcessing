@@ -29,24 +29,46 @@ id_to_vocab = dict(enumerate(vocab))
 encoded = np.array([vocab_to_id[c] for c in data])
 
 
+# def get_batch(raw_data, batch_size, seq_length):
+#     data = np.array(raw_data)
+#     data_length = data.shape[0]
+#     num_steps = data_length - seq_length + 1
+#     iterations = num_steps // batch_size
+#     xdata=[]
+#     ydata=[]
+#     for i in range(num_steps-1):
+#         xdata.append(data[i:i+seq_length])
+#         ydata.append(data[i+1:i+1+seq_length])
+#
+#     for batch in range(iterations):
+#         x = np.array(xdata)[batch * batch_size: batch * batch_size + batch_size, :]
+#         y = np.array(xdata)[batch * batch_size + 1: batch * batch_size + 1 + batch_size, :]
+#         yield x, y
+
 def get_batch(raw_data, batch_size, seq_length):
+    """
+    生成batch数据，
+    Args:
+        array:
+        batch_size:
+        seq_length:
+
+    Returns:
+
+    """
     data = np.array(raw_data)
     data_length = data.shape[0]
-    num_steps = data_length - seq_length + 1
-    iterations = num_steps // batch_size
-    xdata=[]
-    ydata=[]
-    for i in range(num_steps-1):
-        xdata.append(data[i:i+seq_length])
-        ydata.append(data[i+1:i+1+seq_length])
+    num_batches = (data_length - 1) // (batch_size * seq_length)
+    assert num_batches > 0, "Not enough data, even for a single batch. Try using a smaller batch_size."
+    rounded_data_len = num_batches * (batch_size * seq_length)
+    xdata = np.reshape(data[0:rounded_data_len], [batch_size, num_batches * seq_length])
+    ydata = np.reshape(data[1:rounded_data_len + 1], [batch_size, num_batches * seq_length])
 
-    for batch in range(iterations):
-        x = np.array(xdata)[batch * batch_size: batch * batch_size + batch_size, :]
-        y = np.array(xdata)[batch * batch_size + 1: batch * batch_size + 1 + batch_size, :]
+    for batch in range(num_batches):
+        x = xdata[:, batch * seq_length:(batch + 1) * seq_length]
+        y = ydata[:, batch * seq_length:(batch + 1) * seq_length]
+
         yield x, y
-
-
-
 
 
 class language_model:
@@ -143,7 +165,7 @@ class conf:
         pass
 
     batch_size = 100  # Sequences per batch
-    num_steps = 10  # Number of sequence steps per batch
+    num_steps = 100  # Number of sequence steps per batch
     lstm_size = 512  # Size of hidden layers in LSTMs
     num_layers = 2  # Number of LSTM layers
     learning_rate = 0.001  # Learning rate
@@ -151,7 +173,7 @@ class conf:
     grad_clip = 5
     vocab_size = len(id_to_vocab)
 
-    num_epochs = 1
+    num_epochs = 10
     # 每n轮进行一次变量保存
     save_every_n = 200
 
@@ -169,32 +191,38 @@ with tf.Session() as sess:
             print('Y.shape', np.shape(y))
             start = time.time()
             counter += 1
-            if epoch == 0:
-                feed_dict = {
-                    model.input_x: x,
-                    model.input_y: y
-                }
-            else:
-                feed_dict = {
-                    model.input_x: x,
-                    model.input_y: y,
-                    model.initial_state: new_state
-                }
-            _, batch_loss, new_state, predict = sess.run([model.train_op,
-                                                          model.loss,
-                                                          model.final_state,
-                                                          model.prediction],
-                                                         feed_dict=feed_dict)
+            # if epoch == 0:
+            #     feed_dict = {
+            #         model.input_x: x,
+            #         model.input_y: y
+            #     }
+            # else:
+            #     feed_dict = {
+            #         model.input_x: x,
+            #         model.input_y: y,
+            #         model.initial_state: new_state
+            #     }
+            # _, batch_loss, new_state, predict = sess.run([model.train_op,
+            #                                               model.loss,
+            #                                               model.final_state,
+            #                                               model.prediction],
+            #                                              feed_dict=feed_dict)
+            # end = time.time()
+            # if counter % 100 == 0:
+            #     print(u'轮数: {}/{}... '.format(epoch + 1, conf.num_epochs),
+            #           u'训练步数: {}... '.format(counter),
+            #           u'训练误差: {:.4f}... '.format(batch_loss),
+            #           u'{:.4f} sec/batch'.format((end - start)))
+            state = sess.run(model.initial_state)
+            feed = {
+                model.input_x: x,
+                model.input_y: y,
+                model.initial_state: state
+            }
+            train_loss, state, _ = sess.run([model.loss, model.final_state, model.train_op], feed_dict=feed)
             end = time.time()
             if counter % 100 == 0:
                 print(u'轮数: {}/{}... '.format(epoch + 1, conf.num_epochs),
                       u'训练步数: {}... '.format(counter),
-                      u'训练误差: {:.4f}... '.format(batch_loss),
+                      u'训练误差: {:.4f}... '.format(train_loss),
                       u'{:.4f} sec/batch'.format((end - start)))
-            # state = sess.run(model.initial_state)
-            # feed = {
-            #     model.input_x: x,
-            #     model.input_y: y,
-            #     model.initial_state: state
-            # }
-            # train_loss, state, _ = sess.run([model.loss, model.final_state, model.train_op], feed_dict=feed)
