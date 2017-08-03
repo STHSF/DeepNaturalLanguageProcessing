@@ -141,11 +141,11 @@ class language_model:
         y0 = tf.reshape(seq_output, [-1, self.hidden_units])    # y0: [batch_size * seq_length, hidden_units]
 
         with tf.name_scope('weights'):
-            sofmax_w = tf.Variable(tf.truncated_normal([self.hidden_units, self.num_classes], stddev=0.1))
+            softmax_w = tf.Variable(tf.truncated_normal([self.hidden_units, self.num_classes], stddev=0.1))
             softmax_b = tf.Variable(tf.zeros(self.num_classes))
 
         with tf.name_scope('wx_plus_b'):
-            self.logits = tf.matmul(y0, sofmax_w) + softmax_b    # logits: [batch_size * seq_length, num_classes]
+            self.logits = tf.matmul(y0, softmax_w) + softmax_b    # logits: [batch_size * seq_length, num_classes]
 
         self.prediction = tf.nn.softmax(logits=self.logits, name='prediction')
 
