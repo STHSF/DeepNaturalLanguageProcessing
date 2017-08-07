@@ -29,15 +29,25 @@ class seq2seqModel():
 
     def get_encoder_layer(self):
         encoder_inputs_embedded = self.embedding(self.encoder_inputs)
-        encoder_cell = tf.contrib.rnn.LSTMCell(self.encoder_hidden_units)
-        self.encoder_output, self.encoder_final_state = tf.nn.dynamic_rnn(encoder_cell, encoder_inputs_embedded, dtype=tf.float32, time_major=True)
+        with tf.variable_scope('encoder_cell'):
+            encoder_cell = tf.contrib.rnn.LSTMCell(self.encoder_hidden_units)
+        self.encoder_output, self.encoder_final_state = tf.nn.dynamic_rnn(encoder_cell,
+                                                                          encoder_inputs_embedded,
+                                                                          dtype=tf.float32,
+                                                                          time_major=True,
+                                                                          scope='encode_cell')
         del self.encoder_output
-        return self.encoder_final_state
 
     def get_decoder_layer(self):
         decoder_inputs_embedded = self.embedding(self.decoder_inputs)
-        decoder_cell = tf.contrib.rnn.LSTMCell(self.decoder_hidden_units)
-        self.decoder_outputs, self.decoder_final_state = tf.nn.dynamic_rnn(decoder_cell, decoder_inputs_embedded, initial_state=self.encoder_final_state, dtype=tf.float32, time_major=True, scope='decoder_cell')
+        with tf.variable_scope('decoder_cell'):
+            decoder_cell = tf.contrib.rnn.LSTMCell(self.decoder_hidden_units)
+        self.decoder_outputs, self.decoder_final_state = tf.nn.dynamic_rnn(decoder_cell,
+                                                                           decoder_inputs_embedded,
+                                                                           initial_state=self.encoder_final_state,
+                                                                           dtype=tf.float32,
+                                                                           time_major=True,
+                                                                           scope='decoder_cell')
         return self.decoder_outputs, self.decoder_final_state
 
     def compute_loss(self):
