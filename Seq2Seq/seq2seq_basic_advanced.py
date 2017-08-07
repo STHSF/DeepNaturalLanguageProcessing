@@ -48,7 +48,6 @@ class seq2seqModel():
                                                                            dtype=tf.float32,
                                                                            time_major=True,
                                                                            scope='decoder_cell')
-        return self.decoder_outputs, self.decoder_final_state
 
     def compute_loss(self):
         self.decoder_logits = tf.contrib.layers.fully_connected(self.decoder_outputs, self.vocab_size)
