@@ -10,20 +10,18 @@
 @time: 2017/7/3 上午9:56
 """
 
-import sys
+import numpy as np
+import tensorflow as tf
 
-reload(sys)
-sys.setdefaultencoding('utf8')
+# sess = tf.Session()
+#
+# t = tf.constant([[1.,1.,1.], [3.,3.,3.]])
+# t1 = tf.constant([[True, True], [False, False]])
+#
+# print(sess.run(tf.reduce_any(t1, 1, keep_dims=True)))
+#
+# sess.close()
 
+a = np.random.choice(5, 1, p=[0.2, 0.8, 0])
 
-def func():
-    pass
-
-
-class Main():
-    def __init__(self):
-        pass
-
-
-if __name__ == '__main__':
-    pass
+print(a.shape)

@@ -111,3 +111,6 @@ embedding
 language_model/anna.ipynb
 language_model/anna/checkpoints/
 /language_model/anna/ex.py
+language_model/lyrics_writer/data/
+/Seq2Seq/.ipynb_checkpoints/
+

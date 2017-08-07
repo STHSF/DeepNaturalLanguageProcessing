@@ -3,7 +3,7 @@
 
 """
 @function:
-@version: ??
+@version: 1.0
 @author: Li Yu
 @license: Apache Licence 
 @file: anna_writer.py
@@ -18,13 +18,15 @@ file_path = './data/anna.txt'
 with open(file_path) as f:
     text = f.read()
 # print('text', text)
-
 # 生成字符集合
-vocab = set(text)
+# 使用set对列表去重，并保持列表原来的顺序
+vocab = list(set(text))
+vocab.sort(key=text.index)
 # print('vocab\n', vocab)
 print('len_vocab', len(vocab))
 
 # 字符编码
+
 vocab_to_int = {char: i for i, char in enumerate(vocab)}
 # print('vocab_to_int\n', vocab_to_int)
 int_to_vocab = dict(enumerate(vocab))
@@ -89,8 +91,8 @@ class language_model:
             self.build_output()
         with tf.name_scope('cost'):
             self.compute_cost()
-        with tf.name_scope('train_op'):
-            self.train_op()
+        with tf.name_scope('optimizer'):
+            self.optimizer()
 
     def add_input_layer(self):
         self.x = tf.placeholder(tf.int32,
@@ -104,7 +106,7 @@ class language_model:
 
     def lstm_cell(self):
         # Or GRUCell, LSTMCell(args.hiddenSize)
-        #
+
         with tf.variable_scope('lstm_cell'):
             cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_units,
                                                 state_is_tuple=True)
@@ -138,7 +140,7 @@ class language_model:
         seq_output = tf.concat(self.cell_outputs, axis=1)
         y0 = tf.reshape(seq_output, [-1, self.hidden_units])    # y0: [batch_size * seq_length, hidden_units]
 
-        with tf.name_scope('softmax'):
+        with tf.name_scope('weights'):
             sofmax_w = tf.Variable(tf.truncated_normal([self.hidden_units, self.num_classes], stddev=0.1))
             softmax_b = tf.Variable(tf.zeros(self.num_classes))
 
@@ -154,6 +156,7 @@ class language_model:
 
         # Softmax cross entropy loss
         loss = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=y_reshaped)  # loss: [batch_size, seq_length]
+
         self.loss = tf.reduce_mean(loss)
         return self.loss
 
@@ -176,7 +179,7 @@ class conf:
     grad_clip = 5
     num_classes = len(vocab)
 
-    epochs = 1
+    num_epochs = 1
     # 每n轮进行一次变量保存
     save_every_n = 200
 
@@ -194,14 +197,14 @@ def train():
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         counter = 0
-        for e in range(conf.epochs):
+        for epoch in range(conf.num_epochs):
             for x, y in get_batch(encoded, conf.batch_size, conf.num_steps):
                 counter += 1
                 start = time.time()
-                if e == 0:
+                if epoch == 0:
                     feed_dict = {
                         model.x: x,
-                        model.y: y,
+                        model.y: y
                     }
                 else:
                     feed_dict = {
@@ -218,14 +221,14 @@ def train():
                 end = time.time()
                 # control the print lines
                 if counter % 100 == 0:
-                    print('轮数: {}/{}... '.format(e + 1, conf.epochs),
-                          '训练步数: {}... '.format(counter),
-                          '训练误差: {:.4f}... '.format(batch_loss),
-                          '{:.4f} sec/batch'.format((end - start)))
+                    print(u'轮数: {}/{}... '.decode('utf-8').format(epoch + 1, conf.num_epochs),
+                          u'训练步数: {}... '.decode('utf-8').format(counter),
+                          u'训练误差: {:.4f}... '.decode('utf-8').format(batch_loss),
+                          u'{:.4f} sec/batch'.decode('utf-8').format((end - start)))
 
                 if counter % conf.save_every_n == 0:
-                    saver.save(sess, 'checkpointss/i{}_l{}.ckpt'.format(counter, conf.lstm_size))
-        saver.save(sess, "checkpointss/i{}_l{}.ckpt".format(counter, conf.lstm_size))
+                    saver.save(sess, u'checkpointss/i{}_l{}.ckpt'.decode('utf-8').format(counter, conf.lstm_size))
+        saver.save(sess, u"checkpointss/i{}_l{}.ckpt".decode('utf-8').format(counter, conf.lstm_size))
 
 
 def pick_top_n(preds, vocab_size, top_n=5):
@@ -292,5 +295,3 @@ if __name__ == '__main__':
 
 
 #  问题1 其中还存在的问题，程序每运行一次vocab_to_int都会改变，导致train和predict不能分开。
-
-# 问题二，目前train和predict放在一起时会出现错误，但是分开却没有问题。
