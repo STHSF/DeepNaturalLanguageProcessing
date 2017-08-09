@@ -114,3 +114,4 @@ language_model/anna/checkpoints/
 language_model/lyrics_writer/data/
 /Seq2Seq/.ipynb_checkpoints/
 
+/Seq2Seq/char_rank/data/
