@@ -106,7 +106,6 @@ class language_model:
 
     def lstm_cell(self):
         # Or GRUCell, LSTMCell(args.hiddenSize)
-
         with tf.variable_scope('lstm_cell'):
             cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_units,
                                                 state_is_tuple=True)
@@ -122,16 +121,13 @@ class language_model:
         return cell
 
     def add_multi_cells(self):
-
-        # initial_state: [batch_size, hidden_units * num_layers]
-        # cell_output: [batch_size, seq_length, hidden_units]
-        # final_state: [batch_size, hidden_units * num_layers]
         stacked_cells = tf.contrib.rnn.MultiRNNCell([self.lstm_cell() for _ in range(self.num_layers)],
                                                     state_is_tuple=True)
-
         with tf.name_scope('initial_state'):
+            # initial_state: [batch_size, hidden_units * num_layers]
             self.initial_state = stacked_cells.zero_state(self.batch_size, dtype=tf.float32)
-
+        # cell_output: [batch_size, seq_length, hidden_units]
+        # final_state: [batch_size, hidden_units * num_layers]
         self.cell_outputs, self.final_state = tf.nn.dynamic_rnn(cell=stacked_cells,
                                                                 inputs=self.inputs,
                                                                 initial_state=self.initial_state)
