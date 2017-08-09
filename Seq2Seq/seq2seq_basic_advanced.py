@@ -110,11 +110,11 @@ batches_in_epoch = 1000
 try:
     for batch in range(max_batches):
         encoder_inputs_, decoder_inputs_, decoder_targets_ = next_feed()
-        _, l = sess.run([model.train_op, model.loss], feed_dict={model.encoder_inputs: encoder_inputs_,
-                                                                 model.decoder_inputs: decoder_inputs_,
-                                                                 model.decoder_targets: decoder_targets_})
+        _, loss_ = sess.run([model.train_op, model.loss], feed_dict={model.encoder_inputs: encoder_inputs_,
+                                                                     model.decoder_inputs: decoder_inputs_,
+                                                                     model.decoder_targets: decoder_targets_})
 
-        loss_track.append(l)
+        loss_track.append(loss_)
 
         if batch == 0 or batch % batches_in_epoch == 0:
             print('batch {}'.format(batch))
