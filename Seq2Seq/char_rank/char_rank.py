@@ -18,7 +18,7 @@ def charset(data):
     return char_to_int, int_to_char
 
 
-# 这里需要注意的是encoding和decoding需要分别编码，因为本文中
+# 这里需要注意的是encoding和decoding需要分别编码，因为本文中是准备对字符进行排序，所以两个序列的字符都是相同的，但是如果是做翻译的情况则两个序列是不一样的。
 source_char_to_int, source_int_to_char = charset(source_data)
 source_letters_to_int = [[source_char_to_int.get(char, source_char_to_int['<UNK>'])
                           for char in vocab] for vocab in source_data]
