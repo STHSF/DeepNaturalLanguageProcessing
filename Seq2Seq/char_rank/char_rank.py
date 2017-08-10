@@ -12,8 +12,8 @@ with open(file_path + 'letters_target.txt') as f:
 
 def charset(data):
     special_char = ['<EOS>', '<GO>', '<UNK>', '<PAD>']
-    char_set = list(set(char for vocab in data for char in vocab)) + special_char
-    char_to_int = {char: ids for ids, char in enumerate(char_set)}
+    char_set = list(set(char_ for vocab_ in data for char_ in vocab_)) + special_char
+    char_to_int = {char_: ids for ids, char_ in enumerate(char_set)}
     int_to_char = dict(enumerate(char_set))
     return char_to_int, int_to_char
 
@@ -31,4 +31,3 @@ target_letters_to_int = [[target_char_to_int.get(char, target_char_to_int['<UNK>
 
 
 
-model = seq2seq.seq2seqModel(10, 20, 512, 512)
