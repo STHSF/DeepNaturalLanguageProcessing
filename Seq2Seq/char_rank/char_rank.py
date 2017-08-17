@@ -28,6 +28,12 @@ target_letters_to_int = [[target_char_to_int.get(char, target_char_to_int['<UNK>
                           for char in vocab] + [target_char_to_int['<EOS>']] for vocab in target_data]
 
 
+def get_batch(inputs, ):
+
+
+    pass
+
+
 
 
 

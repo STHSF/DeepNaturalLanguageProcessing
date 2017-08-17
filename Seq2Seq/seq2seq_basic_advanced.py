@@ -73,17 +73,16 @@ class seq2seqModel():
 PAD = 0
 EOS = 1
 batch_size = 100
-# Generate training data
-batches = helpers.random_sequences(length_from=3, length_to=8, vocab_lower=2, 
-                                   vocab_upper=10, batch_size=batch_size)
+# Generate encoding_inputs
+batches = helpers.random_sequences(length_from=3, length_to=8, vocab_lower=2, vocab_upper=10, batch_size=batch_size)
 
 
 def next_feed():
-    batch = next(batches)
-    _encoder_inputs, _ = helpers.batch(batch)
+    batch_ = next(batches)
+    _encoder_inputs, _ = helpers.batch(batch_)
     # print('encoder_inputs_shape{:}'.format(np.shape(encoder_inputs_)))
     _decoder_targets, _ = helpers.batch(
-        [sequence + [EOS] for sequence in batch]
+        [sequence + [EOS] for sequence in batch_]
     )
     # print('decoder_target_shape{:}'.format(np.shape(decoder_targets_)))
 
@@ -92,9 +91,8 @@ def next_feed():
     #     [[EOS] + (sequence) for sequence in batch]
     # )
 
-    #  For decoder_inputs, instead of shifted target sequence [<EOS>, W, X, Y, Z], try feeding [<EOS>, <PAD>, <PAD>, <PAD>]
-    _decoder_inputs, _ = helpers.batch(np.ones(shape=(batch_size, 1), dtype=np.int32),
-                                       max_sequence_length=9)
+    # For decoder_inputs, instead of shifted target sequence[<EOS>, W, X, Y, Z], try feeding[<EOS>, <PAD>, <PAD>, <PAD>]
+    _decoder_inputs, _ = helpers.batch(np.ones(shape=(batch_size, 1), dtype=np.int32), max_sequence_length=9)
     # print('decoder_inputs_shape{:}'.format(np.shape(decoder_inputs_)))
 
     return _encoder_inputs, _decoder_inputs, _decoder_targets
