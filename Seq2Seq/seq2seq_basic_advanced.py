@@ -70,43 +70,32 @@ class seq2seqModel():
     def optimizer(self):
         self.train_op = tf.train.AdamOptimizer().minimize(self.loss)
         
-        
-class conf:
-    batch_size = 100  # Sequences per batch
-    num_steps = 100  # Number of sequence steps per batch
-    lstm_size = 512  # Size of hidden layers in LSTMs
-    num_layers = 2  # Number of LSTM layers
-    learning_rate = 0.001  # Learning rate
-    keep_prob = 0.5  # Dropout keep probability
-    grad_clip = 5
-    num_epochs = 1
-    save_every_n = 200
-
 PAD = 0
 EOS = 1
 batch_size = 100
-batches = helpers.random_sequences(length_from=3, length_to=8, vocab_lower=2, 
-                                   vocab_upper=10, batch_size=batch_size)
+# Generate encoding_inputs
+batches = helpers.random_sequences(length_from=3, length_to=8, vocab_lower=2, vocab_upper=10, batch_size=batch_size)
 
 
 def next_feed():
-    batch = next(batches)
-    encoder_inputs_, _ = helpers.batch(batch)
+    batch_ = next(batches)
+    _encoder_inputs, _ = helpers.batch(batch_)
     # print('encoder_inputs_shape{:}'.format(np.shape(encoder_inputs_)))
-    decoder_targets_, _ = helpers.batch(
-        [(sequence) + [EOS] for sequence in batch]
+    _decoder_targets, _ = helpers.batch(
+        [sequence + [EOS] for sequence in batch_]
     )
     # print('decoder_target_shape{:}'.format(np.shape(decoder_targets_)))
 
+    # Feeding decoder_inputs with [<EOS>, W, X, Y, Z]
     # decoder_inputs_, _ = helpers.batch(
     #     [[EOS] + (sequence) for sequence in batch]
     # )
-    # For decoder_inputs, instead of shifted target sequence [<EOS> W X Y Z], try feeding [<EOS> <PAD> <PAD> <PAD>]
-    decoder_inputs_, _ = helpers.batch(np.ones(shape=(batch_size, 1), dtype=np.int32),
-                                       max_sequence_length=9)
+
+    # For decoder_inputs, instead of shifted target sequence[<EOS>, W, X, Y, Z], try feeding[<EOS>, <PAD>, <PAD>, <PAD>]
+    _decoder_inputs, _ = helpers.batch(np.ones(shape=(batch_size, 1), dtype=np.int32), max_sequence_length=9)
     # print('decoder_inputs_shape{:}'.format(np.shape(decoder_inputs_)))
-    
-    return encoder_inputs_, decoder_inputs_, decoder_targets_
+
+    return _encoder_inputs, _decoder_inputs, _decoder_targets
 
 loss_track = []
 
@@ -120,20 +109,27 @@ batches_in_epoch = 1000
 try:
     for batch in range(max_batches):
         encoder_inputs_, decoder_inputs_, decoder_targets_ = next_feed()
-        _, l = sess.run([model.train_op, model.loss], feed_dict={model.encoder_inputs: encoder_inputs_, model.decoder_inputs: decoder_inputs_, model.decoder_targets: decoder_targets_})
+        _, loss_ = sess.run([model.train_op, model.loss], feed_dict={model.encoder_inputs: encoder_inputs_,
+                                                                     model.decoder_inputs: decoder_inputs_,
+                                                                     model.decoder_targets: decoder_targets_})
 
-        loss_track.append(l)
+        loss_track.append(loss_)
 
         if batch == 0 or batch % batches_in_epoch == 0:
             print('batch {}'.format(batch))
-            print('  minibatch loss: {}'.format(sess.run(model.loss, feed_dict={model.encoder_inputs: encoder_inputs_, model.decoder_inputs: decoder_inputs_, model.decoder_targets: decoder_targets_})))
-            predict_ = sess.run(model.decoder_prediction, feed_dict={model.encoder_inputs: encoder_inputs_, model.decoder_inputs: decoder_inputs_, model.decoder_targets: decoder_targets_})
+            minibatch_loss = sess.run(model.loss, feed_dict={model.encoder_inputs: encoder_inputs_,
+                                                             model.decoder_inputs: decoder_inputs_,
+                                                             model.decoder_targets: decoder_targets_})
+            print('minibatch loss: {}'.format(minibatch_loss))
+
+            predict_ = sess.run(model.decoder_prediction, feed_dict={model.encoder_inputs: encoder_inputs_,
+                                                                     model.decoder_inputs: decoder_inputs_})
             for i, (inp, pred) in enumerate(zip(encoder_inputs_.T, predict_.T)):
                 print('  sample {}:'.format(i + 1))
                 print('    input     > {}'.format(inp))
                 print('    predicted > {}'.format(pred))
                 if i >= 2:
                     break
-            print()
+            print('batch {} finished'.format(batch))
 except KeyboardInterrupt:
     print('training interrupted')

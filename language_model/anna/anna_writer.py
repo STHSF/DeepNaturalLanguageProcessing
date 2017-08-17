@@ -34,6 +34,8 @@ int_to_vocab = dict(enumerate(vocab))
 
 # 文本编码
 encoded = np.array([vocab_to_int[c] for c in text], dtype=np.int32)
+
+
 # print('encoded\n', encoded)
 # print('encoded_shape\n', np.shape(encoded))
 
@@ -96,13 +98,13 @@ class language_model:
 
     def add_input_layer(self):
         self.x = tf.placeholder(tf.int32,
-                                shape=(self.batch_size, self.seq_length), name='inputs')    # [batch_size, seq_length]
+                                shape=(self.batch_size, self.seq_length), name='inputs')  # [batch_size, seq_length]
         self.y = tf.placeholder(tf.int32,
-                                shape=(self.batch_size, self.seq_length), name='targets')   # [batch_size, seq_length]
+                                shape=(self.batch_size, self.seq_length), name='targets')  # [batch_size, seq_length]
         # One-hot编码
-        self.inputs = tf.one_hot(self.x, self.num_classes)           # [batch_size, seq_length, num_classes]
+        self.inputs = tf.one_hot(self.x, self.num_classes)  # [batch_size, seq_length, num_classes]
         # self.inputs = tf.reshape(self.y, [-1, self.num_classes])
-        self.targets = tf.one_hot(self.y, self.num_classes)          # [batch_size, seq_length, num_classes]
+        self.targets = tf.one_hot(self.y, self.num_classes)  # [batch_size, seq_length, num_classes]
 
     def lstm_cell(self):
         # Or GRUCell, LSTMCell(args.hiddenSize)
@@ -134,24 +136,26 @@ class language_model:
 
     def build_output(self):
         seq_output = tf.concat(self.cell_outputs, axis=1)
-        y0 = tf.reshape(seq_output, [-1, self.hidden_units])    # y0: [batch_size * seq_length, hidden_units]
+        y0 = tf.reshape(seq_output, [-1, self.hidden_units])  # y0: [batch_size * seq_length, hidden_units]
 
         with tf.name_scope('weights'):
             sofmax_w = tf.Variable(tf.truncated_normal([self.hidden_units, self.num_classes], stddev=0.1))
             softmax_b = tf.Variable(tf.zeros(self.num_classes))
 
         with tf.name_scope('wx_plus_b'):
-            self.logits = tf.matmul(y0, sofmax_w) + softmax_b    # logits: [batch_size * seq_length, num_classes]
+            self.logits = tf.matmul(y0, sofmax_w) + softmax_b  # logits: [batch_size * seq_length, num_classes]
 
         self.prediction = tf.nn.softmax(logits=self.logits, name='prediction')
 
         return self.prediction, self.logits
 
     def compute_cost(self):
-        y_reshaped = tf.reshape(self.targets, self.logits.get_shape())    # y_reshaped: [batch_size * seq_length, num_classes]
+        y_reshaped = tf.reshape(self.targets,
+                                self.logits.get_shape())  # y_reshaped: [batch_size * seq_length, num_classes]
 
         # Softmax cross entropy loss
-        loss = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=y_reshaped)  # loss: [batch_size, seq_length]
+        loss = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits,
+                                                       labels=y_reshaped)  # loss: [batch_size, seq_length]
 
         self.loss = tf.reduce_mean(loss)
         return self.loss
@@ -246,7 +250,6 @@ def pick_top_n(preds, vocab_size, top_n=5):
 
 
 def generate_samples(checkpoint, num_samples, prime='The '):
-
     samples = [char for char in prime]
     model = language_model(conf.num_classes, conf.batch_size, conf.num_steps, conf.learning_rate, conf.num_layers,
                            conf.lstm_size, conf.keep_prob, conf.grad_clip, is_training=False)
@@ -288,6 +291,4 @@ if __name__ == '__main__':
     samp = generate_samples(checkpoint, 20000, prime="The ")
     print(samp)
 
-
-
-#  问题1 其中还存在的问题，程序每运行一次vocab_to_int都会改变，导致train和predict不能分开。
+# 问题1 其中还存在的问题，程序每运行一次vocab_to_int都会改变，导致train和predict不能分开。
