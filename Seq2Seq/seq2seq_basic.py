@@ -58,8 +58,7 @@ batch_ = [[6], [3, 4], [9, 8, 7]]
 batch_, batch_length_ = helpers.batch(batch_)
 print('batch_encoded:\n' + str(batch_))
 
-din_, dlen_ = helpers.batch(np.ones(shape=(3, 1), dtype=np.int32),
-                            max_sequence_length=4)
+din_, dlen_ = helpers.batch(np.ones(shape=(3, 1), dtype=np.int32), max_sequence_length=4)
 print('decoder inputs:\n' + str(din_))
 
 pred_ = sess.run(decoder_prediction,
