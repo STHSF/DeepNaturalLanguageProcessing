@@ -19,10 +19,11 @@ decoder_targets = tf.placeholder(shape=(None, None), dtype=tf.int32, name='decod
 # decoder_inputs: [max_time, batch_size]
 decoder_inputs = tf.placeholder(shape=(None, None), dtype=tf.int32, name='decoder_inputs')
 
-embeddings = tf.Variable(tf.random_uniform([vocab_size, input_embedding_size], -1.0, 1.0),
-                         dtype=tf.float32)
+embeddings = tf.Variable(tf.random_uniform([vocab_size, input_embedding_size], -1.0, 1.0), dtype=tf.float32)
+
 # encoder_inputs_embeded: [max_time, batch_size, input_embedding_size]
 encoder_inputs_embeded = tf.nn.embedding_lookup(embeddings, encoder_inputs)
+
 # decoder_inputs_embeded: [max_time, batch_size, input_embedding_size]
 decoder_inputs_embeded = tf.nn.embedding_lookup(embeddings, decoder_inputs)
 
@@ -58,8 +59,7 @@ batch_ = [[6], [3, 4], [9, 8, 7]]
 batch_, batch_length_ = helpers.batch(batch_)
 print('batch_encoded:\n' + str(batch_))
 
-din_, dlen_ = helpers.batch(np.ones(shape=(3, 1), dtype=np.int32),
-                            max_sequence_length=4)
+din_, dlen_ = helpers.batch(np.ones(shape=(3, 1), dtype=np.int32), max_sequence_length=4)
 print('decoder inputs:\n' + str(din_))
 
 pred_ = sess.run(decoder_prediction,

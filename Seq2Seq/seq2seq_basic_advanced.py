@@ -6,9 +6,9 @@ import helpers
 
 
 class seq2seqModel():
-    def __init__(self, vocab_size, embedding_dim, encoder_hidden_units, decoder_hidden_units):
+    def __init__(self, vocabulary_size, embedding_dim, encoder_hidden_units, decoder_hidden_units):
         tf.reset_default_graph()
-        self.vocab_size = vocab_size
+        self.vocab_size = vocabulary_size
         self.embedding_dim = embedding_dim
         self.encoder_hidden_units = encoder_hidden_units
         self.decoder_hidden_units = decoder_hidden_units
