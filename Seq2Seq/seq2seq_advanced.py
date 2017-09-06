@@ -35,7 +35,7 @@ encoder_cell_bw = tf.contrib.rnn.LSTMCell(encoder_hidden_units)
                                                               cell_bw=encoder_cell_bw,
                                                               inputs=encoder_inputs_embedded,
                                                               dtype=tf.float32,
-                                                              time_major=True))
+                                                              time_major=False))
 
 encoder_outputs = tf.concat((encoder_fw_outputs, encoder_bw_outputs), 2)
 

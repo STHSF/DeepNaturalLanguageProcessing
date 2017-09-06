@@ -1,8 +1,11 @@
 # coding=utf-8
+"""
+数据预处理，将训练集转化成需要的格式。
+"""
 import numpy as np
 import pandas as pd
 import re
-import time
+import pickle
 from itertools import chain
 
 with open("msr_train.txt") as f:
@@ -23,14 +26,13 @@ def clean(s):
     else:
         return s
 
-
 texts = u''.join(map(clean, sentences))  # 把所有的词拼接起来
 print 'Length of texts is %d' % len(texts)
 print 'Example of texts: \n', texts[:300]
 
-file_object = open('train_clean.txt', 'w')
-file_object.write(str(texts.decode('utf-8')))
-file_object.close()
+# file_object = open('train_clean.txt', 'w')
+# file_object.write(str(texts.decode('utf-8')))
+# file_object.close()
 
 # 重新以标点来划分
 sentences = re.split(u'[，。！？、‘’“”]/[bems]', texts)
@@ -88,11 +90,52 @@ id2tag = pd.Series(tags, index=tag_ids)
 vocab_size = len(set_words)
 print 'vocab_size={}'.format(vocab_size)
 
-# 将word2id和tag2id保存下来
-word2id.to_pickle("word_to_id.pkl")
-tag2id.to_pickle("tag_to_id.pkl")
+
+max_len = 32
 
 
+def X_padding(words):
+    """把 words 转为 id 形式，并自动补全位 max_len 长度。"""
+    ids = list(word2id[words])
+    if len(ids) >= max_len:  # 长则弃掉
+        return ids[:max_len]
+    ids.extend([0]*(max_len-len(ids))) # 短则补全
+    return ids
+
+
+def y_padding(tags):
+    """把 tags 转为 id 形式， 并自动补全位 max_len 长度。"""
+    ids = list(tag2id[tags])
+    if len(ids) >= max_len:  # 长则弃掉
+        return ids[:max_len]
+    ids.extend([0]*(max_len-len(ids))) # 短则补全
+    return ids
+
+df_data['X'] = df_data['words'].apply(X_padding)
+df_data['y'] = df_data['tags'].apply(y_padding)
+
+print df_data.head(10)
+
+X = np.asarray(list(df_data['X'].values))
+y = np.asarray(list(df_data['y'].values))
+print 'X.shape={}, y.shape={}'.format(X.shape, y.shape)
+print 'Example of words: ', df_data['words'].values[0]
+print 'Example of X: ', X[0]
+print 'Example of tags: ', df_data['tags'].values[0]
+print 'Example of y: ', y[0]
+# # 将word2id和tag2id保存下来
+# word2id.to_pickle("word_to_id.pkl")
+# tag2id.to_pickle("tag_to_id.pkl")
+
+# 数据保存成pickle的格式。
+with open('data.pkl', 'wb') as outp:
+    pickle.dump(X, outp)
+    pickle.dump(y, outp)
+    pickle.dump(word2id, outp)
+    pickle.dump(id2word, outp)
+    pickle.dump(tag2id, outp)
+    pickle.dump(id2tag, outp)
+print '** Finished saving the data.'
 
 
 

@@ -115,3 +115,8 @@ language_model/lyrics_writer/data/
 /Seq2Seq/.ipynb_checkpoints/
 
 /Seq2Seq/char_rank/data/
+/segmentation/data.pkl
+/segmentation/msr_train.txt
+/segmentation/train_clean.txt
+/segmentation/tag_to_id.pkl
+/segmentation/word_to_id.pkl
