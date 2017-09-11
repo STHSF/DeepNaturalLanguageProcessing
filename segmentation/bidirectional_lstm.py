@@ -28,14 +28,14 @@ class bi_lstm():
         self.source_inputs = tf.placeholder(shape=(None, self.timestep_size), dtype=tf.int32, name='source_inputs')
         self.target_inputs = tf.placeholder(shape=(None, self.timestep_size), dtype=tf.int32, name='y_inputs')
 
-        self.embedding()
+        with tf.variable_scope("embedding"):
+            self.embedding()
         self.lstm_cell()
         self.bi_lstm()
         self.output_layer()
-        self.loss()
-        self.train_op()
+        self.loss_compute()
+        self.train_operater()
         self.acc()
-
 
     def weight_variable(self, shape):
         """Create a weight variable with appropriate initialization."""
@@ -76,7 +76,7 @@ class bi_lstm():
                                                               time_major=False))
 
         # shape = [batch_size, num_steps, hidden_units * 2]
-        self.outputs = tf.concat((outputs_fw, outputs_bw), 2)
+        self._outputs = tf.concat((outputs_fw, outputs_bw), 2)
 
         # final_state_c = tf.concat((final_state_fw.c, final_state_bw.c), 1)
         # final_state_h = tf.concat((final_state_fw.h, final_state_bw.h), 1)
@@ -85,31 +85,47 @@ class bi_lstm():
 
     def output_layer(self):
         # shape = [batch_size * num_steps, hidden_units * 2]
-        outputs = tf.reshape(self.outputs, [-1, self.hidden_units * 2])
+        outputs = tf.reshape(self._outputs, [-1, self.hidden_units * 2])
 
-        with tf.variable_scope('outputs'):
+        with tf.variable_scope('output_layer'):
             softmax_w = self.weight_variable([self.hidden_units * 2, self.num_classes])
             softmax_b = self.bias_variable([self.num_classes])
 
             # shape = [batch_size * num_steps, hidden_units * 2]
-            self.y_pred = tf.matmul(outputs, softmax_w) + softmax_b
+            self._y_pred = tf.matmul(outputs, softmax_w) + softmax_b
 
-    def loss(self):
-        self.loss = tf.reduce_mean(
-            tf.nn.sparse_softmax_cross_entropy_with_logits(labels=tf.reshape(self.target_inputs, [-1]), logits=self.y_pred))
+    def loss_compute(self):
+        self._loss = tf.reduce_mean(
+            tf.nn.sparse_softmax_cross_entropy_with_logits(labels=tf.reshape(self.target_inputs, [-1]), logits=self._y_pred))
 
-    def train_op(self):
+    def train_operater(self):
         # ***** 优化求解 *******
         tvars = tf.trainable_variables()  # 获取模型的所有参数
-        grads, _ = tf.clip_by_global_norm(tf.gradients(self.loss, tvars), self.max_grad_norm)  # 获取损失函数对于每个参数的梯度
+        grads, _ = tf.clip_by_global_norm(tf.gradients(self._loss, tvars), self.max_grad_norm)  # 获取损失函数对于每个参数的梯度
         optimizer = tf.train.AdamOptimizer(learning_rate=self.lr)  # 优化器
 
         # 梯度下降计算
-        self.train_op = optimizer.apply_gradients(zip(grads, tvars),
-                                                  global_step=tf.contrib.framework.get_or_create_global_step())
+        self._train_op = optimizer.apply_gradients(zip(grads, tvars),
+                                                   global_step=tf.contrib.framework.get_or_create_global_step())
 
     def acc(self):
-        correct_prediction = tf.equal(tf.cast(tf.arg_max(self.y_pred, 1), tf.int32), tf.reshape(self.target_inputs, [-1]))
-        self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        correct_prediction = tf.equal(tf.cast(tf.arg_max(self._y_pred, 1), tf.int32), tf.reshape(self.target_inputs, [-1]))
+        self._accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+    @property
+    def loss(self):
+        return self._loss
+
+    @property
+    def train_op(self):
+        return self._train_op
+
+    @property
+    def y_pred(self):
+        return self._y_pred
+
+    @property
+    def accuracy(self):
+        return self._accuracy
 
     print 'Finished creating the bi-lstm model.'

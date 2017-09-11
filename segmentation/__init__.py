@@ -5,7 +5,7 @@ import tensorflow as tf
 import time
 import pickle
 from sklearn.model_selection import train_test_split
-from data_generate import BatchGenerator
+from batch_generate import BatchGenerator
 
 # 数据导入
 with open('data.pkl', 'rb') as pk:
