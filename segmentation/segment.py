@@ -9,7 +9,8 @@ from bidirectional_lstm import bi_lstm
 max_len = 32
 
 # 数据导入
-with open('data.pkl', 'rb') as pk:
+data_path = 'data.pkl'
+with open(data_path, 'rb') as pk:
     X = pickle.load(pk)
     y = pickle.load(pk)
     word2id = pickle.load(pk)
@@ -29,9 +30,9 @@ sess = tf.Session(config=config)
 sess.run(tf.global_variables_initializer())
 saver = tf.train.Saver(max_to_keep=10)
 best_model_path = tf.train.latest_checkpoint('ckpt/')
-
-# best_model_path = 'ckpt/bi-lstm.ckpt-6'
+# best_model_path = 'model/ckpt/bi-lstm.ckpt-6'
 saver.restore(sess, best_model_path)
+
 
 def viterbi(nodes):
     """
@@ -86,8 +87,8 @@ def simple_cut(text):
         X_batch = text2ids(text)  # 这里每个 batch 是一个样本
         fetches = [model.y_pred]
         feed_dict = {model.source_inputs: X_batch, model.lr: 1.0, model.batch_size:1, model.keep_prob:1.0}
-        _y_pred = sess.run(fetches, feed_dict)[0][:text_len]  # padding填充的部分直接丢弃
-        nodes = [dict(zip(['s','b','m','e'], each[1:])) for each in _y_pred]
+        y_pred = sess.run(fetches, feed_dict)[0][:text_len]  # padding填充的部分直接丢弃
+        nodes = [dict(zip(['s', 'b', 'm', 'e'], each[1:])) for each in y_pred]
         tags = viterbi(nodes)
         words = []
         for i in range(len(text)):
@@ -113,7 +114,6 @@ def cut_word(sentence):
     return result
 
 
-# 例一
 sentence = u'人们思考问题往往不是从零开始的。就好像你现在阅读这篇文章一样，你对每个词的理解都会依赖于你前面看到的一些词，\
       而不是把你前面看的内容全部抛弃了，忘记了，再去理解这个单词。也就是说，人们的思维总是会有延续性的。'
 result = cut_word(sentence)

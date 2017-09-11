@@ -1,5 +1,5 @@
 # segmentation（中文分词系统）
-基于bidirectional_lstm的中文分词
+基于bidirectional_lstm的中文分词，实际上属于序列标注的问题。
 
 模型的训练结果：
 ```
