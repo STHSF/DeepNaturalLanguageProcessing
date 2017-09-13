@@ -37,12 +37,14 @@ config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
 sess.run(tf.global_variables_initializer())
-saver = tf.train.Saver(max_to_keep=10)  # 最多保存的模型数量
+# all_vars = tf.trainable_variables()
+# saver = tf.train.Saver(all_vars)  # 最多保存的模型数量
+saver = tf.train.Saver()  # 最多保存的模型数量
 
 decay = 0.85
 tr_batch_size = 128
-max_epoch = 5
-max_max_epoch = 6
+max_epoch = 1
+max_max_epoch = 3
 display_num = 5  # 每个 epoch 显示是个结果
 model_save_path = 'ckpt/bi-lstm.ckpt'  # 模型保存位置
 
@@ -50,7 +52,7 @@ tr_batch_num = int(data_train.y.shape[0] / tr_batch_size)  # 每个 epoch 中包
 display_batch = int(tr_batch_num / display_num)  # 每训练 display_batch 之后输出一次
 
 
-def test_epoch(dataset):
+def run_epoch(dataset):
     """Testing or valid."""
     _batch_size = 500
     fetches = [model.accuracy, model.loss]
@@ -98,8 +100,8 @@ for epoch in xrange(max_max_epoch):
         show_accs += _acc
         show_costs += _cost
         if (batch + 1) % display_batch == 0:
-            valid_acc, valid_cost = test_epoch(data_valid)  # valid
-            print '\ttraining acc=%g, cost=%g;  valid acc= %g, cost=%g ' % (show_accs / display_batch,
+            valid_acc, valid_cost = run_epoch(data_valid)  # valid
+            print '\t training acc=%g, cost=%g;  valid acc= %g, cost=%g ' % (show_accs / display_batch,
                                                                             show_costs / display_batch, valid_acc,
                                                                             valid_cost)
             show_accs = 0.0
@@ -115,5 +117,5 @@ for epoch in xrange(max_max_epoch):
 
 # testing
 print '**TEST RESULT:'
-test_acc, test_cost = test_epoch(data_test)
+test_acc, test_cost = run_epoch(data_test)
 print '**Test %d, acc=%g, cost=%g' % (data_test.y.shape[0], test_acc, test_cost)

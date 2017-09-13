@@ -30,12 +30,18 @@ class bi_lstm():
 
         with tf.variable_scope("embedding"):
             self.embedding()
-        self.lstm_cell()
-        self.bi_lstm()
-        self.output_layer()
-        self.loss_compute()
-        self.train_operater()
-        self.acc()
+        with tf.variable_scope("lstm_cell"):
+            self.lstm_cell()
+        with tf.variable_scope("bi_lstm"):
+            self.bi_lstm()
+        with tf.variable_scope("output_layer"):
+            self.output_layer()
+        with tf.variable_scope("loss_compute"):
+            self.loss_compute()
+        with tf.name_scope('train'):
+            self.train_operater()
+        with tf.variable_scope("loss_compute"):
+            self.acc()
 
     def weight_variable(self, shape):
         """Create a weight variable with appropriate initialization."""
@@ -48,14 +54,16 @@ class bi_lstm():
         return tf.Variable(initial)
 
     def embedding(self):
-        embedding = tf.Variable(tf.random_uniform([self.vocab_size, self.embedding_size], -1.0, 1.0), dtype=tf.float32)
+        embedding = tf.Variable(tf.random_uniform([self.vocab_size, self.embedding_size], -1.0, 1.0), dtype=tf.float32, name='embedding')
         # shape = [batch_size, num_steps, embedding_size]
-        inputs_embedded = tf.nn.embedding_lookup(embedding, self.source_inputs)
-        return inputs_embedded
+        self.inputs_embedded = tf.nn.embedding_lookup(embedding, self.source_inputs)
+        return self.inputs_embedded
 
     def lstm_cell(self):
-        cell = tf.contrib.rnn.LSTMCell(self.hidden_units)
-        return cell
+        self.cell = tf.contrib.rnn.LSTMCell(self.hidden_units,
+                                            reuse=tf.get_variable_scope().reuse,
+                                            state_is_tuple=True)
+        return self.cell
 
     def bi_lstm(self):
         cell_fw = tf.contrib.rnn.MultiRNNCell([self.lstm_cell() for _ in range(self.layers_num)], state_is_tuple=True)
@@ -76,7 +84,8 @@ class bi_lstm():
                                                               time_major=False))
 
         # shape = [batch_size, num_steps, hidden_units * 2]
-        self._outputs = tf.concat((outputs_fw, outputs_bw), 2)
+        with tf.name_scope('outputs'):
+            self._outputs = tf.concat((outputs_fw, outputs_bw), 2)
 
         # final_state_c = tf.concat((final_state_fw.c, final_state_bw.c), 1)
         # final_state_h = tf.concat((final_state_fw.h, final_state_bw.h), 1)
@@ -92,7 +101,8 @@ class bi_lstm():
             softmax_b = self.bias_variable([self.num_classes])
 
             # shape = [batch_size * num_steps, hidden_units * 2]
-            self._y_pred = tf.matmul(outputs, softmax_w) + softmax_b
+            with tf.name_scope('pred'):
+                self._y_pred = tf.matmul(outputs, softmax_w) + softmax_b
 
     def loss_compute(self):
         self._loss = tf.reduce_mean(

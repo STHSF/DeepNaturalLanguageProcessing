@@ -2,6 +2,7 @@
 import tensorflow as tf
 import re
 import pickle
+import time
 import numpy as np
 import pandas as pd
 from bidirectional_lstm import bi_lstm
@@ -9,8 +10,7 @@ from bidirectional_lstm import bi_lstm
 max_len = 32
 
 # 数据导入
-data_path = 'data.pkl'
-with open(data_path, 'rb') as pk:
+with open('data.pkl', 'rb') as pk:
     X = pickle.load(pk)
     y = pickle.load(pk)
     word2id = pickle.load(pk)
@@ -20,6 +20,7 @@ with open(data_path, 'rb') as pk:
     zy = pickle.load(pk)
 
 
+time_start = time.time()
 # ** 导入模型
 # bi_lstm模型
 model = bi_lstm()
@@ -27,10 +28,10 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
-sess.run(tf.global_variables_initializer())
-saver = tf.train.Saver(max_to_keep=10)
+saver = tf.train.Saver()
 best_model_path = tf.train.latest_checkpoint('ckpt/')
-# best_model_path = 'model/ckpt/bi-lstm.ckpt-6'
+
+# best_model_path = './ckpt/bi-lstm.ckpt-6'
 saver.restore(sess, best_model_path)
 
 
@@ -53,7 +54,7 @@ def viterbi(nodes):
             sub_paths = {}
             # 上一层的每个节点到本层节点的连接
             for path_last in paths_.keys():
-                if path_last[-1] + node_now in zy.keys(): # 若转移概率不为 0
+                if path_last[-1] + node_now in zy.keys():  # 若转移概率不为 0
                     sub_paths[path_last + node_now] = paths_[path_last] + nodes[layer][node_now] + zy[path_last[-1] + node_now]
             # 最短路径,即概率最大的那个
             sr_subpaths = pd.Series(sub_paths)
@@ -87,8 +88,8 @@ def simple_cut(text):
         X_batch = text2ids(text)  # 这里每个 batch 是一个样本
         fetches = [model.y_pred]
         feed_dict = {model.source_inputs: X_batch, model.lr: 1.0, model.batch_size:1, model.keep_prob:1.0}
-        y_pred = sess.run(fetches, feed_dict)[0][:text_len]  # padding填充的部分直接丢弃
-        nodes = [dict(zip(['s', 'b', 'm', 'e'], each[1:])) for each in y_pred]
+        _y_pred = sess.run(fetches, feed_dict)[0][:text_len]  # padding填充的部分直接丢弃
+        nodes = [dict(zip(['s','b','m','e'], each[1:])) for each in _y_pred]
         tags = viterbi(nodes)
         words = []
         for i in range(len(text)):
@@ -114,10 +115,11 @@ def cut_word(sentence):
     return result
 
 
-sentence = u'人们思考问题往往不是从零开始的。就好像你现在阅读这篇文章一样，你对每个词的理解都会依赖于你前面看到的一些词，\
-      而不是把你前面看的内容全部抛弃了，忘记了，再去理解这个单词。也就是说，人们的思维总是会有延续性的。'
+# 例一
+sentence = u'简单来说，机器学习就是根据样本（即数据）学习得到一个模型，再根据这个模型预测的一种方法。'
 result = cut_word(sentence)
 rss = ''
 for each in result:
     rss = rss + each + ' / '
 print rss
+print '总共耗时:', time.time()-time_start

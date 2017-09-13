@@ -123,4 +123,5 @@ language_model/lyrics_writer/data/
 /segmentation/dataset/
 TextClassification/sentiment_analysis/sentiment_analysis/cs224d/datasets/__MACOSX/
 .gitignore
-/segmentation/model/ckpt/
+/segmentation/ckpt/
+segmentation/model/
