@@ -72,16 +72,17 @@ class bi_lstm():
         initial_state_fw = cell_fw.zero_state(self.batch_size, tf.float32)
         initial_state_bw = cell_bw.zero_state(self.batch_size, tf.float32)
 
-        ((outputs_fw,
-          outputs_bw),
-         (final_state_fw,
-          final_state_bw)) = (tf.nn.bidirectional_dynamic_rnn(cell_fw=cell_fw,
-                                                              cell_bw=cell_bw,
-                                                              inputs=self.embedding(),
-                                                              initial_state_fw=initial_state_fw,
-                                                              initial_state_bw=initial_state_bw,
-                                                              dtype=tf.float32,
-                                                              time_major=False))
+        with tf.variable_scope('bi-lstm'):
+            ((outputs_fw,
+              outputs_bw),
+             (final_state_fw,
+              final_state_bw)) = (tf.nn.bidirectional_dynamic_rnn(cell_fw=cell_fw,
+                                                                  cell_bw=cell_bw,
+                                                                  inputs=self.embedding(),
+                                                                  initial_state_fw=initial_state_fw,
+                                                                  initial_state_bw=initial_state_bw,
+                                                                  dtype=tf.float32,
+                                                                  time_major=False))
 
         # shape = [batch_size, num_steps, hidden_units * 2]
         with tf.name_scope('outputs'):
