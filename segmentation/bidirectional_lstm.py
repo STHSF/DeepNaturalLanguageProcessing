@@ -10,8 +10,7 @@ class bi_lstm():
                  timestep_size=32, vocab_size=5159, embedding_size=64,
                  num_classes=5, hidden_size=128, layers_num=2,
                  max_grad_norm=5.0):
-        # ##################### config ######################
-        tf.reset_default_graph()  # 模型的训练和预测放在同一个文件下时如果没有这个函数会报错。
+        # tf.reset_default_graph()  # 模型的训练和预测放在同一个文件下时如果没有这个函数会报错。
         self.hidden_units = hidden_units
         self.timestep_size = timestep_size
         self.max_len = self.max_len = timestep_size  # 句子长度
@@ -98,8 +97,10 @@ class bi_lstm():
         outputs = tf.reshape(self._outputs, [-1, self.hidden_units * 2])
 
         with tf.variable_scope('output_layer'):
-            softmax_w = self.weight_variable([self.hidden_units * 2, self.num_classes])
-            softmax_b = self.bias_variable([self.num_classes])
+            softmax_w = tf.Variable(tf.truncated_normal(shape=[self.hidden_units * 2, self.num_classes], stddev=0.1), name="soft_max_w")
+            softmax_b = tf.Variable(tf.constant(1.0, shape=[self.num_classes]), name="soft_max_b")
+            # softmax_w = self.weight_variable([self.hidden_units * 2, self.num_classes])
+            # softmax_b = self.bias_variable([self.num_classes])
 
             # shape = [batch_size * num_steps, hidden_units * 2]
             with tf.name_scope('pred'):

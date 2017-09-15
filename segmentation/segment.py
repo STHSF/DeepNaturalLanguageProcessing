@@ -5,7 +5,8 @@ import pickle
 import time
 import numpy as np
 import pandas as pd
-from bidirectional_lstm import bi_lstm
+# from bidirectional_lstm import bi_lstm
+from bi_lstm_advanced import bi_lstm
 
 max_len = 32
 
@@ -44,7 +45,7 @@ def viterbi(nodes):
        paths 采用字典的形式保存（路径：路径长度）。
        一直计算到最后一层，得到四条路径，将长度最短（概率值最大的路径返回）
     """
-    paths = {'b': nodes[0]['b'], 's':nodes[0]['s']} # 第一层，只有两个节点
+    paths = {'b': nodes[0]['b'], 's': nodes[0]['s']}  # 第一层，只有两个节点
     for layer in xrange(1, len(nodes)):  # 后面的每一层
         paths_ = paths.copy()  # 先保存上一层的路径
         # node_now 为本层节点， node_last 为上层节点
@@ -86,10 +87,10 @@ def simple_cut(text):
     if text:
         text_len = len(text)
         X_batch = text2ids(text)  # 这里每个 batch 是一个样本
-        fetches = [model.y_pred]
-        feed_dict = {model.source_inputs: X_batch, model.lr: 1.0, model.batch_size:1, model.keep_prob:1.0}
+        fetches = [model.logits]
+        feed_dict = {model.source_inputs: X_batch, model.lr: 1.0, model.batch_size: 1, model.keep_prob: 1.0}
         _y_pred = sess.run(fetches, feed_dict)[0][:text_len]  # padding填充的部分直接丢弃
-        nodes = [dict(zip(['s','b','m','e'], each[1:])) for each in _y_pred]
+        nodes = [dict(zip(['s', 'b', 'm', 'e'], each[1:])) for each in _y_pred]
         tags = viterbi(nodes)
         words = []
         for i in range(len(text)):
