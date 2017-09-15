@@ -120,3 +120,8 @@ language_model/lyrics_writer/data/
 /segmentation/train_clean.txt
 /segmentation/tag_to_id.pkl
 /segmentation/word_to_id.pkl
+/segmentation/dataset/
+TextClassification/sentiment_analysis/sentiment_analysis/cs224d/datasets/__MACOSX/
+.gitignore
+/segmentation/ckpt/
+segmentation/model/
