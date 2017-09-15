@@ -6,10 +6,8 @@ class bi_lstm():
     """
     For Chinese word segmentation.
     """
-    def __init__(self, is_training=True, hidden_units=128,
-                 timestep_size=32, vocab_size=5159, embedding_size=64,
-                 num_classes=5, hidden_size=128, layers_num=2,
-                 max_grad_norm=5.0):
+    def __init__(self, is_training=True, hidden_units=128, timestep_size=32, vocab_size=5159, embedding_size=64,
+                 num_classes=5, hidden_size=128, layers_num=2, max_grad_norm=5.0):
         # tf.reset_default_graph()  # 模型的训练和预测放在同一个文件下时如果没有这个函数会报错。
         self.is_training = is_training
         self.hidden_units = hidden_units
@@ -101,11 +99,15 @@ def lstm_bw_cell(hidden_units):
 
 def bidi_lstm(inputs, target_inputs, layers_num, batch_size, hidden_units, num_classes):
 
-    cell_fw = tf.contrib.rnn.MultiRNNCell([lstm_fw_cell(hidden_units) for _ in range(layers_num)], state_is_tuple=True)
-    cell_bw = tf.contrib.rnn.MultiRNNCell([lstm_bw_cell(hidden_units) for _ in range(layers_num)], state_is_tuple=True)
+    with tf.variable_scope('cell_fw'):
+        cell_fw = tf.contrib.rnn.MultiRNNCell([lstm_fw_cell(hidden_units) for _ in range(layers_num)], state_is_tuple=True)
+    with tf.variable_scope('cell_bw'):
+        cell_bw = tf.contrib.rnn.MultiRNNCell([lstm_bw_cell(hidden_units) for _ in range(layers_num)], state_is_tuple=True)
 
-    initial_state_fw = cell_fw.zero_state(batch_size, tf.float32)
-    initial_state_bw = cell_bw.zero_state(batch_size, tf.float32)
+    with tf.variable_scope('init_state_fw'):
+        initial_state_fw = cell_fw.zero_state(batch_size, tf.float32)
+    with tf.variable_scope('init_state_bw'):
+        initial_state_bw = cell_bw.zero_state(batch_size, tf.float32)
 
     with tf.variable_scope('bi-lstm'):
         ((outputs_fw,
@@ -129,7 +131,7 @@ def bidi_lstm(inputs, target_inputs, layers_num, batch_size, hidden_units, num_c
         #                                             h=final_state_h)
 
     # shape = [batch_size * num_steps, hidden_units * 2]
-    outputs = tf.reshape(_outputs, [-1, hidden_units * 2])
+    outputs = tf.reshape(_outputs, [-1, hidden_units * 2], name='predict')
 
     with tf.variable_scope('output_layer'):
         softmax_w = tf.Variable(tf.truncated_normal(shape=[hidden_units * 2, num_classes], stddev=0.1),
@@ -143,8 +145,9 @@ def bidi_lstm(inputs, target_inputs, layers_num, batch_size, hidden_units, num_c
             logits = tf.matmul(outputs, softmax_w) + softmax_b
 
     loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=tf.reshape(target_inputs, [-1]),
-                                                          logits=logits)
-    cost = tf.reduce_mean(loss)
+                                                          logits=logits,
+                                                          name='loss')
+    cost = tf.reduce_mean(loss, name='cost')
     return cost, logits
 
 
