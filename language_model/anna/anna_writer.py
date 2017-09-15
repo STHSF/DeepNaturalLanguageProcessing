@@ -116,6 +116,7 @@ class language_model:
         #     cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_units,
         #                                         state_is_tuple=True,
         #                                         reuse=tf.get_variable_scope().reuse)
+
         if self.is_training:
             cell = tf.contrib.rnn.DropoutWrapper(cell,
                                                  input_keep_prob=1.0,

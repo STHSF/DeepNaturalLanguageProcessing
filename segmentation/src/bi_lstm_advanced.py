@@ -6,15 +6,15 @@ class bi_lstm():
     """
     For Chinese word segmentation.
     """
-    def __init__(self, is_training=True, hidden_units=128, timestep_size=32, vocab_size=5159, embedding_size=64,
+    def __init__(self, is_training=False, hidden_units=128, timestep_size=32, vocab_size=5159, embedding_size=64,
                  num_classes=5, hidden_size=128, layers_num=2, max_grad_norm=5.0):
         # tf.reset_default_graph()  # 模型的训练和预测放在同一个文件下时如果没有这个函数会报错。
         self.is_training = is_training
         self.hidden_units = hidden_units
         self.num_steps = timestep_size
-        self.max_len = self.max_len = timestep_size  # 句子长度
+        self.max_len = timestep_size  # 句子长度
         self.vocab_size = vocab_size  # 样本中不同字的个数+1(padding 0)，根据处理数据的时候得到
-        self.input_size = self.embedding_size = embedding_size  # 字向量长度
+        self.embedding_size = embedding_size  # 字向量长度
         self.num_classes = num_classes
         self.hidden_units = hidden_size  # 隐含层节点数
         self.layers_num = layers_num  # bi-lstm 层数
@@ -36,12 +36,10 @@ class bi_lstm():
             # shape = [batch_size, num_steps, embedding_size]
             inputs_embedded = tf.nn.embedding_lookup(_embedding, self._source_inputs)
 
-        self._cost, self._logits = bidi_lstm(inputs_embedded,
-                                             self._target_inputs,
-                                             self.layers_num,
-                                             self.batch_size,
-                                             self.hidden_units,
-                                             self.num_classes)
+        self._logits = bidi_lstm(self.is_training, inputs_embedded, self.layers_num, self.batch_size,
+                                 self.hidden_units, self.num_classes, self.keep_prob)
+
+        self._cost = compute_cost(self._logits, self.target_inputs, self.num_classes)
 
         correct_prediction = tf.equal(tf.cast(tf.argmax(self._logits, 1), tf.int32), tf.reshape(self._target_inputs, [-1]))
         self._accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -83,26 +81,36 @@ class bi_lstm():
         return self._accuracy
 
 
-def lstm_fw_cell(hidden_units):
+def lstm_fw_cell(hidden_units, is_training, keep_prob):
     fw_cell = tf.contrib.rnn.LSTMCell(hidden_units,
                                       reuse=tf.get_variable_scope().reuse,
                                       state_is_tuple=True)
+    if is_training:
+        fw_cell = tf.contrib.rnn.DropoutWrapper(fw_cell,
+                                                input_keep_prob=1.0,
+                                                output_keep_prob=keep_prob)
     return fw_cell
 
 
-def lstm_bw_cell(hidden_units):
+def lstm_bw_cell(hidden_units, is_training, keep_prob):
     bw_cell = tf.contrib.rnn.LSTMCell(hidden_units,
                                       reuse=tf.get_variable_scope().reuse,
                                       state_is_tuple=True)
+    if is_training:
+        bw_cell = tf.contrib.rnn.DropoutWrapper(bw_cell,
+                                                input_keep_prob=1.0,
+                                                output_keep_prob=keep_prob)
     return bw_cell
 
 
-def bidi_lstm(inputs, target_inputs, layers_num, batch_size, hidden_units, num_classes):
+def bidi_lstm(is_training, inputs, layers_num, batch_size, hidden_units, num_classes, keep_prob):
 
     with tf.variable_scope('cell_fw'):
-        cell_fw = tf.contrib.rnn.MultiRNNCell([lstm_fw_cell(hidden_units) for _ in range(layers_num)], state_is_tuple=True)
+        cell_fw = tf.contrib.rnn.MultiRNNCell([lstm_fw_cell(hidden_units, is_training, keep_prob) for _ in range(layers_num)],
+                                              state_is_tuple=True)
     with tf.variable_scope('cell_bw'):
-        cell_bw = tf.contrib.rnn.MultiRNNCell([lstm_bw_cell(hidden_units) for _ in range(layers_num)], state_is_tuple=True)
+        cell_bw = tf.contrib.rnn.MultiRNNCell([lstm_bw_cell(hidden_units, is_training, keep_prob) for _ in range(layers_num)],
+                                              state_is_tuple=True)
 
     with tf.variable_scope('init_state_fw'):
         initial_state_fw = cell_fw.zero_state(batch_size, tf.float32)
@@ -123,7 +131,7 @@ def bidi_lstm(inputs, target_inputs, layers_num, batch_size, hidden_units, num_c
 
     # shape = [batch_size, num_steps, hidden_units * 2]
     with tf.name_scope('outputs'):
-        _outputs = tf.concat((outputs_fw, outputs_bw), 2)
+        _outputs = tf.concat((outputs_fw, outputs_bw), 2, name='_outputs')
 
         # final_state_c = tf.concat((final_state_fw.c, final_state_bw.c), 1)
         # final_state_h = tf.concat((final_state_fw.h, final_state_bw.h), 1)
@@ -140,15 +148,31 @@ def bidi_lstm(inputs, target_inputs, layers_num, batch_size, hidden_units, num_c
         # softmax_w = self.weight_variable([self.hidden_units * 2, self.num_classes])
         # softmax_b = self.bias_variable([self.num_classes])
 
-        # shape = [batch_size * num_steps, hidden_units * 2]
+        # shape = [batch_size * num_steps, num_classes]
         with tf.name_scope('logits'):
             logits = tf.matmul(outputs, softmax_w) + softmax_b
+    return logits
+
+
+def compute_cost(logits, target_inputs, num_classes):
+    # shape = [batch_size * num_steps, ]
+    # labels'shape = [batch_size * num_steps, num_classes]
+    # logits'shape = [shape = [batch_size * num_steps, num_classes]]
 
     loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=tf.reshape(target_inputs, [-1]),
                                                           logits=logits,
                                                           name='loss')
+
+    # targets = tf.one_hot(target_inputs, num_classes)  # [batch_size, seq_length, num_classes]
+    #
+    # y_reshaped = tf.reshape(targets, [-1, num_classes])  # y_reshaped: [batch_size * seq_length, num_classes]
+    #
+    # loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_reshaped,
+    #                                                       logits=logits,
+    #                                                       name='loss')
+
     cost = tf.reduce_mean(loss, name='cost')
-    return cost, logits
+    return cost
 
 
 print 'Finished creating the bi-lstm model.'
