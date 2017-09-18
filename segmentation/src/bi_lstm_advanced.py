@@ -158,18 +158,18 @@ def compute_cost(logits, target_inputs, num_classes):
     # shape = [batch_size * num_steps, ]
     # labels'shape = [batch_size * num_steps, num_classes]
     # logits'shape = [shape = [batch_size * num_steps, num_classes]]
-
+    # 这里可以使用tf.nn.sparse_softmax_cross_entropy_with_logits()和tf.nn.softmax_cross_entropy_with_logits()两种方式来计算rnn
+    # 但要注意labels的shape。
+    # eg.1
     loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=tf.reshape(target_inputs, [-1]),
-                                                          logits=logits,
-                                                          name='loss')
+                                                          logits=logits, name='loss')
 
+    # eg.2
     # targets = tf.one_hot(target_inputs, num_classes)  # [batch_size, seq_length, num_classes]
-    #
-    # y_reshaped = tf.reshape(targets, [-1, num_classes])  # y_reshaped: [batch_size * seq_length, num_classes]
-    #
-    # loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_reshaped,
-    #                                                       logits=logits,
-    #                                                       name='loss')
+    # 不能使用logit.get_shape(), 因为在定义logit时shape=[None, num_steps], 这里使用会报错
+    # y_reshaped = tf.reshape(targets, logits.get_shape())  # y_reshaped: [batch_size * seq_length, num_classes]
+    # loss = tf.nn.softmax_cross_entropy_with_logits(labels=tf.reshape(targets, [-1, num_classes]),
+    #                                                logits=logits, name='loss')
 
     cost = tf.reduce_mean(loss, name='cost')
     return cost
