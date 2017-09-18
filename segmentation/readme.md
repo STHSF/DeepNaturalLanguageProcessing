@@ -68,6 +68,12 @@ Epoch training 205780, acc=0.945926, cost=0.148367, speed=659.901 s/epoch
 ```
 
 
+## 注意点
+
+
+
+
 #### 参考文献
 [基于双向LSTM的seq2seq字标注-苏剑林](http://spaces.ac.cn/archives/3924/)
 [TF使用例子-LSTM实现序列标注](http://www.jianshu.com/p/4cfcce68fc3b)
+[Sequence Tagging with Tensorflow](https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html)

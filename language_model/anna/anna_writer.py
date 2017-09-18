@@ -293,3 +293,4 @@ if __name__ == '__main__':
     print(samp)
 
 # 问题1 其中还存在的问题，程序每运行一次vocab_to_int都会改变，导致train和predict不能分开。
+# 解决方法：将vocab_to_int保存成pickle文件，predict的时候重新load就可以了。

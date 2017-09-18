@@ -39,19 +39,12 @@ class bi_lstm():
         self._logits = bidi_lstm(self.is_training, inputs_embedded, self.layers_num, self.batch_size,
                                  self.hidden_units, self.num_classes, self.keep_prob)
 
-        self._cost = compute_cost(self._logits, self.target_inputs, self.num_classes)
+        self._cost = cost_compute(self._logits, self.target_inputs, self.num_classes)
 
         correct_prediction = tf.equal(tf.cast(tf.argmax(self._logits, 1), tf.int32), tf.reshape(self._target_inputs, [-1]))
         self._accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-        # ***** 优化求解 *******
-        tvars = tf.trainable_variables()  # 获取模型的所有参数
-        grads, _ = tf.clip_by_global_norm(tf.gradients(self._cost, tvars), self.max_grad_norm)  # 获取损失函数对于每个参数的梯度
-        optimizer = tf.train.AdamOptimizer(learning_rate=self.lr)  # 优化器
-
-        # 梯度下降计算
-        self._train_op = optimizer.apply_gradients(zip(grads, tvars),
-                                                   global_step=tf.contrib.framework.get_or_create_global_step())
+        self._train_op = train_operation(self._cost, self.lr, self.max_grad_norm)
 
         # 模型保存
         self.saver = tf.train.Saver(tf.global_variables())
@@ -154,25 +147,37 @@ def bidi_lstm(is_training, inputs, layers_num, batch_size, hidden_units, num_cla
     return logits
 
 
-def compute_cost(logits, target_inputs, num_classes):
+def cost_compute(logits, target_inputs, num_classes):
     # shape = [batch_size * num_steps, ]
     # labels'shape = [batch_size * num_steps, num_classes]
     # logits'shape = [shape = [batch_size * num_steps, num_classes]]
     # 这里可以使用tf.nn.sparse_softmax_cross_entropy_with_logits()和tf.nn.softmax_cross_entropy_with_logits()两种方式来计算rnn
     # 但要注意labels的shape。
     # eg.1
-    loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=tf.reshape(target_inputs, [-1]),
-                                                          logits=logits, name='loss')
+    # loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=tf.reshape(target_inputs, [-1]),
+    #                                                       logits=logits, name='loss')
 
     # eg.2
-    # targets = tf.one_hot(target_inputs, num_classes)  # [batch_size, seq_length, num_classes]
+    targets = tf.one_hot(target_inputs, num_classes)  # [batch_size, seq_length, num_classes]
     # 不能使用logit.get_shape(), 因为在定义logit时shape=[None, num_steps], 这里使用会报错
     # y_reshaped = tf.reshape(targets, logits.get_shape())  # y_reshaped: [batch_size * seq_length, num_classes]
-    # loss = tf.nn.softmax_cross_entropy_with_logits(labels=tf.reshape(targets, [-1, num_classes]),
-    #                                                logits=logits, name='loss')
+    loss = tf.nn.softmax_cross_entropy_with_logits(labels=tf.reshape(targets, [-1, num_classes]),
+                                                   logits=logits, name='loss')
 
     cost = tf.reduce_mean(loss, name='cost')
     return cost
+
+
+def train_operation(cost, lr, max_grad_norm):
+    # ***** 优化求解 *******
+    tvars = tf.trainable_variables()  # 获取模型的所有参数
+    grads, _ = tf.clip_by_global_norm(tf.gradients(cost, tvars), max_grad_norm)  # 获取损失函数对于每个参数的梯度
+    optimizer = tf.train.AdamOptimizer(learning_rate=lr)  # 优化器
+
+    # 梯度下降计算
+    train_op = optimizer.apply_gradients(zip(grads, tvars),
+                                         global_step=tf.contrib.framework.get_or_create_global_step())
+    return train_op
 
 
 print 'Finished creating the bi-lstm model.'
