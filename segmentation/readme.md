@@ -74,6 +74,18 @@ Epoch training 205780, acc=0.945926, cost=0.148367, speed=659.901 s/epoch
 
 
 #### 参考文献
+[]()
+[tensorflow中mask](http://blog.csdn.net/appleml/article/details/56675152)
+[Sequence Tagging with Tensorflow](https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html)
+[PKU](http://sighan.cs.uchicago.edu/bakeoff2005/data/pku_spec.pdf)
+[TF使用例子-LSTM实现序列标注](http://www.jianshu.com/p/4cfcce68fc3b)
+[Tensorflow下构建LSTM模型进行序列化标注](http://www.deepnlp.org/blog/tensorflow-lstm-pos/)
+[使用深度学习进行中文自然语言处理之序列标注](http://www.jianshu.com/p/7e233ef57cb6)
+[使用RNN解决NLP中序列标注问题的通用优化思路](http://blog.csdn.net/malefactor/article/details/50725480)
+[ HMM与序列标注](http://blog.csdn.net/zbc1090549839/article/details/53887031)
+[deepnlp](https://github.com/rockingdingo/deepnlp/tree/r0.1.7#segmentation)
+[中文分词入门之字标注法4](http://www.52nlp.cn/%E4%B8%AD%E6%96%87%E5%88%86%E8%AF%8D%E5%85%A5%E9%97%A8%E4%B9%8B%E5%AD%97%E6%A0%87%E6%B3%A8%E6%B3%954)
+[TensorFlow入门（六） 双端 LSTM 实现序列标注（分词）](http://blog.csdn.net/jerr__y/article/details/70471066)
 [基于双向LSTM的seq2seq字标注-苏剑林](http://spaces.ac.cn/archives/3924/)
 [TF使用例子-LSTM实现序列标注](http://www.jianshu.com/p/4cfcce68fc3b)
 [Sequence Tagging with Tensorflow](https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html)

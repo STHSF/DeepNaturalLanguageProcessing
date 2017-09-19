@@ -89,8 +89,8 @@ def simple_cut(text):
         X_batch = text2ids(text)  # 这里每个 batch 是一个样本
         fetches = [model.logits]
         feed_dict = {model.source_inputs: X_batch, model.lr: 1.0, model.batch_size: 1, model.keep_prob: 1.0}
-        _y_pred = sess.run(fetches, feed_dict)[0][:text_len]  # padding填充的部分直接丢弃
-        nodes = [dict(zip(['s', 'b', 'm', 'e'], each[1:])) for each in _y_pred]
+        y_pred = sess.run(fetches, feed_dict)[0][:text_len]  # padding填充的部分直接丢弃
+        nodes = [dict(zip(['s', 'b', 'm', 'e'], each[1:])) for each in y_pred]
         tags = viterbi(nodes)
         words = []
         for i in range(len(text)):
