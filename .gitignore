@@ -126,3 +126,6 @@ TextClassification/sentiment_analysis/sentiment_analysis/cs224d/datasets/__MACOS
 /Segmentation/ckpt/
 Segmentation/model/
 /dd.py
+NER/data/
+POS/data/
+Textsum/data/

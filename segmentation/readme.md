@@ -15,17 +15,17 @@
 ```
 _针对该语料库预处理的关键步骤：_
 
-**step1、** 脏数据清洗，剔除一些不规范的字符串等内容。比如(每句开头的单双引号)。
+- **step1、** 脏数据清洗，剔除一些不规范的字符串等内容。比如(每句开头的单双引号)。
 
-**step2、** 将所有句子和段落连接成整体，然后按照里面的标点符号重新切句。
+- **step2、** 将所有句子和段落连接成整体，然后按照里面的标点符号重新切句。
 
-**step3、** 将每一句中的字和标签分开存储，比如分成[[word1, word2,...., wordi],[word1, word2,...., wordj],...,[word1, word2,...., wordk]]和[[tag1, tag2,....,tagi], [tag1, tag2,....,tagj],....,[tag1, tag2,....,tagk]]的形式,list中的每个list代表一句话中的词。
+- **step3、** 将每一句中的字和标签分开存储，比如分成[[word1, word2,...., wordi],[word1, word2,...., wordj],...,[word1, word2,...., wordk]]和[[tag1, tag2,....,tagi], [tag1, tag2,....,tagj],....,[tag1, tag2,....,tagk]]的形式,list中的每个list代表一句话中的词。
 
-**step4、** 统计所有的字的个数和标签类别的个数，并为每一个字和标签编号，构建words和tags都转为{数值-->id}的映射,包括[word_to_id, id_to_word, tag_to_id, id_to_tag]。
+- **step4、** 统计所有的字的个数和标签类别的个数，并为每一个字和标签编号，构建words和tags都转为{数值-->id}的映射,包括[word_to_id, id_to_word, tag_to_id, id_to_tag]。
 
-**step5、** padding的过程。将step3生成的句子列表中的每一句padding成固定长度的字列表，具体做法是对于长度小于固定长度的句子使用0填充到固定长度，长度大于固定长度的句子则将超过的部分切除。h最后变成[[word1, word2,...., wordn],[word1, word2,...., wordn],...,[word1, word2,...., wordn]]和[[tag1, tag2,....,tagn], [tag1, tag2,....,tagn],....,[tag1, tag2,....,tagn]],其中n为固定长度。
+- **step5、** padding的过程。将step3生成的句子列表中的每一句padding成固定长度的字列表，具体做法是对于长度小于固定长度的句子使用0填充到固定长度，长度大于固定长度的句子则将超过的部分切除。h最后变成[[word1, word2,...., wordn],[word1, word2,...., wordn],...,[word1, word2,...., wordn]]和[[tag1, tag2,....,tagn], [tag1, tag2,....,tagn],....,[tag1, tag2,....,tagn]],其中n为固定长度。
 
-**step6、** 隐藏状态的转移概率矩阵计算。这是为后面使用 viterbi 进行decoding准备的，具体解释参见viterbi算法。
+- **step6、** 隐藏状态的转移概率矩阵计算。这是为后面使用 viterbi 进行decoding准备的，具体解释参见viterbi算法。
 
 以上数据处理好后可以分单元将数据分别保存为pickle文件，后面使用的时候直接load就可以了。
 
