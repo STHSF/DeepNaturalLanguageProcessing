@@ -2,12 +2,13 @@
 import tensorflow as tf
 
 
-class bi_lstm():
+class bi_lstm(object):
     """
+    Construct a Bidirection_RNN for word segmentation.
     For Chinese word segmentation.
     """
-    def __init__(self, is_training=False, hidden_units=128, timestep_size=32, vocab_size=5159, embedding_size=64,
-                 num_classes=5, hidden_size=128, layers_num=2, max_grad_norm=5.0):
+    def __init__(self, is_training=False, hidden_units=128, timestep_size=32, vocab_size=5159,
+                 embedding_size=64, num_classes=5, hidden_size=128, layers_num=2, max_grad_norm=5.0):
         # tf.reset_default_graph()  # 模型的训练和预测放在同一个文件下时如果没有这个函数会报错。
         self.is_training = is_training
         self.hidden_units = hidden_units

@@ -75,7 +75,7 @@ def text2ids(text):
     words = list(text)
     ids = list(word2id[words])
     if len(ids) >= max_len:  # 长则弃掉
-        print u'输出片段超过%d部分无法处理' % (max_len)
+        print u'输出片段超过%d部分无法处理' % max_len
         return ids[:max_len]
     ids.extend([0]*(max_len-len(ids)))  # 短则补全
     ids = np.asarray(ids).reshape([-1, max_len])
