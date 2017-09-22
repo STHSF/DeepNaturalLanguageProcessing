@@ -37,6 +37,7 @@ _针对该语料库预处理的关键步骤：_
 
 # 构建Bidirectional_RNN单元
 具体Bidirectional_RNN的理解参考[这篇文章](https://sthsf.github.io/2017/08/31/Tensorflow%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-bidirectional-rnn/),
+source_inputs和target_inputs的shape都是[bath_size, time_steps].
 
 
 
