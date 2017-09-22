@@ -1,4 +1,4 @@
-# segmentation（中文分词系统）
+# Word Segmentation（中文分词系统）
 基于bidirectional_lstm的中文分词，实际上属于序列标注的问题。本文使用的就是字标注法做中文分词。
 
 # 语料库预处理

@@ -4,8 +4,8 @@ import tensorflow as tf
 
 class bi_lstm(object):
     """
-    Construct a Bidirection_RNN for word segmentation.
-    For Chinese word segmentation.
+    Construct a Bidirection_RNN for word Segmentation.
+    For Chinese word Segmentation.
     """
     def __init__(self, is_training=False, hidden_units=128, timestep_size=32, vocab_size=5159,
                  embedding_size=64, num_classes=5, hidden_size=128, layers_num=2, max_grad_norm=5.0):
