@@ -4,7 +4,7 @@ import tensorflow as tf
 
 class bi_lstm():
     """
-    For Chinese word segmentation.
+    For Chinese word Segmentation.
     """
     def __init__(self, hidden_units=128,
                  timestep_size=32, vocab_size=5159, embedding_size=64,

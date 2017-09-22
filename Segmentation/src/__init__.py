@@ -1,11 +1,13 @@
 # coding=utf-8
 
 
-import tensorflow as tf
-import time
 import pickle
+import time
+
+import tensorflow as tf
 from sklearn.model_selection import train_test_split
-from batch_generate import BatchGenerator
+
+from Segmentation.src.batch_generate import BatchGenerator
 
 # 数据导入
 with open('data.pkl', 'rb') as pk:
@@ -30,7 +32,7 @@ data_test = BatchGenerator(X_test, y_test, shuffle=False)
 print 'Finished creating the data generator.'
 
 '''
-For Chinese word segmentation.
+For Chinese word Segmentation.
 '''
 # ##################### config ######################
 decay = 0.85

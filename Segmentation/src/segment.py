@@ -30,7 +30,7 @@ config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
 saver = tf.train.Saver()
-best_model_path = tf.train.latest_checkpoint('ckpt/')
+best_model_path = tf.train.latest_checkpoint('../ckpt/')
 
 # best_model_path = './ckpt/bi-lstm.ckpt-6'
 saver.restore(sess, best_model_path)
@@ -75,7 +75,7 @@ def text2ids(text):
     words = list(text)
     ids = list(word2id[words])
     if len(ids) >= max_len:  # 长则弃掉
-        print u'输出片段超过%d部分无法处理' % (max_len)
+        print u'输出片段超过%d部分无法处理' % max_len
         return ids[:max_len]
     ids.extend([0]*(max_len-len(ids)))  # 短则补全
     ids = np.asarray(ids).reshape([-1, max_len])
@@ -89,8 +89,8 @@ def simple_cut(text):
         X_batch = text2ids(text)  # 这里每个 batch 是一个样本
         fetches = [model.logits]
         feed_dict = {model.source_inputs: X_batch, model.lr: 1.0, model.batch_size: 1, model.keep_prob: 1.0}
-        _y_pred = sess.run(fetches, feed_dict)[0][:text_len]  # padding填充的部分直接丢弃
-        nodes = [dict(zip(['s', 'b', 'm', 'e'], each[1:])) for each in _y_pred]
+        y_pred = sess.run(fetches, feed_dict)[0][:text_len]  # padding填充的部分直接丢弃
+        nodes = [dict(zip(['s', 'b', 'm', 'e'], each[1:])) for each in y_pred]
         tags = viterbi(nodes)
         words = []
         for i in range(len(text)):
