@@ -12,7 +12,7 @@ class bi_lstm(object):
         # tf.reset_default_graph()  # 模型的训练和预测放在同一个文件下时如果没有这个函数会报错。
         self.is_training = is_training
         self.hidden_units = hidden_units
-        self.num_steps = timestep_size
+        self.n_timesteps = timestep_size
         self.max_len = timestep_size  # 句子长度
         self.vocab_size = vocab_size  # 样本中不同字的个数+1(padding 0)，根据处理数据的时候得到
         self.embedding_size = embedding_size  # 字向量长度
@@ -27,9 +27,9 @@ class bi_lstm(object):
         self.keep_prob = tf.placeholder(tf.float32, [])
 
         # shape = [batch_size, num_steps]
-        self._source_inputs = tf.placeholder(shape=(None, self.num_steps), dtype=tf.int32, name='source_inputs')
+        self._source_inputs = tf.placeholder(shape=(None, self.n_timesteps), dtype=tf.int32, name='source_inputs')
         # shape = [batch_size, num_steps]
-        self._target_inputs = tf.placeholder(shape=(None, self.num_steps), dtype=tf.int32, name='target_inputs')
+        self._target_inputs = tf.placeholder(shape=(None, self.n_timesteps), dtype=tf.int32, name='target_inputs')
 
         with tf.device("/cpu:0"):
             _embedding = tf.Variable(tf.random_uniform([self.vocab_size, self.embedding_size], -1.0, 1.0),
