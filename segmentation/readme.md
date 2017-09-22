@@ -2,6 +2,8 @@
 基于bidirectional_lstm的中文分词，实际上属于序列标注的问题。本文使用的就是字标注法做中文分词。
 
 # 语料库预处理
+训练语料库的预处理主要是将不同格式的训练语料处理成RNN的统一输入格式。
+
 本文选取的标注好的[语料库](http://kexue.fm/usr/uploads/2016/10/1372394625.zip)由很多短句组成,下面摘录了部分训练语料数据。
 ```
 “/s  人/b  们/e  常/s  说/s  生/b  活/e  是/s  一/s  部/s  教/b  科/m  书/e  ，/s  而/s  血/s  与/s  火/s  的/s  战/b  争/e  更/s  是/s  不/b  可/m  多/m  得/e  的/s  教/b  科/m  书/e  ，/s  她/s  确/b  实/e  是/s  名/b  副/m  其/m  实/e  的/s  ‘/s  我/s  的/s  大/b  学/e  ’/s  。/s  
@@ -23,9 +25,10 @@ _针对该语料库预处理的主要步骤_
 
 **step5、** padding的过程。将step3生成的句子列表中的每一句padding成固定长度的字列表，具体做法是对于长度小于固定长度的句子使用0填充到固定长度，长度大于固定长度的句子则将超过的部分切除。h最后变成[[word1, word2,...., wordn],[word1, word2,...., wordn],...,[word1, word2,...., wordn]]和[[tag1, tag2,....,tagn], [tag1, tag2,....,tagn],....,[tag1, tag2,....,tagn]],其中n为固定长度。
 
-**step6、** 隐藏状态的转移概率矩阵计算。这是为后面使用viterbi 进行decoding准备的
+**step6、** 隐藏状态的转移概率矩阵计算。这是为后面使用 viterbi 进行decoding准备的，具体解释参见viterbi算法。
 
-
+以上数据处理好后可以分单元将数据分别保存为pickle文件，后面使用的时候直接load就可以了。
+# 构建Bidirection_RNN单元
 
 
 
