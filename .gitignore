@@ -129,3 +129,6 @@ Segmentation/model/
 NER/data/
 POS/data/
 Textsum/data/
+/ChineseSegmentation/ckpt/
+/ChineseSegmentation/dataset/
+/ChineseSegmentation/logs/
