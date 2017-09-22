@@ -30,7 +30,7 @@ config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
 saver = tf.train.Saver()
-best_model_path = tf.train.latest_checkpoint('ckpt/')
+best_model_path = tf.train.latest_checkpoint('../ckpt/')
 
 # best_model_path = './ckpt/bi-lstm.ckpt-6'
 saver.restore(sess, best_model_path)

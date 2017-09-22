@@ -38,6 +38,7 @@ config.gpu_options.allow_growth = True
 init = tf.global_variables_initializer()
 # all_vars = tf.trainable_variables()
 # saver = tf.train.Saver(all_vars)  # 最多保存的模型数量
+# summary_writer = tf.train.SummaryWriter('/tmp/tensorflowlogs')
 saver = tf.train.Saver()  # 最多保存的模型数量
 
 decay = 0.85

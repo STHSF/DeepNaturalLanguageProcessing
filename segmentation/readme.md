@@ -1,6 +1,30 @@
 # segmentation（中文分词系统）
 基于bidirectional_lstm的中文分词，实际上属于序列标注的问题。本文使用的就是字标注法做中文分词。
 
+# 语料库预处理
+本文选取的标注好的[语料库](http://kexue.fm/usr/uploads/2016/10/1372394625.zip)由很多短句组成,下面摘录了部分训练语料数据。
+```
+“/s  人/b  们/e  常/s  说/s  生/b  活/e  是/s  一/s  部/s  教/b  科/m  书/e  ，/s  而/s  血/s  与/s  火/s  的/s  战/b  争/e  更/s  是/s  不/b  可/m  多/m  得/e  的/s  教/b  科/m  书/e  ，/s  她/s  确/b  实/e  是/s  名/b  副/m  其/m  实/e  的/s  ‘/s  我/s  的/s  大/b  学/e  ’/s  。/s  
+“/s  心/s  静/s  渐/s  知/s  春/s  似/s  海/s  ，/s  花/s  深/s  每/s  觉/s  影/s  生/s  香/s  。/s  
+“/s  吃/s  屎/s  的/s  东/b  西/e  ，/s  连/s  一/s  捆/s  麦/s  也/s  铡/s  不/s  动/s  呀/s  ？/s  
+他/s  “/s  严/b  格/m  要/m  求/e  自/b  己/e  ，/s  从/s  一/b  个/e  科/b  举/e  出/b  身/e  的/s  进/b  士/e  成/b  为/e  一/b  个/e  伟/b  大/e  的/s  民/b  主/m  主/m  义/e  者/s  ，/s  进/b  而/e  成/b  为/e  一/s  位/s  杰/b  出/e  的/s  党/b  外/e  共/b  产/m  主/m  义/e  战/b  士/e  ，/s  献/b  身/e  于/s  崇/b  高/e  的/s  共/b  产/m  主/m  义/e  事/b  业/e  。/s  
+“/s  征/s  而/s  未/s  用/s  的/s  耕/b  地/e  和/s  有/s  收/b  益/e  的/s  土/b  地/e  ，/s  不/b  准/e  荒/b  芜/e  。/s  
+“/s  这/s  首/b  先/e  是/s  个/s  民/b  族/e  问/b  题/e  ，/s  民/b  族/e  的/s  感/b  情/e  问/b  题/e  。/s  
+```
+针对该语料库预处理的主要步骤
+
+step1、剔除一些不规范的字符串等内容。比如(每句开头的单双引号)。
+
+step2、将所有句子和段落连接成整体，然后按照里面的标点符号重新切句。
+
+step3、将每一句中的字和标签分开存储，比如分成[[word1, word2,...., wordi],[word1, word2,...., wordj],...,[word1, word2,...., wordk]]和[[tag1, tag2,....,tagi], [tag1, tag2,....,tagj],....,[tag1, tag2,....,tagk]]的形式,list中的每个list代表一句话中的词。
+
+step4、统计所有的字的个数和标签类别的个数，并为每一个字和标签编号，构建words和tags都转为{数值-->id}的映射,包括[word_to_id, id_to_word, tag_to_id, id_to_tag]。
+
+step5、padding的过程。将step3生成的句子列表中的每一句padding成固定长度的字列表，具体做法是对于长度小于固定长度的句子使用0填充到固定长度，长度大于固定长度的句子则将超过的部分切除。h最后变成[[word1, word2,...., wordn],[word1, word2,...., wordn],...,[word1, word2,...., wordn]]和[[tag1, tag2,....,tagn], [tag1, tag2,....,tagn],....,[tag1, tag2,....,tagn]],其中n为固定长度。
+
+step6、隐藏状态的转移概率矩阵计算。
+
 模型的训练结果：
 ```
 EPOCH 1， lr=0.0001
@@ -74,7 +98,6 @@ Epoch training 205780, acc=0.945926, cost=0.148367, speed=659.901 s/epoch
 
 
 #### 参考文献
-[]()
 [tensorflow中mask](http://blog.csdn.net/appleml/article/details/56675152)
 [Sequence Tagging with Tensorflow](https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html)
 [PKU](http://sighan.cs.uchicago.edu/bakeoff2005/data/pku_spec.pdf)
