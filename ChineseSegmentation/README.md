@@ -19,7 +19,7 @@ _针对该语料库预处理的关键步骤：_
 
 - **step2、** 将所有句子和段落连接成整体，然后按照里面的标点符号重新切句。
 
-- **step3、** 将每一句中的字和标签分开存储，比如分成[[word1, word2,...., wordi],[word1, word2,...., wordj],...,[word1, word2,...., wordk]]和[[tag1, tag2,....,tagi], [tag1, tag2,....,tagj],....,[tag1, tag2,....,tagk]]的形式,list中的每个list代表一句话中的词。
+- **step3、** 将每一句中的字和标签分开存储，比如分成[[word1, word2,...., wordi],[word1, word2,...., wordj],...,[word1, word2,...., wordk]]和[[tag1, tag2,....,tagi], [tag1, tag2,....,tagj],....,[tag1, tag2,....,tagk]]的形式,list中的每个list代表一句话中的词。在整个模型的训练和预测过程中使用的都是word的token来代替每个word。
 
 - **step4、** 统计所有的字的个数和标签类别的个数，并为每一个字和标签编号，构建words和tags都转为{数值-->id}的映射,包括[word_to_id, id_to_word, tag_to_id, id_to_tag]。
 
@@ -28,7 +28,7 @@ _针对该语料库预处理的关键步骤：_
 - **step6、** 隐藏状态的转移概率矩阵计算。这是为后面使用 viterbi 进行decoding准备的，具体解释参见viterbi算法。
 
 以上数据处理好后可以分单元将数据分别保存为pickle文件，后面使用的时候直接load就可以了。
-
+预测过程中所要用到的数据主要是step3和step6产生的数据。
 
 # batch数据准备
 模型的训练过程中一般采用mini-batch的方式feeding数据。所以需要对源数据进行Batch_generator, 即将train_data, valid_data, test_data按照batch_size且分开。
@@ -38,6 +38,9 @@ _针对该语料库预处理的关键步骤：_
 # 构建Bidirectional_RNN单元
 具体Bidirectional_RNN的理解参考[这篇文章](https://sthsf.github.io/2017/08/31/Tensorflow%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-bidirectional-rnn/),
 source_inputs和target_inputs的shape都是[bath_size, time_steps].
+
+# viterbi算法
+viterbi是在HMM中在一直隐马尔科夫链和观测序列的j情况下，用来计算状态序列的一种方式，在这里引入viterbi算法的目的主要是避免出现预测出[b,b,b,b,b]这类不合理的情况的出现，如果不使用viterbi，而直接采用每一个输出的最大概率标签，则极有可能出现哪种不合理的标注结果。但是按照我们的规定，b后面不能接b，而verdibi规划则可以排除这样的不合理的情形。
 
 
 

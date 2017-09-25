@@ -113,7 +113,7 @@ with tf.Session(config=config) as sess:
             save_path = model.saver.save(sess, model_save_path, global_step=(epoch + 1))
             print('the save path is ', save_path)
         print('\ttraining %d, acc=%g, cost=%g ' % (data_train.y.shape[0], mean_acc, mean_cost))
-        print('Epoch training %d, acc=%g, cost=%g, speed=%g s/epoch' \
+        print('Epoch training %d, acc=%g, cost=%g, speed=%g s/epoch'
               % (data_train.y.shape[0], mean_acc, mean_cost, time.time() - start_time))
 
     # testing
