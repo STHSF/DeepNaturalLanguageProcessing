@@ -6,7 +6,7 @@
 @version: ??
 @author: Li Yu
 @license: Apache Licence 
-@file: Language_model.py
+@file: LanguageModel.py
 @time: 2017/7/20 上午8:41
 """
 import time

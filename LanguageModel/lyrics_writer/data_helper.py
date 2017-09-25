@@ -35,7 +35,7 @@ def get_batch():
     pass
 
 if __name__ == "__main__":
-    dir = "/Users/li/workshop/MyRepository/DeepNaturalLanguageProcessing/Language_model/lyrics_writer/data/"
+    dir = "/Users/li/workshop/MyRepository/DeepNaturalLanguageProcessing/LanguageModel/lyrics_writer/data/"
     # 加载文本
     with open(dir + "lyrics.txt") as f:
         text = f.read()

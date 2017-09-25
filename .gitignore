@@ -108,10 +108,10 @@ embedding
 /sentiment_analysis/sentiment_analysis_zh/data/
 .DS_Store
 .idea/
-Language_model/anna.ipynb
-Language_model/anna/checkpoints/
-/Language_model/anna/ex.py
-Language_model/lyrics_writer/data/
+LanguageModel/anna.ipynb
+LanguageModel/anna/checkpoints/
+/LanguageModel/anna/ex.py
+LanguageModel/lyrics_writer/data/
 /Seq2Seq/.ipynb_checkpoints/
 
 /Seq2Seq/char_rank/data/
