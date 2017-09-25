@@ -181,4 +181,4 @@ def train_operation(cost, lr, max_grad_norm):
     return train_op
 
 
-print 'Finished creating the bi-lstm model.'
+print('Finished creating the bi-lstm model.')
