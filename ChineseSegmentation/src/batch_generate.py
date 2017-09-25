@@ -1,6 +1,6 @@
 # coding=utf-8
 """
-3.build the data generator
+build the data generator
 """
 import numpy as np
 

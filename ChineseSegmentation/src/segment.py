@@ -90,7 +90,9 @@ def simple_cut(text):
         fetches = [model.logits]
         feed_dict = {model.source_inputs: X_batch, model.lr: 1.0, model.batch_size: 1, model.keep_prob: 1.0}
         y_pred = sess.run(fetches, feed_dict)[0][:text_len]  # padding填充的部分直接丢弃
-        nodes = [dict(zip(['s', 'b', 'm', 'e'], each[1:])) for each in y_pred]
+        print(y_pred[0])
+        nodes = [dict(zip(['s', 'b', 'm', 'e'], elem[1:])) for elem in y_pred]
+        print(nodes[0])
         tags = viterbi(nodes)
         words = []
         for i in range(len(text)):
@@ -117,7 +119,8 @@ def cut_word(sentence):
 
 
 # 例一
-sentence = u'简单来说，机器学习就是根据样本（即数据）学习得到一个模型，再根据这个模型预测的一种方法。'
+# sentence = u'简单来说，机器学习就是根据样本（即数据）学习得到一个模型，再根据这个模型预测的一种方法。'
+sentence = u'南京市长江大桥'
 result = cut_word(sentence)
 rss = ''
 for each in result:
