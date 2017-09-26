@@ -40,7 +40,7 @@ _针对该语料库预处理的关键步骤：_
 source_inputs和target_inputs的shape都是[bath_size, time_steps].
 
 # viterbi算法
-viterbi是在HMM中在一直隐马尔科夫链和观测序列的j情况下，用来计算状态序列的一种方式，在这里引入viterbi算法的目的主要是避免出现预测出[b,b,b,b,b]这类不合理的情况的出现，如果不使用viterbi，而直接采用每一个输出的最大概率标签，则极有可能出现哪种不合理的标注结果。但是按照我们的规定，b后面不能接b，而verdibi规划则可以排除这样的不合理的情形。
+viterbi是在HMM中在一直隐马尔科夫链和观测序列的情况下，用来计算状态序列的一种方法，在这里引入viterbi算法的目的主要是避免出现预测出[b,b,b,b,b]这类不合理的情况的出现，如果不使用viterbi，而直接采用每一个输出的最大概率标签，则极有可能出现哪种不合理的标注结果。但是按照我们的规定，b后面不能接b，而verdibi规划则可以排除这样的不合理的情形。
 
 
 
@@ -135,7 +135,8 @@ Epoch training 205780, acc=0.945926, cost=0.148367, speed=659.901 s/epoch
 [Tensorflow下构建LSTM模型进行序列化标注](http://www.deepnlp.org/blog/tensorflow-lstm-pos/)
 [使用深度学习进行中文自然语言处理之序列标注](http://www.jianshu.com/p/7e233ef57cb6)
 [使用RNN解决NLP中序列标注问题的通用优化思路](http://blog.csdn.net/malefactor/article/details/50725480)
-[ HMM与序列标注](http://blog.csdn.net/zbc1090549839/article/details/53887031)
+[HMM与序列标注](http://blog.csdn.net/zbc1090549839/article/details/53887031)
+[Tagging Problems, and Hidden Markov Models](http://www.cs.columbia.edu/~mcollins/hmms-spring2013.pdf)
 [deepnlp](https://github.com/rockingdingo/deepnlp/tree/r0.1.7#segmentation)
 [中文分词入门之字标注法4](http://www.52nlp.cn/%E4%B8%AD%E6%96%87%E5%88%86%E8%AF%8D%E5%85%A5%E9%97%A8%E4%B9%8B%E5%AD%97%E6%A0%87%E6%B3%A8%E6%B3%954)
 [TensorFlow入门（六） 双端 LSTM 实现序列标注（分词）](http://blog.csdn.net/jerr__y/article/details/70471066)
