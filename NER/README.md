@@ -4,8 +4,13 @@
 词性标注、分词都属于同一类问题，他们的区别主要是标注的方式不同。
 
 ## 命名实体识别中的标签集合
+标注方式1、
 LabelSet = {BA, MA, EA, BO, MO, EO, BP, MP, EP, O}
 其中，BA代表这个汉字是地址首字，MA代表这个汉字是地址中间字，EA代表这个汉字是地址的尾字；BO代表这个汉字是机构名的首字，MO代表这个汉字是机构名称的中间字，EO代表这个汉字是机构名的尾字；BP代表这个汉字是人名首字，MP代表这个汉字是人名中间字，EP代表这个汉字是人名尾字，而O代表这个汉字不属于命名实体。
+标注方式2、
+LabelSet = {NA, SC, CC, SL, LL, SP, PP}
+其中 NA = No entity, SC = Start Company, CC = Continue Company, SL = Start Location, CL = Continue Location, SP = Start Person, CP = Continue Person
+
 
 
 
@@ -13,6 +18,7 @@ LabelSet = {BA, MA, EA, BO, MO, EO, BP, MP, EP, O}
 [NER](https://github.com/shiyybua/NER/blob/master/utils.py)
 [基础却不简单，命名实体识别的难点与现状](https://zhuanlan.zhihu.com/p/26782938)
 [python+HMM之维特比解码](http://blog.csdn.net/jerr__y/article/details/73838805)
+[Tagging Problems, and Hidden Markov Models](http://www.cs.columbia.edu/~mcollins/hmms-spring2013.pdf)
 []()
 []()
 []()
