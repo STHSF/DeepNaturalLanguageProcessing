@@ -37,8 +37,10 @@ class bi_lstm(object):
             # shape = [batch_size, num_steps, embedding_size]
             inputs_embedded = tf.nn.embedding_lookup(_embedding, self._source_inputs)
 
-        self._logits = bidi_lstm(self.is_training, inputs_embedded, self.layers_num, self.batch_size,
-                                 self.hidden_units, self.num_classes, self.keep_prob)
+        bi_lstm_output = bi_RNN(self.is_training, inputs_embedded, self.layers_num,
+                                self.batch_size, self.hidden_units, self.keep_prob)
+
+        self._logits = add_output_layer(bi_lstm_output, self.hidden_units, self.num_classes)
 
         self._cost = cost_compute(self._logits, self.target_inputs, self.num_classes)
 
@@ -97,26 +99,26 @@ def lstm_bw_cell(hidden_units, is_training, keep_prob):
     return bw_cell
 
 
-def bidi_lstm(is_training, inputs, layers_num, batch_size, hidden_units, num_classes, keep_prob):
+def bi_RNN(is_training, inputs, layers_num, batch_size, hidden_units, keep_prob):
 
-    with tf.variable_scope('cell_fw'):
-        cell_fw = tf.contrib.rnn.MultiRNNCell([lstm_fw_cell(hidden_units, is_training, keep_prob) for _ in range(layers_num)],
-                                              state_is_tuple=True)
-    with tf.variable_scope('cell_bw'):
-        cell_bw = tf.contrib.rnn.MultiRNNCell([lstm_bw_cell(hidden_units, is_training, keep_prob) for _ in range(layers_num)],
-                                              state_is_tuple=True)
+    with tf.variable_scope('multi_cell_fw'):
+        multi_cell_fw = tf.contrib.rnn.MultiRNNCell([lstm_fw_cell(hidden_units, is_training, keep_prob) for _ in range(layers_num)],
+                                                    state_is_tuple=True)
+    with tf.variable_scope('multi_cell_bw'):
+        multi_cell_bw = tf.contrib.rnn.MultiRNNCell([lstm_bw_cell(hidden_units, is_training, keep_prob) for _ in range(layers_num)],
+                                                    state_is_tuple=True)
 
     with tf.variable_scope('init_state_fw'):
-        initial_state_fw = cell_fw.zero_state(batch_size, tf.float32)
+        initial_state_fw = multi_cell_fw.zero_state(batch_size, tf.float32)
     with tf.variable_scope('init_state_bw'):
-        initial_state_bw = cell_bw.zero_state(batch_size, tf.float32)
+        initial_state_bw = multi_cell_bw.zero_state(batch_size, tf.float32)
 
-    with tf.variable_scope('bi-lstm'):
+    with tf.variable_scope('bi_RNN'):
         ((outputs_fw,
           outputs_bw),
         (final_state_fw,
-         final_state_bw)) = (tf.nn.bidirectional_dynamic_rnn(cell_fw=cell_fw,
-                                                             cell_bw=cell_bw,
+         final_state_bw)) = (tf.nn.bidirectional_dynamic_rnn(cell_fw=multi_cell_fw,
+                                                             cell_bw=multi_cell_bw,
                                                              inputs=inputs,
                                                              initial_state_fw=initial_state_fw,
                                                              initial_state_bw=initial_state_bw,
@@ -134,7 +136,10 @@ def bidi_lstm(is_training, inputs, layers_num, batch_size, hidden_units, num_cla
 
     # shape = [batch_size * num_steps, hidden_units * 2]
     outputs = tf.reshape(_outputs, [-1, hidden_units * 2], name='predict')
+    return outputs
 
+
+def add_output_layer(outputs, hidden_units, num_classes):
     with tf.variable_scope('output_layer'):
         softmax_w = tf.Variable(tf.truncated_normal(shape=[hidden_units * 2, num_classes], stddev=0.1),
                                 name="soft_max_w")
@@ -146,6 +151,16 @@ def bidi_lstm(is_training, inputs, layers_num, batch_size, hidden_units, num_cla
         with tf.name_scope('logits'):
             logits = tf.matmul(outputs, softmax_w) + softmax_b
     return logits
+
+
+def add_crf_layer(logits, labels, sequence_lengths):
+    with tf.variable_scope("crf"):
+        log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(
+            logits, labels, sequence_lengths)
+
+    loss = tf.reduce_mean(-log_likelihood)
+
+    return loss, transition_params
 
 
 def cost_compute(logits, target_inputs, num_classes):
