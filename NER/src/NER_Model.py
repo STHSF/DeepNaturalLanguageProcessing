@@ -1,4 +1,10 @@
 # coding=utf-8
+"""
+Concatenate final states of a bi-lstm on character embeddings to get a character-based representation of each word
+Concatenate this representation to a standard word vector representation (GloVe here)
+Run a bi-lstm on each sentence to extract contextual representation of each word
+Decode with a linear chain CRF
+"""
 import tensorflow as tf
 
 
@@ -15,13 +21,15 @@ class bi_lstm_crf(object):
         self.num_classes = config.num_classes
         self.lr = config.lr
         self.max_grad_norm = config.max_grad_norm
-
+        # shape = (batch_size, num_steps)
         self.source_input = tf.placeholder(tf.int32, shape=[None, self.num_steps], name="source_input")
+        # shape = (batch_size, num_steps)
         self.target_input = tf.placeholder(tf.int32, shape=[None, self.num_steps], name="labels")
 
         with tf.variable_scope("embedding"):
             _embedding = tf.Variable(tf.random_normal([self.vocab_size, self.embedding_size], -1.0, 1.0),
                                      dtype=tf.float32, name="embedding")
+            # shape = (batch_size, num_steps, embedding_size)
             target_inputs_embedding = tf.nn.embedding_lookup(_embedding, self.source_input)
 
         self.bi_cell_outputs = bi_RNN(target_inputs_embedding, self.is_training, self.hidden_units,

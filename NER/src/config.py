@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-class config():
+class Config():
     num_steps = 10
     vocab_size = 5188
     embedding_size = 128
@@ -11,9 +11,12 @@ class config():
     keep_pro = 0.0001
     layers_num = 32
     batch_size = 128
+    num_classes = 5
+    lr = 0.001
+    max_grad_norm = 1
 
-    glove_filename = "data/embedding/news_tensite_ch_clean.model".format(dim)
-    trimmed_filename = "data/news_tensite_ch_clean_{}d.trimmed.npz".format(dim)
+    # glove_filename = "data/embedding/news_tensite_ch_clean.model".format(dim)
+    # trimmed_filename = "data/news_tensite_ch_clean_{}d.trimmed.npz".format(dim)
     words_filename = "data/words.txt"
     tags_filename = "data/tags.txt"
 
@@ -25,7 +28,6 @@ class config():
     train_embeddings = False
     nepochs = 20
     dropout = 0.5
-    lr = 0.001
     lr_decay = 0.9
     nepoch_no_imprv = 3
     crf = True  # if crf, training is 1.7x slower
