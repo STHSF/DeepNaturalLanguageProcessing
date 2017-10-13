@@ -13,12 +13,12 @@ TAGS_NUM = get_class_size()
 
 class NER_net:
     def __init__(self, scope_name, iterator, embedding, batch_size):
-        '''
+        """
         :param scope_name:
         :param iterator: 调用tensorflow DataSet API把数据feed进来。
         :param embedding: 提前训练好的word embedding
         :param batch_size:
-        '''
+        """
         self.batch_size = batch_size
         self.embedding = embedding
         self.iterator = iterator
