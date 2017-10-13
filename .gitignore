@@ -134,3 +134,4 @@ Textsum/data/
 /ChineseSegmentation/logs/
 /ChineseSegmentation/src/data.pkl
 TextClassification/CAS/data/
+/NER/data/
