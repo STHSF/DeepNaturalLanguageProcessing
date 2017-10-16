@@ -11,7 +11,7 @@
 文本分类
 ### sentiment_analysis
 文本情感分析
-### [TextClassification](https://github.com/STHSF/DeepNaturalLanguageProcessing/tree/master/sentiment_analysis/sentiment_analysis_zh)
+### [SentimentAnalysis_zh](https://github.com/STHSF/DeepNaturalLanguageProcessing/tree/master/sentiment_analysis/sentiment_analysis_zh)
 深度中文自然语言处理,主要是结合embedding word进行文本的情感分析。
 
 ### segmentation
