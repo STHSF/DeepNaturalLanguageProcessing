@@ -5,7 +5,7 @@
 ## [LanguageModel](https://github.com/STHSF/DeepNaturalLanguageProcessing/tree/master/language_model)
 使用深度学习建立语言模型，其中包括文本生成，翻译等
 #### [anna](https://github.com/STHSF/DeepNaturalLanguageProcessing/tree/master/language_model/anna)
-使用深度学习模型建立文本生成，模仿安娜卡列琳娜写文章。
+使用深度学习模型建立文本生成，模仿安娜卡列琳娜这篇文章风格写文章。
 
 ## TextClassification
 文本分类
