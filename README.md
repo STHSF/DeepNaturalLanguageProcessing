@@ -14,6 +14,7 @@
 ### [SentimentAnalysis_zh](https://github.com/STHSF/DeepNaturalLanguageProcessing/tree/master/sentiment_analysis/sentiment_analysis_zh)
 深度中文自然语言处理,主要是结合embedding word进行文本的情感分析。
 
-### segmentation
-#### 中文分词
+### Segmentation
+#### ChineseSegmentation
+中文分词
 基于序列标注的思想，使用bidirectional_RNN来建模。
