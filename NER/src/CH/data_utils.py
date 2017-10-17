@@ -45,7 +45,7 @@ with open(tgt_file, 'r') as source:
             labels.append(word_arr)
             list_word.extend(word_arr)
     tags = list(set(list_word))
-    tags.insert(0, 'Padding')
+    tags.insert(0, 'Padding')  # 添加padding标识符，用于固定长度的字符补全。，区别与其他的tags
     print(tags)
     tag_ids = range(len(tags))
     tag2id = pd.Series(tag_ids, index=tags)
@@ -65,7 +65,7 @@ def X_padding(words):
     ids = list(word2id[words])
     if len(ids) >= max_len:  # 长则弃掉
         return ids[:max_len]
-    ids.extend([0]*(max_len-len(ids)))  # 短则补全
+    ids.extend([0]*(max_len-len(ids)))  # 短则补全，使用编号0补全
     return ids
 
 
@@ -74,7 +74,7 @@ def y_padding(tags):
     ids = list(tag2id[tags])
     if len(ids) >= max_len:  # 长则弃掉
         return ids[:max_len]
-    ids.extend([0]*(max_len-len(ids)))  # 短则补全
+    ids.extend([0]*(max_len-len(ids)))  # 短则补全，id=0的tags为Padding
     return ids
 
 

@@ -18,3 +18,6 @@
 ### ChineseSegmentation
 中文分词
 基于序列标注的思想，使用bidirectional_RNN来建模。
+
+## NER
+命名实体识别
