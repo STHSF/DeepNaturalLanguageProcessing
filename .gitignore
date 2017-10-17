@@ -126,7 +126,7 @@ TextClassification/sentiment_analysis/sentiment_analysis/cs224d/datasets/__MACOS
 /Segmentation/ckpt/
 Segmentation/model/
 /dd.py
-NER/data/
+NER/src/CH/data/
 POS/data/
 Textsum/data/
 /ChineseSegmentation/ckpt/
@@ -134,5 +134,7 @@ Textsum/data/
 /ChineseSegmentation/logs/
 /ChineseSegmentation/src/data.pkl
 TextClassification/CAS/data/
-/NER/data/
-/NER/data_EN/
+/NER/src/CH/data/
+/NER/src/EN/data_EN/
+/NER/src/CH/data.pkl
+NER/src/CH/data.pkl

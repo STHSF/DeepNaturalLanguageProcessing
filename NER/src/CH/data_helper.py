@@ -26,24 +26,36 @@ class BatchedInput(collections.namedtuple("BatchedInput",
                                            "target_input",
                                            "source_sequence_length",
                                            "target_sequence_length"))):
-  pass
+    pass
 
 
 def build_word_index():
-    '''
-        生成单词列表，并存入文件之中。
+    """
+    生成单词列表，并存入文件之中。
     :return:
-    '''
+    """
     print 'building word index...'
     if not os.path.exists(src_vocab_file):
+        # with open(src_vocab_file, 'w') as source:
+        #     # f = open(word_embedding_file)
+        #     f = open(src_file)
+        #     for line in f:
+        #         values = line.split()
+        #         word = values[0]  # 取词
+        #         if type(word) is unicode:
+        #             word = word.encode('utf8')
+        #         source.write(word + '\n')
+        f = open(src_file)
+        a = []
+        for line in f:
+            values = line.split()
+            a.extend(values)
+        word = list(set(a))
+        for i in range(len(word)):
+            print word[i]
         with open(src_vocab_file, 'w') as source:
-            f = open(word_embedding_file)
-            for line in f:
-                values = line.split()
-                word = values[0]  # 取词
-                if type(word) is unicode:
-                    word = word.encode('utf8')
-                source.write(word + '\n')
+            for i in range(len(word)):
+                source.write(word[i] + '\n')
         f.close()
     else:
         print 'source vocabulary file has already existed, continue to next stage.'
@@ -71,9 +83,9 @@ def build_word_index():
 
 
 def get_src_vocab_size():
-    '''
+    """
     :return: 训练数据中共有多少不重复的词。
-    '''
+    """
     size = 0
     with open(src_vocab_file, 'r') as vocab_file:
         for content in vocab_file.readlines():
@@ -84,10 +96,10 @@ def get_src_vocab_size():
 
 
 def get_class_size():
-    '''
+    """
         获取命名实体识别类别总数。
     :return:
-    '''
+    """
     size = 0
     with open(tgt_vocab_file, 'r') as vocab_file:
         for content in vocab_file.readlines():
@@ -98,16 +110,13 @@ def get_class_size():
     return size + 1
 
 
-
 def create_vocab_tables(src_vocab_file, tgt_vocab_file, src_unknown_id, tgt_unknown_id, share_vocab=False):
-  src_vocab_table = lookup_ops.index_table_from_file(
-      src_vocab_file, default_value=src_unknown_id)
-  if share_vocab:
-    tgt_vocab_table = src_vocab_table
-  else:
-    tgt_vocab_table = lookup_ops.index_table_from_file(
-        tgt_vocab_file, default_value=tgt_unknown_id)
-  return src_vocab_table, tgt_vocab_table
+    src_vocab_table = lookup_ops.index_table_from_file(src_vocab_file, default_value=src_unknown_id)
+    if share_vocab:
+        tgt_vocab_table = src_vocab_table
+    else:
+        tgt_vocab_table = lookup_ops.index_table_from_file(tgt_vocab_file, default_value=tgt_unknown_id)
+    return src_vocab_table, tgt_vocab_table
 
 
 def get_iterator(src_vocab_table, tgt_vocab_table, vocab_size, batch_size, buffer_size=None, random_seed=None,
@@ -168,7 +177,7 @@ def get_iterator(src_vocab_table, tgt_vocab_table, vocab_size, batch_size, buffe
             # Pad the source and target sequences with eos tokens.
             # (Though notice we don't generally need to do this since
             # later on we will be masking out calculations past the true sequence.
-            padding_values=(vocab_size+1,  # src
+            padding_values=(vocab_size + 1,  # src
                             TAG_PADDING_ID,  # tgt_input
                             0,  # src_len -- unused
                             0))
@@ -217,7 +226,7 @@ def get_predict_iterator(src_vocab_table, vocab_size, batch_size, max_len=max_se
             batch_size,
             padded_shapes=(tf.TensorShape([None]),  # src
                            tf.TensorShape([])),  # src_len
-            padding_values=(vocab_size+1,  # src
+            padding_values=(vocab_size + 1,  # src
                             0))  # src_len -- unused
 
     batched_dataset = batching_func(pred_dataset)
@@ -236,12 +245,12 @@ def get_predict_iterator(src_vocab_table, vocab_size, batch_size, max_len=max_se
 
 
 def load_word2vec_embedding(vocab_size):
-    '''
+    """
         加载外接的词向量。
         :return:
-    '''
+    """
     print 'loading word embedding, it will take few minutes...'
-    embeddings = np.random.uniform(-1,1,(vocab_size + 2, embeddings_size))
+    embeddings = np.random.uniform(-1, 1, (vocab_size + 2, embeddings_size))
     # 保证每次随机出来的数一样。
     rng = np.random.RandomState(23455)
     unknown = np.asarray(rng.normal(size=(embeddings_size)))
@@ -255,7 +264,7 @@ def load_word2vec_embedding(vocab_size):
             # 如果真的这个词出现在了训练数据里，这么做就会有潜在的bug。那coefs的值就是上一轮的值。
             print values[0], values[1:]
 
-        embeddings[index] = coefs   # 将词和对应的向量存到字典里
+        embeddings[index] = coefs  # 将词和对应的向量存到字典里
     f.close()
     # 顺序不能错，这个和unkown_id和padding id需要一一对应。
     embeddings[-2] = unknown
@@ -281,7 +290,7 @@ def write_result_to_file(iterator, tags):
     raw_content = next(iterator)
     words = raw_content.split()
     assert len(words) == len(tags)
-    for w,t in zip(words, tags):
+    for w, t in zip(words, tags):
         print w, '(' + t + ')',
     print
     print '*' * 100
@@ -290,22 +299,20 @@ def write_result_to_file(iterator, tags):
 build_word_index()
 TAG_PADDING_ID = get_class_size() - 1
 
-
-
-
 '''
     以下是做测试用的，不用管。
 '''
 if __name__ == '__main__':
-    #################### Just for testing #########################
+    # ################### Just for testing #########################
     vocab_size = get_src_vocab_size()
+    print vocab_size
     src_unknown_id = tgt_unknown_id = vocab_size
     src_padding = vocab_size + 1
 
-    src_vocab_table, tgt_vocab_table = create_vocab_tables(src_vocab_file, tgt_vocab_file, src_unknown_id, tgt_unknown_id)
+    src_vocab_table, tgt_vocab_table = create_vocab_tables(src_vocab_file, tgt_vocab_file, src_unknown_id,
+                                                           tgt_unknown_id)
     # iterator = get_iterator(src_vocab_table, tgt_vocab_table, vocab_size, 100, random_seed=None)
-    reverse_tgt_vocab_table = lookup_ops.index_to_string_table_from_file(
-        src_vocab_file, default_value='<tag-unknown>')
+    reverse_tgt_vocab_table = lookup_ops.index_to_string_table_from_file(src_vocab_file, default_value='<tag-unknown>')
 
     iterator = get_predict_iterator(src_vocab_table, vocab_size, 1)
 
@@ -315,7 +322,7 @@ if __name__ == '__main__':
         tf.tables_initializer().run()
 
         # 根据ID查字。
-        word = reverse_tgt_vocab_table.lookup(tf.constant(12001, dtype=tf.int64))
+        word = reverse_tgt_vocab_table.lookup(tf.constant(20944, dtype=tf.int64))
         print sess.run(word)
         for i in range(10):
             try:
@@ -328,5 +335,3 @@ if __name__ == '__main__':
                 # source, target = sess.run([iterator.source, iterator.target_input])
                 source = sess.run(iterator.source)
                 print 'new:', source.shape, source[0][:5]
-
-
