@@ -13,10 +13,16 @@ tf.app.flags.DEFINE_string("model_path", 'data/model/', "model save path")
 # 这里默认词向量的维度是300, 如果自行训练的词向量维度不是300,则需要该这里的值。
 tf.app.flags.DEFINE_integer("embeddings_size", 300, "Size of word embedding.")
 tf.app.flags.DEFINE_integer("max_sequence", 100, "max sequence length.")
+tf.app.flags.DEFINE_integer("hidden_units", 300, "hidden units in lstm.")
+tf.app.flags.DEFINE_integer("num_steps", 10, "max sequence length.")
+tf.app.flags.DEFINE_integer("num_classes", 16, "num classes.")
+
 
 tf.app.flags.DEFINE_integer("batch_size", 128, "batch size.")
 tf.app.flags.DEFINE_integer("epoch", 30000, "epoch.")
 tf.app.flags.DEFINE_float("dropout", 0.6, "drop out")
+tf.app.flags.DEFINE_float("lr", 0.0001, "learning rate")
+tf.app.flags.DEFINE_integer("max_grad_norm", 1, "max_grad_norm.")
 
 tf.app.flags.DEFINE_string("action", 'train', "train | predict")
 FLAGS = tf.app.flags.FLAGS

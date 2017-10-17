@@ -21,10 +21,11 @@ class bi_lstm_crf(object):
         self.num_classes = config.num_classes
         self.lr = config.lr
         self.max_grad_norm = config.max_grad_norm
+
         # shape = (batch_size, num_steps)
-        self.source_input = tf.placeholder(tf.int32, shape=[None, self.num_steps], name="source_input")
+        self.source_input = tf.placeholder(dtype=tf.int32, shape=[None, self.num_steps], name="source_input")
         # shape = (batch_size, num_steps)
-        self.target_input = tf.placeholder(tf.int32, shape=[None, self.num_steps], name="labels")
+        self.target_input = tf.placeholder(dtype=tf.int32, shape=[None, self.num_steps], name="labels")
 
         with tf.variable_scope("embedding"):
             _embedding = tf.Variable(tf.random_normal([self.vocab_size, self.embedding_size], -1.0, 1.0),
@@ -32,12 +33,12 @@ class bi_lstm_crf(object):
             # shape = (batch_size, num_steps, embedding_size)
             target_inputs_embedding = tf.nn.embedding_lookup(_embedding, self.source_input)
 
-        self.bi_cell_outputs = bi_RNN(target_inputs_embedding, self.is_training, self.hidden_units,
-                                      self.keep_pro, self.layers_num, self.batch_size)
+        bi_cell_outputs = bi_RNN(target_inputs_embedding, self.is_training, self.hidden_units,
+                                 self.keep_pro, self.layers_num, self.batch_size)
 
-        self.logits = add_output_layer(self.bi_cell_outputs, self.hidden_units, self.num_classes)
+        self.logits = add_output_layer(bi_cell_outputs, self.hidden_units, self.num_classes)
 
-        self.cost = cost_crf(self.logits, target_inputs_embedding, self.num_steps)
+        self.cost = cost_crf(self.logits, self.target_input, self.batch_size, self.num_classes, self.num_steps)
 
         self.train_op = train_operation(self.cost, self.lr, self.max_grad_norm)
 
@@ -117,16 +118,18 @@ def add_output_layer(outputs, hidden_units, num_classes):
         softmax_b = tf.Variable(tf.constant(1.0, shape=[num_classes]), name="softmax_b")
 
     with tf.variable_scope("logits"):
-        logits = tf.multinomial(outputs, softmax_w) + softmax_b
+        logits = tf.matmul(outputs, softmax_w) + softmax_b
 
     return logits
 
 
-def cost_crf(logits, labels, sequence_length):
+def cost_crf(logits, labels, batch_size, num_classes, sequence_length):
     """
     Decoding the score with crf
     """
     with tf.variable_scope("crf"):
+        logits = tf.reshape(logits, [batch_size, -1, num_classes])
+        sequence_length = tf.convert_to_tensor(batch_size * [sequence_length], dtype=tf.int32)
         log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(logits, labels, sequence_length)
 
     with tf.variable_scope("cost"):
