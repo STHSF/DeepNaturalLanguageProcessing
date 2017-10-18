@@ -15,17 +15,19 @@ class bi_lstm_crf(object):
         self.embedding_size = config.embedding_size
         self.is_training = config.is_training
         self.hidden_units = config.hidden_units
-        self.keep_pro = config.keep_pro
         self.layers_num = config.layers_num
-        self.batch_size = config.batch_size
         self.num_classes = config.num_classes
-        self.lr = config.lr
         self.max_grad_norm = config.max_grad_norm
 
+        # 在训练和测试的时候，我们想用不同batch_size的数据，所以将batch_size也采用占位符的形式
+        self.batch_size = tf.placeholder(tf.int32, [])  # 注意类型必须为 tf.int32
+        self.lr = tf.placeholder(tf.float32, [])
+        self.keep_prob = tf.placeholder(tf.float32, [])
+
         # shape = (batch_size, num_steps)
-        self.source_input = tf.placeholder(dtype=tf.int32, shape=[None, self.num_steps], name="source_input")
+        self.source_input = tf.placeholder(dtype=tf.int32, shape=(None, self.num_steps), name="source_input")
         # shape = (batch_size, num_steps)
-        self.target_input = tf.placeholder(dtype=tf.int32, shape=[None, self.num_steps], name="labels")
+        self.target_input = tf.placeholder(dtype=tf.int32, shape=(None, self.num_steps), name="labels")
 
         with tf.variable_scope("embedding"):
             _embedding = tf.Variable(tf.random_normal([self.vocab_size, self.embedding_size], -1.0, 1.0),
@@ -34,13 +36,18 @@ class bi_lstm_crf(object):
             target_inputs_embedding = tf.nn.embedding_lookup(_embedding, self.source_input)
 
         bi_cell_outputs = bi_RNN(target_inputs_embedding, self.is_training, self.hidden_units,
-                                 self.keep_pro, self.layers_num, self.batch_size)
+                                 self.keep_prob, self.layers_num, self.batch_size)
 
         self.logits = add_output_layer(bi_cell_outputs, self.hidden_units, self.num_classes)
+
+        correct_prediction = tf.equal(tf.cast(tf.argmax(self.logits, 1), tf.int32), tf.reshape(self.target_input, [-1]))
+        self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
         self.cost = cost_crf(self.logits, self.target_input, self.batch_size, self.num_classes, self.num_steps)
 
         self.train_op = train_operation(self.cost, self.lr, self.max_grad_norm)
+        # 模型保存
+        self.saver = tf.train.Saver(tf.global_variables())
 
 
 def fw_rnn_cell(is_training, hidden_units, keep_prob):

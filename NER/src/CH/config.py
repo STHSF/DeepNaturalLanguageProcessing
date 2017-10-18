@@ -29,8 +29,8 @@ FLAGS = tf.app.flags.FLAGS
 
 
 class Config():
-    num_steps = 10
-    vocab_size = 5188
+    num_steps = 100
+    vocab_size = 20946
     embedding_size = 128
     is_training = True
     hidden_units = 300
