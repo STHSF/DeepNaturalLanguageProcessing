@@ -13,15 +13,15 @@ class bi_lstm_crf(object):
         self.num_steps = config.num_steps
         self.vocab_size = config.vocab_size
         self.embedding_size = config.embedding_size
-        self.is_training = config.is_training
         self.hidden_units = config.hidden_units
         self.layers_num = config.layers_num
         self.num_classes = config.num_classes
-        self.max_grad_norm = config.max_grad_norm
 
         # 在训练和测试的时候，我们想用不同batch_size的数据，所以将batch_size也采用占位符的形式
         self.batch_size = tf.placeholder(tf.int32, [])  # 注意类型必须为 tf.int32
+        self.is_training = tf.placeholder(tf.bool, [])
         self.lr = tf.placeholder(tf.float32, [])
+        self.max_grad_norm = tf.placeholder(tf.float32, [])
         self.keep_prob = tf.placeholder(tf.float32, [])
 
         # shape = (batch_size, num_steps)
@@ -38,12 +38,12 @@ class bi_lstm_crf(object):
         bi_cell_outputs = bi_RNN(target_inputs_embedding, self.is_training, self.hidden_units,
                                  self.keep_prob, self.layers_num, self.batch_size)
 
-        self.logits = add_output_layer(bi_cell_outputs, self.hidden_units, self.num_classes)
+        self.logits = add_output_layer(bi_cell_outputs, self.hidden_units, self.batch_size, self.num_classes)
 
         correct_prediction = tf.equal(tf.cast(tf.argmax(self.logits, 1), tf.int32), tf.reshape(self.target_input, [-1]))
         self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-        self.cost = cost_crf(self.logits, self.target_input, self.batch_size, self.num_classes, self.num_steps)
+        self.cost, self.transition_params = cost_crf(self.logits, self.target_input, self.batch_size, self.num_steps)
 
         self.train_op = train_operation(self.cost, self.lr, self.max_grad_norm)
         # 模型保存
@@ -54,7 +54,7 @@ def fw_rnn_cell(is_training, hidden_units, keep_prob):
     fw_cell = tf.contrib.rnn.LSTMCell(hidden_units,
                                       reuse=tf.get_variable_scope().reuse,
                                       state_is_tuple=True)
-    if is_training:
+    if is_training is not None:
         fw_cell = tf.contrib.rnn.DropoutWrapper(fw_cell,
                                                 input_keep_prob=1.0,
                                                 output_keep_prob=keep_prob)
@@ -65,7 +65,7 @@ def bw_rnn_cell(is_training, hidden_units, keep_prob):
     bw_cell = tf.contrib.rnn.LSTMCell(hidden_units,
                                       reuse=tf.get_variable_scope().reuse,
                                       state_is_tuple=True)
-    if is_training:
+    if is_training is not None:
         bw_cell = tf.contrib.rnn.DropoutWrapper(bw_cell,
                                                 input_keep_prob=1.0,
                                                 output_keep_prob=keep_prob)
@@ -115,7 +115,7 @@ def bi_RNN(inputs, is_training, hidden_units, keep_prob, layers_num, batch_size)
     return outputs
 
 
-def add_output_layer(outputs, hidden_units, num_classes):
+def add_output_layer(outputs, hidden_units, batch_size, num_classes):
     """
     Computing Tag Scores
     """
@@ -125,24 +125,26 @@ def add_output_layer(outputs, hidden_units, num_classes):
         softmax_b = tf.Variable(tf.constant(1.0, shape=[num_classes]), name="softmax_b")
 
     with tf.variable_scope("logits"):
-        logits = tf.matmul(outputs, softmax_w) + softmax_b
+        # shape = (batch_size * num_steps, num_classes)
+        _logits = tf.matmul(outputs, softmax_w) + softmax_b
+        # shape = (batch_size, num_steps, num_classes)
+        logits = tf.reshape(_logits, [batch_size, -1, num_classes])
 
     return logits
 
 
-def cost_crf(logits, labels, batch_size, num_classes, sequence_length):
+def cost_crf(logits, labels, batch_size, sequence_length):
     """
     Decoding the score with crf
     """
     with tf.variable_scope("crf"):
-        logits = tf.reshape(logits, [batch_size, -1, num_classes])
         sequence_length = tf.convert_to_tensor(batch_size * [sequence_length], dtype=tf.int32)
         log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(logits, labels, sequence_length)
 
     with tf.variable_scope("cost"):
         cost = tf.reduce_mean(-log_likelihood)
 
-    return cost
+    return cost, transition_params
 
 
 def train_operation(cost, lr, max_grad_norm):

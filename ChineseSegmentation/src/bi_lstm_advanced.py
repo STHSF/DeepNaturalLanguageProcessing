@@ -147,8 +147,8 @@ def add_output_layer(outputs, hidden_units, num_classes):
         # softmax_w = self.weight_variable([self.hidden_units * 2, self.num_classes])
         # softmax_b = self.bias_variable([self.num_classes])
 
-        # shape = [batch_size * num_steps, num_classes]
         with tf.name_scope('logits'):
+            # shape = [batch_size * num_steps, num_classes]
             logits = tf.matmul(outputs, softmax_w) + softmax_b
     return logits
 
@@ -174,9 +174,9 @@ def cost_compute(logits, target_inputs, num_classes):
     #                                                       logits=logits, name='loss')
 
     # eg.2
-    targets = tf.one_hot(target_inputs, num_classes)  # [batch_size, seq_length, num_classes]
-    # 不能使用logit.get_shape(), 因为在定义logit时shape=[None, num_steps], 这里使用会报错
-    # y_reshaped = tf.reshape(targets, logits.get_shape())  # y_reshaped: [batch_size * seq_length, num_classes]
+    targets = tf.one_hot(target_inputs, num_classes)  # [batch_size, num_steps, num_classes]
+    # 不能使用logits.get_shape(), 因为在定义logit时shape=[None, num_steps], 这里使用会报错
+    # y_reshaped = tf.reshape(targets, logits.get_shape())  # y_reshaped: [batch_size * num_steps, num_classes]
     loss = tf.nn.softmax_cross_entropy_with_logits(labels=tf.reshape(targets, [-1, num_classes]),
                                                    logits=logits, name='loss')
 

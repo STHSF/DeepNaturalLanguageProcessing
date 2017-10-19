@@ -1,0 +1,2 @@
+1、TypeError: Using a `tf.Tensor` as a Python `bool` is not allowed. Use `if t is not None:` instead of `if t:` to test if a tensor is defined, and use TensorFlow ops such as tf.cond to execute subgraphs conditioned on the value of a tensor.
+解决方案：将 if is_training 改写成 if is_training is not None
