@@ -7,6 +7,7 @@ import config
 
 
 src_file = config.FLAGS.src_file
+pre_file = config.FLAGS.pred_file
 tgt_file = config.FLAGS.tgt_file
 # 只有在预测结果时使用。
 pred_file = config.FLAGS.pred_file
@@ -14,26 +15,35 @@ src_vocab_file = config.FLAGS.src_vocab_file
 tgt_vocab_file = config.FLAGS.tgt_vocab_file
 max_len = config.FLAGS.max_sequence
 
-
+print('building word index...')
 datas = list()
 labels = list()
-print('building word index...')
+word_list = []
 with open(src_file) as source:
-    a = []
     for line in source.readlines():
         line.strip()
         if line != '':
             values = line.split()
             datas.append(values)
-            a.extend(values)
-    word = list(set(a))
-    set_ids = range(1, len(word)+1)
-    print(set_ids)
+            word_list.extend(values)
+# predict file 中含有training file中没有碰到的词，所以在构建word2id的时候需要将predict中国的词也放进去。
+with open(pred_file) as predicts:
+    for line in predicts.readlines():
+        line.strip()
+        if line != '':
+            values = line.split()
+            word_list.extend(values)
 
-    word2id = pd.Series(set_ids, index=word)
-    id2word = pd.Series(word, index=set_ids)
-    print(word2id.head())
-    print(id2word.head())
+
+word_set = list(set(word_list))
+print('length of word', len(word_set))
+set_ids = range(1, len(word_set) + 1)
+print(set_ids)
+
+word2id = pd.Series(set_ids, index=word_set)
+id2word = pd.Series(word_set, index=set_ids)
+print(word2id.head())
+print(id2word.head())
 
 print('building tag index...')
 with open(tgt_file, 'r') as source:
@@ -45,7 +55,7 @@ with open(tgt_file, 'r') as source:
             labels.append(word_arr)
             list_word.extend(word_arr)
     tags = list(set(list_word))
-    tags.insert(0, 'Padding')  # 添加padding标识符，用于固定长度的字符补全。，区别与其他的tags
+    tags.insert(0, 'Padding')  # 添加padding标识符，用于固定长度的字符补全。区别与其他的tags
     print(tags)
     tag_ids = range(len(tags))
     tag2id = pd.Series(tag_ids, index=tags)
