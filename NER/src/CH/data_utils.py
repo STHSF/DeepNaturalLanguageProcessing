@@ -7,7 +7,6 @@ import config
 
 
 src_file = config.FLAGS.src_file
-pre_file = config.FLAGS.pred_file
 tgt_file = config.FLAGS.tgt_file
 # 只有在预测结果时使用。
 pred_file = config.FLAGS.pred_file
@@ -42,32 +41,32 @@ print(set_ids)
 
 word2id = pd.Series(set_ids, index=word_set)
 id2word = pd.Series(word_set, index=set_ids)
-print(word2id.head())
-print(id2word.head())
+print('word2id\n', word2id.head())
+print('id2word\n', id2word.head())
 
 print('building tag index...')
+tag_list = []
 with open(tgt_file, 'r') as source:
-    list_word = []
     for line in source.readlines():
         line = line.strip()
         if line != '':
             word_arr = line.split()
             labels.append(word_arr)
-            list_word.extend(word_arr)
-    tags = list(set(list_word))
-    tags.insert(0, 'Padding')  # 添加padding标识符，用于固定长度的字符补全。区别与其他的tags
-    print(tags)
-    tag_ids = range(len(tags))
-    tag2id = pd.Series(tag_ids, index=tags)
-    id2tag = pd.Series(tags, index=tag_ids)
+            tag_list.extend(word_arr)
+tags_set = list(set(tag_list))
+tags_set.insert(0, 'Padding')  # 添加padding标识符，用于固定长度的字符补全。区别与其他的tags
+print('length of tags', len(tags_set))
+tag_ids = range(len(tags_set))
+tag2id = pd.Series(tag_ids, index=tags_set)
+id2tag = pd.Series(tags_set, index=tag_ids)
 
-    print(tag2id.head(100))
-    print(id2tag.head(100))
+print('tag2id\n', tag2id.head(100))
+print('id2tag\n', id2tag.head(100))
 
 df_data = pd.DataFrame({'words': datas, 'tags': labels}, index=range(len(datas)))
 # 句子长度
 df_data['sentence_len'] = df_data['words'].apply(lambda words: len(words))
-print df_data.head(10)
+print('df_data\n', df_data.head(10))
 
 
 def X_padding(words):
@@ -90,7 +89,7 @@ def y_padding(tags):
 
 df_data['X'] = df_data['words'].apply(X_padding)
 df_data['y'] = df_data['tags'].apply(y_padding)
-print df_data.head(10)
+print('df_data\n', df_data.head(10))
 
 X = np.asarray(list(df_data['X'].values))
 y = np.asarray(list(df_data['y'].values))
