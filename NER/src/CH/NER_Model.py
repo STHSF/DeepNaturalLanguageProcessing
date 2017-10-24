@@ -39,15 +39,15 @@ class bi_lstm_crf(object):
         bi_cell_outputs = bi_RNN(target_inputs_embedding, self.is_training, self.hidden_units,
                                  self.keep_prob, self.layers_num, self.batch_size)
         # shape = [batch_size, num_steps, num_classes]
-        self.unary_scores = add_output_layer(bi_cell_outputs, self.hidden_units, self.batch_size, self.num_classes)
+        self.logits = add_output_layer(bi_cell_outputs, self.hidden_units, self.num_classes)
         # print('shape of self.unary_scores', np.shape(self.unary_scores))
         # print('shape of self.target_inputs', np.shape(self.target_input))
         # print('shape of self.batch_size', np.shape(self.batch_size), self.batch_size)
         # print('shape of self.num_steps', np.shape(self.num_steps), self.num_steps)
 
-        self.cost = cost_crf(self.unary_scores, self.target_input, self.batch_size, self.num_steps)
+        self.cost = cost_crf(self.logits, self.target_input, self.batch_size, self.num_steps, self.num_classes)
 
-        self.accuracy = acc(self.unary_scores, self.target_input)
+        self.accuracy = acc(self.logits, self.target_input)
 
         self.train_op = train_operation(self.cost, self.lr, self.max_grad_norm)
         # 模型保存
@@ -119,7 +119,7 @@ def bi_RNN(inputs, is_training, hidden_units, keep_prob, layers_num, batch_size)
     return outputs
 
 
-def add_output_layer(outputs, hidden_units, batch_size, num_classes):
+def add_output_layer(outputs, hidden_units, num_classes):
     """
     Computing Tag Scores
     """
@@ -130,31 +130,32 @@ def add_output_layer(outputs, hidden_units, batch_size, num_classes):
 
     with tf.variable_scope("logits"):
         # shape = (batch_size * num_steps, num_classes)
-        _logits = tf.matmul(outputs, softmax_w) + softmax_b
-        # shape = (batch_size, num_steps, num_classes)
-        logits = tf.reshape(_logits, [batch_size, -1, num_classes])
+        logits = tf.matmul(outputs, softmax_w) + softmax_b
         print('size of logits', np.shape(logits))
 
     return logits
 
 
-def cost_crf(unary_scores, labels, batch_size, sequence_length):
+def cost_crf(logits, labels, batch_size, sequence_length, num_classes):
     """
     Decoding the score with crf
-    :param unary_scores: [batch_size，max_seq_len，num_tags]
+    :param logits: [batch_size * max_seq_len，num_tags]
     :param labels:  [batch_size，max_seq_len]
     :param batch_size: batch_size
     :param sequence_length: max_seg_len
+    :param num_classes: num_classes
     :return:
     transition_params: [num_tags, num_tags]
     """
+    # shape = (batch_size, num_steps, num_classes)
+    unary_scores = tf.reshape(logits, [batch_size, -1, num_classes])
 
     print('size of unary_scores', np.shape(unary_scores))
     print('size of labels', np.shape(labels))
     with tf.variable_scope("crf"):
         # _sequence_length = tf.convert_to_tensor(batch_size * [sequence_length], dtype=tf.int32)
-        # All sequences in this example have the same length.
-        _sequence_length = np.full(128, 100, dtype=np.int32)
+        _sequence_length = tf.tile([sequence_length], [batch_size])
+        # _sequence_length = np.full(128, 100, dtype=np.int32)
         print('size of sequence_length', np.shape(_sequence_length))
 
         log_likelihood, _ = tf.contrib.crf.crf_log_likelihood(unary_scores, labels, _sequence_length)
@@ -183,7 +184,6 @@ def train_operation(cost, lr, max_grad_norm):
 
 def acc(logits, target_inputs):
     # Evaluate word-level accuracy.
-
     correct_prediction = tf.equal(tf.cast(tf.argmax(logits, 1), tf.int32), tf.reshape(target_inputs, [-1]))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     # correct_prediction = tf.equal(viterbi_sequence, target_input)
