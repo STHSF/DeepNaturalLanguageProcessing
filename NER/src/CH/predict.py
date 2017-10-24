@@ -55,11 +55,12 @@ pred_file_path = './data/predict.txt'
 file_iter = file_content_iterator(pred_file_path)
 while True:
     try:
-        for i in file_iter.next().split():
-            print(i)
-            print(word2id[i])
+        for i in file_iter:
+            for j in i.split():
+                print(j)
+                print(word2id[j])
     except KeyError:
-        print"eddro"
+        print("eddro")
         break
 # file_iter_ids = tag2id(file_iter.next())
 # print(file_iter_ids)

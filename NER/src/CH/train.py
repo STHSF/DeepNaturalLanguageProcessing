@@ -5,6 +5,7 @@ Training model
 
 import time
 import pickle
+import numpy as np
 import tensorflow as tf
 from config import Config
 from NER_Model import bi_lstm_crf
@@ -38,8 +39,8 @@ model = bi_lstm_crf(Config)
 
 decay = 0.85
 tr_batch_size = 128
-max_epoch = 1
-max_max_epoch = 1
+max_epoch = 3
+max_max_epoch = 3
 display_num = 5  # 每个 epoch 显示是个结果
 model_save_path = 'ckpt/bi-lstm.ckpt'  # 模型保存位置
 print('data_train.y.shape[0]', data_train.y.shape[0])
@@ -53,7 +54,7 @@ print('display_batch', display_batch)
 def run_epoch(dataset):
     """Testing or valid."""
     _batch_size = 500
-    fetches = [model.accuracy, model.logits]
+    fetches = [model.accuracy, model.unary_scores]
     _y = dataset.y
     data_size = _y.shape[0]
     batch_num = int(data_size / _batch_size)
@@ -97,8 +98,12 @@ with tf.Session(config=config) as sess:
         show_accs = 0.0
         show_costs = 0.0
         for batch in range(tr_batch_num):
-            fetches = [model.accuracy, model.logits, model.train_op]
+            # fetches = [model.accuracy, model.unary_scores, model.train_op]
+            fetches = [model.unary_scores, model.train_op]
+            # tr_batch_size = tf.convert_to_tensor(tr_batch_size, dtype=tf.int32)
             X_batch, y_batch = data_train.next_batch(tr_batch_size)
+            print('size of x_batch', np.shape(X_batch))
+            print('size of y_batch', np.shape(y_batch))
             feed_dict = {model.source_input: X_batch,
                          model.target_input: y_batch,
                          model.is_training: True,
@@ -106,29 +111,30 @@ with tf.Session(config=config) as sess:
                          model.max_grad_norm: 1,
                          model.batch_size: tr_batch_size,
                          model.keep_prob: 1.0}
-            _acc, _cost, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
-            _accs += _acc
-            _costs += _cost
-            show_accs += _acc
-            show_costs += _cost
-            if (batch + 1) % display_batch == 0:
-                valid_acc, valid_cost = run_epoch(data_valid)  # valid
-                print('\t training acc=%g, cost=%g;  valid acc= %g, cost=%g ' % (show_accs / display_batch,
-                                                                                 show_costs / display_batch, valid_acc,
-                                                                                 valid_cost))
-                show_accs = 0.0
-                show_costs = 0.0
-        mean_acc = _accs / tr_batch_num
-        mean_cost = _costs / tr_batch_num
-        if (epoch + 1) % 3 == 0:  # 每 3 个 epoch 保存一次模型
-            save_path = model.saver.save(sess, model_save_path, global_step=(epoch + 1))
-            print('the save path is ', save_path)
-        print('\ttraining %d, acc=%g, cost=%g ' % (data_train.y.shape[0], mean_acc, mean_cost))
-        print('Epoch training %d, acc=%g, cost=%g, speed=%g s/epoch'
-              % (data_train.y.shape[0], mean_acc, mean_cost, time.time() - start_time))
-
-    # testing
-    print('**TEST RESULT:')
-    test_acc, test_cost = run_epoch(data_test)
-    print('**Test %d, acc=%g, cost=%g' % (data_test.y.shape[0], test_acc, test_cost))
+            # _acc, _cost, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
+            _cost, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
+            # _accs += _acc
+            # _costs += _cost
+    #         # show_accs += _acc
+    #         show_costs += _cost
+    #         if (batch + 1) % display_batch == 0:
+    #             valid_acc, valid_cost = run_epoch(data_valid)  # valid
+    #             print('\t training acc=%g, cost=%g;  valid acc= %g, cost=%g ' % (show_accs / display_batch,
+    #                                                                              show_costs / display_batch, valid_acc,
+    #                                                                              valid_cost))
+    #             show_accs = 0.0
+    #             show_costs = 0.0
+    #     mean_acc = _accs / tr_batch_num
+    #     mean_cost = _costs / tr_batch_num
+    #     if (epoch + 1) % 3 == 0:  # 每 3 个 epoch 保存一次模型
+    #         save_path = model.saver.save(sess, model_save_path, global_step=(epoch + 1))
+    #         print('the save path is ', save_path)
+    #     print('\ttraining %d, acc=%g, cost=%g ' % (data_train.y.shape[0], mean_acc, mean_cost))
+    #     print('Epoch training %d, acc=%g, cost=%g, speed=%g s/epoch'
+    #           % (data_train.y.shape[0], mean_acc, mean_cost, time.time() - start_time))
+    #
+    # # testing
+    # print('**TEST RESULT:')
+    # test_acc, test_cost = run_epoch(data_test)
+    # print('**Test %d, acc=%g, cost=%g' % (data_test.y.shape[0], test_acc, test_cost))
 #

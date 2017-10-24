@@ -139,3 +139,5 @@ TextClassification/CAS/data/
 /NER/src/CH/data.pkl
 NER/src/CH/data.pkl
 /NER/src/CH/报错以及解决方案.txt
+/NER/src/CH/data/predict.txt
+NER/src/CH/mRMR.ipynb

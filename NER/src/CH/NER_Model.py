@@ -6,6 +6,7 @@ Run a bi-lstm on each sentence to extract contextual representation of each word
 Decode with a linear chain CRF
 """
 import tensorflow as tf
+import numpy as np
 
 
 class bi_lstm_crf(object):
@@ -34,16 +35,19 @@ class bi_lstm_crf(object):
                                      dtype=tf.float32, name="embedding")
             # shape = (batch_size, num_steps, embedding_size)
             target_inputs_embedding = tf.nn.embedding_lookup(_embedding, self.source_input)
-
+        # shape = [batch_size * num_steps, hidden_units * 2]
         bi_cell_outputs = bi_RNN(target_inputs_embedding, self.is_training, self.hidden_units,
                                  self.keep_prob, self.layers_num, self.batch_size)
+        # shape = [batch_size, num_steps, num_classes]
+        self.unary_scores = add_output_layer(bi_cell_outputs, self.hidden_units, self.batch_size, self.num_classes)
+        # print('shape of self.unary_scores', np.shape(self.unary_scores))
+        # print('shape of self.target_inputs', np.shape(self.target_input))
+        # print('shape of self.batch_size', np.shape(self.batch_size), self.batch_size)
+        # print('shape of self.num_steps', np.shape(self.num_steps), self.num_steps)
 
-        self.logits = add_output_layer(bi_cell_outputs, self.hidden_units, self.batch_size, self.num_classes)
+        self.cost = cost_crf(self.unary_scores, self.target_input, self.batch_size, self.num_steps)
 
-        correct_prediction = tf.equal(tf.cast(tf.argmax(self.logits, 1), tf.int32), tf.reshape(self.target_input, [-1]))
-        self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
-        self.cost, self.transition_params = cost_crf(self.logits, self.target_input, self.batch_size, self.num_steps)
+        self.accuracy = acc(self.unary_scores, self.target_input)
 
         self.train_op = train_operation(self.cost, self.lr, self.max_grad_norm)
         # 模型保存
@@ -129,22 +133,40 @@ def add_output_layer(outputs, hidden_units, batch_size, num_classes):
         _logits = tf.matmul(outputs, softmax_w) + softmax_b
         # shape = (batch_size, num_steps, num_classes)
         logits = tf.reshape(_logits, [batch_size, -1, num_classes])
+        print('size of logits', np.shape(logits))
 
     return logits
 
 
-def cost_crf(logits, labels, batch_size, sequence_length):
+def cost_crf(unary_scores, labels, batch_size, sequence_length):
     """
     Decoding the score with crf
+    :param unary_scores: [batch_size，max_seq_len，num_tags]
+    :param labels:  [batch_size，max_seq_len]
+    :param batch_size: batch_size
+    :param sequence_length: max_seg_len
+    :return:
+    transition_params: [num_tags, num_tags]
     """
+
+    print('size of unary_scores', np.shape(unary_scores))
+    print('size of labels', np.shape(labels))
     with tf.variable_scope("crf"):
-        sequence_length = tf.convert_to_tensor(batch_size * [sequence_length], dtype=tf.int32)
-        log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(logits, labels, sequence_length)
+        # _sequence_length = tf.convert_to_tensor(batch_size * [sequence_length], dtype=tf.int32)
+        # All sequences in this example have the same length.
+        _sequence_length = np.full(128, 100, dtype=np.int32)
+        print('size of sequence_length', np.shape(_sequence_length))
+
+        log_likelihood, _ = tf.contrib.crf.crf_log_likelihood(unary_scores, labels, _sequence_length)
+
+    # with tf.variable_scope('verterbi_decode'):
+    #     # Compute the highest scoring sequence.
+    #     viterbi_sequence, _ = tf.contrib.crf.viterbi_decode(unary_scores, transition_params)
 
     with tf.variable_scope("cost"):
         cost = tf.reduce_mean(-log_likelihood)
 
-    return cost, transition_params
+    return cost
 
 
 def train_operation(cost, lr, max_grad_norm):
@@ -157,3 +179,14 @@ def train_operation(cost, lr, max_grad_norm):
     train_op = optimizer.apply_gradients(zip(grads, tvars),
                                          global_step=tf.contrib.framework.get_or_create_global_step())
     return train_op
+
+
+def acc(logits, target_inputs):
+    # Evaluate word-level accuracy.
+
+    correct_prediction = tf.equal(tf.cast(tf.argmax(logits, 1), tf.int32), tf.reshape(target_inputs, [-1]))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    # correct_prediction = tf.equal(viterbi_sequence, target_input)
+    # accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+    return accuracy
