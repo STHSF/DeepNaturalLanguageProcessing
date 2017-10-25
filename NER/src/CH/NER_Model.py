@@ -45,9 +45,10 @@ class bi_lstm_crf(object):
         # print('shape of self.batch_size', np.shape(self.batch_size), self.batch_size)
         # print('shape of self.num_steps', np.shape(self.num_steps), self.num_steps)
 
-        self.cost = cost_crf(self.logits, self.target_input, self.batch_size, self.num_steps, self.num_classes)
+        self.cost, self.transition_params = cost_crf(self.logits, self.target_input, self.batch_size,
+                                                     self.num_steps, self.num_classes)
 
-        self.accuracy = acc(self.logits, self.target_input)
+        # self.accuracy = acc(self.logits, self.target_input, self.transition_params, self.batch_size, self.num_classes)
 
         self.train_op = train_operation(self.cost, self.lr, self.max_grad_norm)
         # 模型保存
@@ -124,8 +125,7 @@ def add_output_layer(outputs, hidden_units, num_classes):
     Computing Tag Scores
     """
     with tf.variable_scope("output_layer"):
-        softmax_w = tf.Variable(tf.truncated_normal(shape=[hidden_units * 2, num_classes], stddev=0.1),
-                                name="softmax_w")
+        softmax_w = tf.Variable(tf.truncated_normal(shape=[hidden_units * 2, num_classes], stddev=0.1), name="softmax_w")
         softmax_b = tf.Variable(tf.constant(1.0, shape=[num_classes]), name="softmax_b")
 
     with tf.variable_scope("logits"):
@@ -149,16 +149,15 @@ def cost_crf(logits, labels, batch_size, sequence_length, num_classes):
     """
     # shape = (batch_size, num_steps, num_classes)
     unary_scores = tf.reshape(logits, [batch_size, -1, num_classes])
-
     print('size of unary_scores', np.shape(unary_scores))
     print('size of labels', np.shape(labels))
+
     with tf.variable_scope("crf"):
-        # _sequence_length = tf.convert_to_tensor(batch_size * [sequence_length], dtype=tf.int32)
         _sequence_length = tf.tile([sequence_length], [batch_size])
-        # _sequence_length = np.full(128, 100, dtype=np.int32)
+        # _sequence_length = tf.constant(np.full(batch_size, sequence_length, dtype=np.int32))
         print('size of sequence_length', np.shape(_sequence_length))
 
-        log_likelihood, _ = tf.contrib.crf.crf_log_likelihood(unary_scores, labels, _sequence_length)
+        log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(unary_scores, labels, _sequence_length)
 
     # with tf.variable_scope('verterbi_decode'):
     #     # Compute the highest scoring sequence.
@@ -167,7 +166,7 @@ def cost_crf(logits, labels, batch_size, sequence_length, num_classes):
     with tf.variable_scope("cost"):
         cost = tf.reduce_mean(-log_likelihood)
 
-    return cost
+    return cost, transition_params
 
 
 def train_operation(cost, lr, max_grad_norm):
@@ -182,11 +181,32 @@ def train_operation(cost, lr, max_grad_norm):
     return train_op
 
 
-def acc(logits, target_inputs):
-    # Evaluate word-level accuracy.
-    correct_prediction = tf.equal(tf.cast(tf.argmax(logits, 1), tf.int32), tf.reshape(target_inputs, [-1]))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    # correct_prediction = tf.equal(viterbi_sequence, target_input)
-    # accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+# def acc(logits, target_inputs):
+#     # Evaluate word-level accuracy.
+#     correct_prediction = tf.equal(tf.cast(tf.argmax(logits, 1), tf.int32), tf.reshape(target_inputs, [-1]))
+#     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+#     # correct_prediction = tf.equal(viterbi_sequence, target_input)
+#     # accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+#
+#     return accuracy
+
+
+def acc(logits, target_inputs, transition_params, batch_size, num_classes):
+    accuracy = 0
+    correct_labels = 0  # prediction accuracy
+    total_labels = 0
+    # shape = (batch_size, num_steps, num_classes)
+    unary_scores = np.reshape(logits, [batch_size, -1, num_classes])
+    # iterate over batches [batch_size, num_steps, target_num], [batch_size, target_num]
+    for unary_score_, y_ in zip(unary_scores, target_inputs):  # unary_score_  :[num_steps, target_num], y_: [num_steps]
+        viterbi_prediction = tf.contrib.crf.viterbi_decode(unary_score_, transition_params)
+        # viterbi_prediction: tuple (list[id], value)
+        # y_: tuple
+        correct_labels += np.sum(
+            np.equal(viterbi_prediction[0], y_))  # compare prediction sequence with golden sequence
+        total_labels += len(y_)
+        print ("viterbi_prediction")
+        print (viterbi_prediction)
+        accuracy = 100.0 * correct_labels / float(total_labels)
 
     return accuracy

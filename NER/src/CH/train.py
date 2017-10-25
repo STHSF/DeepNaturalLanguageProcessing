@@ -53,7 +53,7 @@ model = bi_lstm_crf(Config)
 def run_epoch(dataset):
     """Testing or valid."""
     _batch_size = 500
-    fetches = [model.accuracy, model.unary_scores]
+    fetches = [model.accuracy, model.logits]
     _y = dataset.y
     data_size = _y.shape[0]
     batch_num = int(data_size / _batch_size)
@@ -97,9 +97,10 @@ with tf.Session(config=config) as sess:
         show_accs = 0.0
         show_costs = 0.0
         for batch in range(tr_batch_num):
-            fetches = [model.accuracy, model.logits, model.train_op]
+            # fetches = [model.accuracy, model.logits, model.train_op]
             # fetches = [model.logits, model.train_op]
-            # tr_batch_size = tf.convert_to_tensor(tr_batch_size, dtype=tf.int32)
+            fetches = [model.cost, model.logits, model.transition_params, model.train_op]
+
             X_batch, y_batch = data_train.next_batch(tr_batch_size)
             # print('size of x_batch', np.shape(X_batch))
             # print('size of y_batch', np.shape(y_batch))
@@ -110,17 +111,33 @@ with tf.Session(config=config) as sess:
                          model.max_grad_norm: 1.0,
                          model.batch_size: tr_batch_size,
                          model.keep_prob: 1.0}
-            _acc, _cost, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
-            # _cost, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
-            _accs += _acc
-            _costs += _cost
-            show_accs += _acc
-            show_costs += _cost
-            if (batch + 1) % display_batch == 0:
-                valid_acc, valid_cost = run_epoch(data_valid)  # valid
-                print('\t training acc=%g, cost=%g;  valid acc= %g, cost=%g ' % (show_accs / display_batch,
-                                                                                 show_costs / display_batch, valid_acc,
-                                                                                 valid_cost))
+            # _acc, _cost, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
+            _cost, _logits, _transition_params, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
+
+            correct_labels = 0  # prediction accuracy
+            total_labels = 0
+            # shape = (batch_size, num_steps, num_classes)
+            unary_scores = np.reshape(_logits, [tr_batch_size, -1, Config.num_classes])
+            # iterate over batches [batch_size, num_steps, target_num], [batch_size, target_num]
+            for unary_score_, y_ in zip(unary_scores, y_batch):  # unary_score_  :[num_steps, target_num], y_: [num_steps]
+                viterbi_prediction = tf.contrib.crf.viterbi_decode(unary_score_, _transition_params)
+                # viterbi_prediction: tuple (list[id], value)
+                # y_: tuple
+                correct_labels += np.sum(
+                    np.equal(viterbi_prediction[0], y_))  # compare prediction sequence with golden sequence
+                total_labels += len(y_)
+                print ("viterbi_prediction")
+                print (viterbi_prediction)
+            accuracy = 100.0 * correct_labels / float(total_labels)
+    #         _accs += _acc
+    #         _costs += _cost
+    #         show_accs += _acc
+    #         show_costs += _cost
+    #         if (batch + 1) % display_batch == 0:
+    #             valid_acc, valid_cost = run_epoch(data_valid)  # valid
+    #             print('\t training acc=%g, cost=%g;  valid acc= %g, cost=%g ' % (show_accs / display_batch,
+    #                                                                              show_costs / display_batch, valid_acc,
+    #                                                                              valid_cost))
     #             show_accs = 0.0
     #             show_costs = 0.0
     #     mean_acc = _accs / tr_batch_num
@@ -136,4 +153,4 @@ with tf.Session(config=config) as sess:
     # print('**TEST RESULT:')
     # test_acc, test_cost = run_epoch(data_test)
     # print('**Test %d, acc=%g, cost=%g' % (data_test.y.shape[0], test_acc, test_cost))
-#
+
