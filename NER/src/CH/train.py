@@ -99,7 +99,7 @@ with tf.Session(config=config) as sess:
         for batch in range(tr_batch_num):
             # fetches = [model.accuracy, model.logits, model.train_op]
             # fetches = [model.logits, model.train_op]
-            fetches = [model.cost, model.logits, model.transition_params, model.train_op]
+            fetches = [model.accuracy, model.cost, model.logits, model.transition_params, model.train_op]
 
             X_batch, y_batch = data_train.next_batch(tr_batch_size)
             # print('size of x_batch', np.shape(X_batch))
@@ -112,7 +112,7 @@ with tf.Session(config=config) as sess:
                          model.batch_size: tr_batch_size,
                          model.keep_prob: 1.0}
             # _acc, _cost, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
-            _cost, _logits, _transition_params, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
+            _acc, _cost, _logits, _transition_params, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
 
             correct_labels = 0  # prediction accuracy
             total_labels = 0
@@ -126,8 +126,8 @@ with tf.Session(config=config) as sess:
                 correct_labels += np.sum(
                     np.equal(viterbi_prediction[0], y_))  # compare prediction sequence with golden sequence
                 total_labels += len(y_)
-                print ("viterbi_prediction")
-                print (viterbi_prediction)
+                # print ("viterbi_prediction")
+                # print (viterbi_prediction)
             accuracy = 100.0 * correct_labels / float(total_labels)
     #         _accs += _acc
     #         _costs += _cost

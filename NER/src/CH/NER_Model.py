@@ -49,6 +49,7 @@ class bi_lstm_crf(object):
                                                      self.num_steps, self.num_classes)
 
         # self.accuracy = acc(self.logits, self.target_input, self.transition_params, self.batch_size, self.num_classes)
+        self.accuracy = acc(self.logits, self.target_input)
 
         self.train_op = train_operation(self.cost, self.lr, self.max_grad_norm)
         # 模型保存
@@ -181,32 +182,32 @@ def train_operation(cost, lr, max_grad_norm):
     return train_op
 
 
-# def acc(logits, target_inputs):
-#     # Evaluate word-level accuracy.
-#     correct_prediction = tf.equal(tf.cast(tf.argmax(logits, 1), tf.int32), tf.reshape(target_inputs, [-1]))
-#     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-#     # correct_prediction = tf.equal(viterbi_sequence, target_input)
-#     # accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-#
-#     return accuracy
-
-
-def acc(logits, target_inputs, transition_params, batch_size, num_classes):
-    accuracy = 0
-    correct_labels = 0  # prediction accuracy
-    total_labels = 0
-    # shape = (batch_size, num_steps, num_classes)
-    unary_scores = np.reshape(logits, [batch_size, -1, num_classes])
-    # iterate over batches [batch_size, num_steps, target_num], [batch_size, target_num]
-    for unary_score_, y_ in zip(unary_scores, target_inputs):  # unary_score_  :[num_steps, target_num], y_: [num_steps]
-        viterbi_prediction = tf.contrib.crf.viterbi_decode(unary_score_, transition_params)
-        # viterbi_prediction: tuple (list[id], value)
-        # y_: tuple
-        correct_labels += np.sum(
-            np.equal(viterbi_prediction[0], y_))  # compare prediction sequence with golden sequence
-        total_labels += len(y_)
-        print ("viterbi_prediction")
-        print (viterbi_prediction)
-        accuracy = 100.0 * correct_labels / float(total_labels)
+def acc(logits, target_inputs):
+    # Evaluate word-level accuracy.
+    correct_prediction = tf.equal(tf.cast(tf.argmax(logits, 1), tf.int32), tf.reshape(target_inputs, [-1]))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    # correct_prediction = tf.equal(viterbi_sequence, target_input)
+    # accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
     return accuracy
+
+
+# def acc(logits, target_inputs, transition_params, batch_size, num_classes):
+#     accuracy = 0
+#     correct_labels = 0  # prediction accuracy
+#     total_labels = 0
+#     # shape = (batch_size, num_steps, num_classes)
+#     unary_scores = tf.reshape(logits, [batch_size, -1, num_classes])
+#     # iterate over batches [batch_size, num_steps, target_num], [batch_size, target_num]
+#     for unary_score_, y_ in zip(unary_scores, target_inputs):  # unary_score_  :[num_steps, target_num], y_: [num_steps]
+#         viterbi_prediction = tf.contrib.crf.viterbi_decode(unary_score_, transition_params)
+#         # viterbi_prediction: tuple (list[id], value)
+#         # y_: tuple
+#         correct_labels += np.sum(
+#             np.equal(viterbi_prediction[0], y_))  # compare prediction sequence with golden sequence
+#         total_labels += len(y_)
+#         print ("viterbi_prediction")
+#         print (viterbi_prediction)
+#         accuracy = 100.0 * correct_labels / float(total_labels)
+#
+#     return accuracy
