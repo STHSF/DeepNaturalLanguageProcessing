@@ -65,28 +65,28 @@ while True:
 # file_iter_ids = tag2id(file_iter.next())
 # print(file_iter_ids)
 
-# while True:
-#     # batch等于1的时候本来就没有padding，如果批量预测的话，记得这里需要做长度的截取。
-#     try:
-#         fetches = [model.logits, model.transition_params]
-#         feed_dict = {model.source_input: X_batch,
-#                      model.is_training: False,
-#                      model.lr: 1.0,
-#                      model.batch_size: 1,
-#                      model.keep_prob: 0.5}
-#
-#         tf_unary_scores, tf_transition_params = sess.run(
-#             [model.logits, model.transition_params])
-#     except tf.errors.OutOfRangeError:
-#         print 'Prediction finished!'
-#         break
-#
-#     # 把batch那个维度去掉
-#     tf_unary_scores = np.squeeze(tf_unary_scores)
-#
-#     viterbi_sequence, _ = tf.contrib.crf.viterbi_decode(
-#         tf_unary_scores, tf_transition_params)
-#     tags = []
-#     for id in viterbi_sequence:
-#         tags.append(sess.run(id2tag[tf.constant(id, dtype=tf.int64)]))
-#     write_result_to_file(file_iter, tags)
+while True:
+    # batch等于1的时候本来就没有padding，如果批量预测的话，记得这里需要做长度的截取。
+    try:
+        fetches = [model.logits, model.transition_params]
+        feed_dict = {model.source_input: X_batch,
+                     model.is_training: False,
+                     model.lr: 1.0,
+                     model.batch_size: 1,
+                     model.keep_prob: 0.5}
+
+        tf_unary_scores, tf_transition_params = sess.run(
+            [model.logits, model.transition_params])
+    except tf.errors.OutOfRangeError:
+        print 'Prediction finished!'
+        break
+
+    # 把batch那个维度去掉
+    tf_unary_scores = np.squeeze(tf_unary_scores)
+
+    viterbi_sequence, _ = tf.contrib.crf.viterbi_decode(
+        tf_unary_scores, tf_transition_params)
+    tags = []
+    for id in viterbi_sequence:
+        tags.append(sess.run(id2tag[tf.constant(id, dtype=tf.int64)]))
+    write_result_to_file(file_iter, tags)

@@ -35,6 +35,7 @@ class Config():
     hidden_units = 300
     layers_num = 32
     num_classes = 16
+    model_save_path = 'ckpt/bi-lstm-crf.ckpt'  # 模型保存位置
 
     # glove_filename = "data/embedding/news_tensite_ch_clean.model".format(dim)
     # trimmed_filename = "data/news_tensite_ch_clean_{}d.trimmed.npz".format(dim)

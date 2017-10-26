@@ -39,7 +39,7 @@ tr_batch_size = 128
 max_epoch = 3
 max_max_epoch = 3
 display_num = 5  # 每个 epoch 显示是个结果
-model_save_path = 'ckpt/bi-lstm.ckpt'  # 模型保存位置
+# model_save_path = 'ckpt/bi-lstm-crf.ckpt'  # 模型保存位置
 print('data_train.y.shape[0]', data_train.y.shape[0])
 tr_batch_num = int(data_train.y.shape[0] / tr_batch_size)  # 每个 epoch 中包含的 batch 数
 display_batch = int(tr_batch_num / display_num)  # 每训练 display_batch 之后输出一次
@@ -48,7 +48,7 @@ print('tr_batch_num', tr_batch_num)
 print('display_batch', display_batch)
 
 
-def acc(logits, y_batch, batch_size, num_classes):
+def acc(logits, y_batch, batch_size, num_classes, transition_params):
     correct_labels = 0  # prediction accuracy
     total_labels = 0
     accuracy = 0.0
@@ -56,7 +56,7 @@ def acc(logits, y_batch, batch_size, num_classes):
     unary_scores = np.reshape(logits, [batch_size, -1, num_classes])
     # iterate over batches [batch_size, num_steps, target_num], [batch_size, target_num]
     for unary_score_, y_ in zip(unary_scores, y_batch):  # unary_score_  :[num_steps, target_num], y_: [num_steps]
-        viterbi_prediction = tf.contrib.crf.viterbi_decode(unary_score_, _transition_params)
+        viterbi_prediction = tf.contrib.crf.viterbi_decode(unary_score_, transition_params)
         # viterbi_prediction: tuple (list[id], value)
         # y_: tuple
         correct_labels += np.sum(
@@ -89,16 +89,17 @@ def run_epoch(dataset):
                      model.target_input: y_batch,
                      model.is_training: False,
                      model.lr: 1e-5,
+                     model.max_grad_norm: 1.0,
                      model.batch_size: _batch_size,
                      model.keep_prob: 0.5}
-        _acc, _logits, _cost = sess.run(fetches, feed_dict)
+        _acc, _logits, _transition_params, _cost = sess.run(fetches, feed_dict)
 
-        accuracy = acc(_logits, y_batch, _batch_size, Config.num_classes)
+        accuracy = acc(_logits, y_batch, _batch_size, Config.num_classes, _transition_params)
         # _accs += _acc
         _accs += accuracy
         _costs += _cost
-        mean_acc = _accs / batch_num
-        mean_cost = _costs / batch_num
+    mean_acc = _accs / batch_num
+    mean_cost = _costs / batch_num
     return mean_acc, mean_cost
 
 
@@ -109,7 +110,6 @@ init = tf.global_variables_initializer()
 # all_vars = tf.trainable_variables()
 # saver = tf.train.Saver(all_vars)  # 最多保存的模型数量
 # summary_writer = tf.train.SummaryWriter('/tmp/tensorflowlogs')
-# saver = tf.train.Saver()  # 最多保存的模型数量
 
 with tf.Session(config=config) as sess:
     sess.run(init)
@@ -140,7 +140,7 @@ with tf.Session(config=config) as sess:
                          model.keep_prob: 1.0}
             # _acc, _cost, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
             _acc, _cost, _logits, _transition_params, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
-            accuracy = acc(_logits, y_batch, tr_batch_size, Config.num_classes)
+            accuracy = acc(_logits, y_batch, tr_batch_size, Config.num_classes, _transition_params)
             # _accs += _acc
             _accs += accuracy
             _costs += _cost
@@ -149,14 +149,15 @@ with tf.Session(config=config) as sess:
             if (batch + 1) % display_batch == 0:
                 valid_acc, valid_cost = run_epoch(data_valid)  # valid
                 print('\t training acc=%g, cost=%g;  valid acc= %g, cost=%g ' % (show_accs / display_batch,
-                                                                                 show_costs / display_batch, valid_acc,
+                                                                                 show_costs / display_batch,
+                                                                                 valid_acc,
                                                                                  valid_cost))
                 show_accs = 0.0
                 show_costs = 0.0
         mean_acc = _accs / tr_batch_num
         mean_cost = _costs / tr_batch_num
         if (epoch + 1) % 3 == 0:  # 每 3 个 epoch 保存一次模型
-            save_path = model.saver.save(sess, model_save_path, global_step=(epoch + 1))
+            save_path = model.saver.save(sess, Config.model_save_path, global_step=(epoch + 1))
             print('the save path is ', save_path)
         print('\ttraining %d, acc=%g, cost=%g ' % (data_train.y.shape[0], mean_acc, mean_cost))
         print('Epoch training %d, acc=%g, cost=%g, speed=%g s/epoch'
