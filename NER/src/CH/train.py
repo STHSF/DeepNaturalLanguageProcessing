@@ -47,19 +47,43 @@ display_batch = int(tr_batch_num / display_num)  # 每训练 display_batch 之�
 print('tr_batch_num', tr_batch_num)
 print('display_batch', display_batch)
 
+
+def acc(logits, y_batch, batch_size, num_classes):
+    correct_labels = 0  # prediction accuracy
+    total_labels = 0
+    accuracy = 0.0
+    # shape = (batch_size, num_steps, num_classes)
+    unary_scores = np.reshape(logits, [batch_size, -1, num_classes])
+    # iterate over batches [batch_size, num_steps, target_num], [batch_size, target_num]
+    for unary_score_, y_ in zip(unary_scores, y_batch):  # unary_score_  :[num_steps, target_num], y_: [num_steps]
+        viterbi_prediction = tf.contrib.crf.viterbi_decode(unary_score_, _transition_params)
+        # viterbi_prediction: tuple (list[id], value)
+        # y_: tuple
+        correct_labels += np.sum(
+            np.equal(viterbi_prediction[0], y_))  # compare prediction sequence with golden sequence
+        total_labels += len(y_)
+        # print ("viterbi_prediction")
+        # print (viterbi_prediction)
+        accuracy = 100.0 * correct_labels / float(total_labels)
+
+    return accuracy
+
+
 model = bi_lstm_crf(Config)
 
 
 def run_epoch(dataset):
     """Testing or valid."""
     _batch_size = 500
-    fetches = [model.accuracy, model.logits]
+    fetches = [model.accuracy, model.logits, model.transition_params, model.cost]
     _y = dataset.y
     data_size = _y.shape[0]
     batch_num = int(data_size / _batch_size)
     _costs = 0.0
     _accs = 0.0
-    for i in range(batch_num):
+    mean_acc = 0.0
+    mean_cost = 0.0
+    for batch in range(batch_num):
         X_batch, y_batch = dataset.next_batch(_batch_size)
         feed_dict = {model.source_input: X_batch,
                      model.target_input: y_batch,
@@ -67,11 +91,14 @@ def run_epoch(dataset):
                      model.lr: 1e-5,
                      model.batch_size: _batch_size,
                      model.keep_prob: 0.5}
-        _acc, _cost = sess.run(fetches, feed_dict)
-        _accs += _acc
+        _acc, _logits, _cost = sess.run(fetches, feed_dict)
+
+        accuracy = acc(_logits, y_batch, _batch_size, Config.num_classes)
+        # _accs += _acc
+        _accs += accuracy
         _costs += _cost
-    mean_acc = _accs / batch_num
-    mean_cost = _costs / batch_num
+        mean_acc = _accs / batch_num
+        mean_cost = _costs / batch_num
     return mean_acc, mean_cost
 
 
@@ -113,44 +140,30 @@ with tf.Session(config=config) as sess:
                          model.keep_prob: 1.0}
             # _acc, _cost, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
             _acc, _cost, _logits, _transition_params, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
+            accuracy = acc(_logits, y_batch, tr_batch_size, Config.num_classes)
+            # _accs += _acc
+            _accs += accuracy
+            _costs += _cost
+            show_accs += _acc
+            show_costs += _cost
+            if (batch + 1) % display_batch == 0:
+                valid_acc, valid_cost = run_epoch(data_valid)  # valid
+                print('\t training acc=%g, cost=%g;  valid acc= %g, cost=%g ' % (show_accs / display_batch,
+                                                                                 show_costs / display_batch, valid_acc,
+                                                                                 valid_cost))
+                show_accs = 0.0
+                show_costs = 0.0
+        mean_acc = _accs / tr_batch_num
+        mean_cost = _costs / tr_batch_num
+        if (epoch + 1) % 3 == 0:  # 每 3 个 epoch 保存一次模型
+            save_path = model.saver.save(sess, model_save_path, global_step=(epoch + 1))
+            print('the save path is ', save_path)
+        print('\ttraining %d, acc=%g, cost=%g ' % (data_train.y.shape[0], mean_acc, mean_cost))
+        print('Epoch training %d, acc=%g, cost=%g, speed=%g s/epoch'
+              % (data_train.y.shape[0], mean_acc, mean_cost, time.time() - start_time))
 
-            correct_labels = 0  # prediction accuracy
-            total_labels = 0
-            # shape = (batch_size, num_steps, num_classes)
-            unary_scores = np.reshape(_logits, [tr_batch_size, -1, Config.num_classes])
-            # iterate over batches [batch_size, num_steps, target_num], [batch_size, target_num]
-            for unary_score_, y_ in zip(unary_scores, y_batch):  # unary_score_  :[num_steps, target_num], y_: [num_steps]
-                viterbi_prediction = tf.contrib.crf.viterbi_decode(unary_score_, _transition_params)
-                # viterbi_prediction: tuple (list[id], value)
-                # y_: tuple
-                correct_labels += np.sum(
-                    np.equal(viterbi_prediction[0], y_))  # compare prediction sequence with golden sequence
-                total_labels += len(y_)
-                # print ("viterbi_prediction")
-                # print (viterbi_prediction)
-            accuracy = 100.0 * correct_labels / float(total_labels)
-    #         _accs += _acc
-    #         _costs += _cost
-    #         show_accs += _acc
-    #         show_costs += _cost
-    #         if (batch + 1) % display_batch == 0:
-    #             valid_acc, valid_cost = run_epoch(data_valid)  # valid
-    #             print('\t training acc=%g, cost=%g;  valid acc= %g, cost=%g ' % (show_accs / display_batch,
-    #                                                                              show_costs / display_batch, valid_acc,
-    #                                                                              valid_cost))
-    #             show_accs = 0.0
-    #             show_costs = 0.0
-    #     mean_acc = _accs / tr_batch_num
-    #     mean_cost = _costs / tr_batch_num
-    #     if (epoch + 1) % 3 == 0:  # 每 3 个 epoch 保存一次模型
-    #         save_path = model.saver.save(sess, model_save_path, global_step=(epoch + 1))
-    #         print('the save path is ', save_path)
-    #     print('\ttraining %d, acc=%g, cost=%g ' % (data_train.y.shape[0], mean_acc, mean_cost))
-    #     print('Epoch training %d, acc=%g, cost=%g, speed=%g s/epoch'
-    #           % (data_train.y.shape[0], mean_acc, mean_cost, time.time() - start_time))
-    #
-    # # testing
-    # print('**TEST RESULT:')
-    # test_acc, test_cost = run_epoch(data_test)
-    # print('**Test %d, acc=%g, cost=%g' % (data_test.y.shape[0], test_acc, test_cost))
+    # testing
+    print('**TEST RESULT:')
+    test_acc, test_cost = run_epoch(data_test)
+    print('**Test %d, acc=%g, cost=%g' % (data_test.y.shape[0], test_acc, test_cost))
 
