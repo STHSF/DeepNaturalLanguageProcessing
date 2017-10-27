@@ -9,12 +9,17 @@ tf.app.flags.DEFINE_string("pred_file", 'data/predict.txt', "test data.")
 tf.app.flags.DEFINE_string("src_vocab_file", 'data/source_vocab.txt', "source vocabulary.")
 tf.app.flags.DEFINE_string("tgt_vocab_file", 'data/target_vocab.txt', "targets.")
 tf.app.flags.DEFINE_string("word_embedding_file", 'data/wiki.zh.vec', "extra word embeddings.")
-tf.app.flags.DEFINE_string("model_path", 'data/model/', "model save path")
+tf.app.flags.DEFINE_string("model_save_path", 'ckpt/bi-lstm-crf.ckpt', "model save path")
+tf.app.flags.DEFINE_string("log_path", 'model/log/', "log save path")
 # 这里默认词向量的维度是300, 如果自行训练的词向量维度不是300,则需要该这里的值。
-tf.app.flags.DEFINE_integer("embeddings_size", 300, "Size of word embedding.")
+tf.app.flags.DEFINE_integer("vocab_size", 20955, "Size of vocabulary.")
+
+tf.app.flags.DEFINE_integer("embedding_size", 100, "Size of word embedding.")
 tf.app.flags.DEFINE_integer("max_sequence", 100, "max sequence length.")
 tf.app.flags.DEFINE_integer("hidden_units", 300, "hidden units in lstm.")
-tf.app.flags.DEFINE_integer("num_steps", 10, "max sequence length.")
+tf.app.flags.DEFINE_integer("layers_num", 32, "hidden layers in lstm.")
+
+tf.app.flags.DEFINE_integer("num_steps", 100, "max sequence length.")
 tf.app.flags.DEFINE_integer("num_classes", 16, "num classes.")
 
 
@@ -26,25 +31,3 @@ tf.app.flags.DEFINE_integer("max_grad_norm", 1, "max_grad_norm.")
 
 tf.app.flags.DEFINE_string("action", 'train', "train | predict")
 FLAGS = tf.app.flags.FLAGS
-
-
-class Config():
-    num_steps = 100
-    vocab_size = 20955
-    embedding_size = 100
-    hidden_units = 300
-    layers_num = 32
-    num_classes = 16
-    model_save_path = 'ckpt/bi-lstm-crf.ckpt'  # 模型保存位置
-
-    # glove_filename = "data/embedding/news_tensite_ch_clean.model".format(dim)
-    # trimmed_filename = "data/news_tensite_ch_clean_{}d.trimmed.npz".format(dim)
-    # words_filename = "data/words.txt"
-    # tags_filename = "data/tags.txt"
-    #
-    # dev_filename = "data/msra/msr_training.utf8.val"
-    # test_filename = "data/msra/msr_training.utf8.test"
-    # train_filename = "data/msra/msr_training.utf8.train"
-    # output_path = "results/crf/"
-    # model_output = output_path + "model.weights/"
-    # log_path = output_path + "log.txt"

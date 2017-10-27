@@ -10,13 +10,13 @@ import numpy as np
 
 
 class bi_lstm_crf(object):
-    def __init__(self, config):
-        self.num_steps = config.num_steps
-        self.vocab_size = config.vocab_size
-        self.embedding_size = config.embedding_size
-        self.hidden_units = config.hidden_units
-        self.layers_num = config.layers_num
-        self.num_classes = config.num_classes
+    def __init__(self, num_steps, vocab_size, embedding_size, hidden_units, layers_num, num_classes):
+        self.num_steps = num_steps
+        self.vocab_size = vocab_size
+        self.embedding_size = embedding_size
+        self.hidden_units = hidden_units
+        self.layers_num = layers_num
+        self.num_classes = num_classes
 
         # 在训练和测试的时候，我们想用不同batch_size的数据，所以将batch_size也采用占位符的形式
         self.batch_size = tf.placeholder(tf.int32, [])  # 注意类型必须为 tf.int32

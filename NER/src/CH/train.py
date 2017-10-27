@@ -7,7 +7,7 @@ import time
 import pickle
 import numpy as np
 import tensorflow as tf
-from config import Config
+import config
 from NER_Model import bi_lstm_crf
 from sklearn.model_selection import train_test_split
 from batch_generate import BatchGenerator
@@ -49,6 +49,15 @@ print('display_batch', display_batch)
 
 
 def acc(logits, y_batch, batch_size, num_classes, transition_params):
+    """
+    Compute the accuracy of the crf predicted and the target
+    :param logits: (batch_size * num_steps, num_classes)
+    :param y_batch:
+    :param batch_size:
+    :param num_classes:
+    :param transition_params:
+    :return:
+    """
     correct_labels = 0  # prediction accuracy
     total_labels = 0
     accuracy = 0.0
@@ -69,11 +78,20 @@ def acc(logits, y_batch, batch_size, num_classes, transition_params):
     return accuracy
 
 
-model = bi_lstm_crf(Config)
+# hyper-parameter
+num_steps = config.FLAGS.num_steps
+vocab_size = config.FLAGS.vocab_size
+embedding_size = config.FLAGS.embedding_size
+hidden_units = config.FLAGS.hidden_units
+layers_num = config.FLAGS.layers_num
+num_classes = config.FLAGS.num_classes
+
+# NN Model
+model = bi_lstm_crf(num_steps, vocab_size, embedding_size, hidden_units, layers_num, num_classes)
 
 
 def run_epoch(dataset):
-    """Testing or valid."""
+    """Testing or valid accuracy"""
     _batch_size = 500
     fetches = [model.accuracy, model.logits, model.transition_params, model.cost]
     _y = dataset.y
@@ -81,8 +99,8 @@ def run_epoch(dataset):
     batch_num = int(data_size / _batch_size)
     _costs = 0.0
     _accs = 0.0
-    mean_acc = 0.0
-    mean_cost = 0.0
+    # mean_acc = 0.0
+    # mean_cost = 0.0
     for batch in range(batch_num):
         X_batch, y_batch = dataset.next_batch(_batch_size)
         feed_dict = {model.source_input: X_batch,
@@ -94,7 +112,7 @@ def run_epoch(dataset):
                      model.keep_prob: 0.5}
         _acc, _logits, _transition_params, _cost = sess.run(fetches, feed_dict)
 
-        accuracy = acc(_logits, y_batch, _batch_size, Config.num_classes, _transition_params)
+        accuracy = acc(_logits, y_batch, _batch_size, config.FLAGS.num_classes, _transition_params)
         # _accs += _acc
         _accs += accuracy
         _costs += _cost
@@ -104,14 +122,14 @@ def run_epoch(dataset):
 
 
 # 设置cpu按需增长
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
+conf = tf.ConfigProto()
+conf.gpu_options.allow_growth = True
 init = tf.global_variables_initializer()
 # all_vars = tf.trainable_variables()
 # saver = tf.train.Saver(all_vars)  # 最多保存的模型数量
 # summary_writer = tf.train.SummaryWriter('/tmp/tensorflowlogs')
 
-with tf.Session(config=config) as sess:
+with tf.Session(config=conf) as sess:
     sess.run(init)
     for epoch in range(max_max_epoch):
         _lr = 1e-4
@@ -140,7 +158,7 @@ with tf.Session(config=config) as sess:
                          model.keep_prob: 1.0}
             # _acc, _cost, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
             _acc, _cost, _logits, _transition_params, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
-            accuracy = acc(_logits, y_batch, tr_batch_size, Config.num_classes, _transition_params)
+            accuracy = acc(_logits, y_batch, tr_batch_size, config.FLAGS.num_classes, _transition_params)
             # _accs += _acc
             _accs += accuracy
             _costs += _cost
@@ -157,7 +175,7 @@ with tf.Session(config=config) as sess:
         mean_acc = _accs / tr_batch_num
         mean_cost = _costs / tr_batch_num
         if (epoch + 1) % 3 == 0:  # 每 3 个 epoch 保存一次模型
-            save_path = model.saver.save(sess, Config.model_save_path, global_step=(epoch + 1))
+            save_path = model.saver.save(sess, config.FLAGS.model_save_path, global_step=(epoch + 1))
             print('the save path is ', save_path)
         print('\ttraining %d, acc=%g, cost=%g ' % (data_train.y.shape[0], mean_acc, mean_cost))
         print('Epoch training %d, acc=%g, cost=%g, speed=%g s/epoch'
