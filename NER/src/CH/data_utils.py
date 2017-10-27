@@ -66,50 +66,50 @@ id2tag = pd.Series(tags_set, index=tag_ids)
 print('tag2id\n', tag2id.head(100))
 print('id2tag\n', id2tag.head(100))
 
-# df_data = pd.DataFrame({'words': datas, 'tags': labels}, index=range(len(datas)))
-# # 句子长度
-# df_data['sentence_len'] = df_data['words'].apply(lambda words: len(words))
-# print('df_data\n', df_data.head(10))
-#
-#
-# def X_padding(words):
-#     """把 words 转为 id 形式，并自动补全位 max_len 长度。"""
-#     ids = list(word2id[words])
-#     if len(ids) >= max_len:  # 长则弃掉
-#         return ids[:max_len]
-#     ids.extend([0]*(max_len-len(ids)))  # 短则补全，使用编号0补全
-#     return ids
-#
-#
-# def y_padding(tags):
-#     """把 tags 转为 id 形式， 并自动补全位 max_len 长度。"""
-#     ids = list(tag2id[tags])
-#     if len(ids) >= max_len:  # 长则弃掉
-#         return ids[:max_len]
-#     ids.extend([0]*(max_len-len(ids)))  # 短则补全，id=0的tags为Padding
-#     return ids
-#
-#
-# df_data['X'] = df_data['words'].apply(X_padding)
-# df_data['y'] = df_data['tags'].apply(y_padding)
-# print('df_data\n', df_data.head(10))
-#
-# X = np.asarray(list(df_data['X'].values))
-# y = np.asarray(list(df_data['y'].values))
-# print 'X.shape={}, y.shape={}'.format(X.shape, y.shape)
-# print 'Example of words: ', df_data['words'].values[0]
-# print 'Example of X: ', X[0]
-# print 'Example of tags: ', df_data['tags'].values[0]
-# print 'Example of y: ', y[0]
-#
-#
-# # 数据保存成pickle的格式。
-# with open('data.pkl', 'wb') as outp:
-#     pickle.dump(X, outp)
-#     pickle.dump(y, outp)
-#     pickle.dump(word2id, outp)
-#     pickle.dump(id2word, outp)
-#     pickle.dump(tag2id, outp)
-#     pickle.dump(id2tag, outp)
-# print '** Finished saving the data.'
-#
+df_data = pd.DataFrame({'words': datas, 'tags': labels}, index=range(len(datas)))
+# 句子长度
+df_data['sentence_len'] = df_data['words'].apply(lambda words: len(words))
+print('df_data\n', df_data.head(10))
+
+
+def X_padding(words):
+    """把 words 转为 id 形式，并自动补全位 max_len 长度。"""
+    ids = list(word2id[words])
+    if len(ids) >= max_len:  # 长则弃掉
+        return ids[:max_len]
+    ids.extend([0]*(max_len-len(ids)))  # 短则补全，使用编号0补全
+    return ids
+
+
+def y_padding(tags):
+    """把 tags 转为 id 形式， 并自动补全位 max_len 长度。"""
+    ids = list(tag2id[tags])
+    if len(ids) >= max_len:  # 长则弃掉
+        return ids[:max_len]
+    ids.extend([0]*(max_len-len(ids)))  # 短则补全，id=0的tags为Padding
+    return ids
+
+
+df_data['X'] = df_data['words'].apply(X_padding)
+df_data['y'] = df_data['tags'].apply(y_padding)
+print('df_data\n', df_data.head(10))
+
+X = np.asarray(list(df_data['X'].values))
+y = np.asarray(list(df_data['y'].values))
+print 'X.shape={}, y.shape={}'.format(X.shape, y.shape)
+print 'Example of words: ', df_data['words'].values[0]
+print 'Example of X: ', X[0]
+print 'Example of tags: ', df_data['tags'].values[0]
+print 'Example of y: ', y[0]
+
+
+# 数据保存成pickle的格式。
+with open('data.pkl', 'wb') as outp:
+    pickle.dump(X, outp)
+    pickle.dump(y, outp)
+    pickle.dump(word2id, outp)
+    pickle.dump(id2word, outp)
+    pickle.dump(tag2id, outp)
+    pickle.dump(id2tag, outp)
+print '** Finished saving the data.'
+

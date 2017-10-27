@@ -88,7 +88,7 @@ num_classes = config.FLAGS.num_classes
 max_grad_norm = config.FLAGS.max_grad_norm
 model_save_path = config.FLAGS.model_save_path
 
-# NN Model
+# DNN Model
 model = bi_lstm_crf(num_steps, vocab_size, embedding_size, hidden_units, layers_num, num_classes)
 
 
@@ -139,8 +139,6 @@ with tf.Session(config=conf) as sess:
         show_accs = 0.0
         show_costs = 0.0
         for batch in range(tr_batch_num):
-            # fetches = [model.accuracy, model.logits, model.train_op]
-            # fetches = [model.logits, model.train_op]
             fetches = [model.accuracy, model.cost, model.logits, model.transition_params, model.train_op]
 
             X_batch, y_batch = data_train.next_batch(tr_batch_size)
@@ -153,7 +151,6 @@ with tf.Session(config=conf) as sess:
                          model.max_grad_norm: max_grad_norm,
                          model.batch_size: tr_batch_size,
                          model.keep_prob: 1.0}
-            # _acc, _cost, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
             _acc, _cost, _logits, _transition_params, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
             accuracy = acc(_logits, y_batch, tr_batch_size, num_classes, _transition_params)
             # _accs += _acc
