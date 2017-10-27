@@ -18,7 +18,6 @@ tf.app.flags.DEFINE_integer("embedding_size", 100, "Size of word embedding.")
 tf.app.flags.DEFINE_integer("max_sequence", 100, "max sequence length.")
 tf.app.flags.DEFINE_integer("hidden_units", 300, "hidden units in lstm.")
 tf.app.flags.DEFINE_integer("layers_num", 32, "hidden layers in lstm.")
-
 tf.app.flags.DEFINE_integer("num_steps", 100, "max sequence length.")
 tf.app.flags.DEFINE_integer("num_classes", 16, "num classes.")
 
@@ -27,7 +26,7 @@ tf.app.flags.DEFINE_integer("batch_size", 128, "batch size.")
 tf.app.flags.DEFINE_integer("epoch", 30000, "epoch.")
 tf.app.flags.DEFINE_float("dropout", 0.6, "drop out")
 tf.app.flags.DEFINE_float("lr", 0.0001, "learning rate")
-tf.app.flags.DEFINE_integer("max_grad_norm", 1, "max_grad_norm.")
+tf.app.flags.DEFINE_float("max_grad_norm", 1.0, "max_grad_norm.")
 
 tf.app.flags.DEFINE_string("action", 'train', "train | predict")
 FLAGS = tf.app.flags.FLAGS

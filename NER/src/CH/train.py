@@ -85,6 +85,8 @@ embedding_size = config.FLAGS.embedding_size
 hidden_units = config.FLAGS.hidden_units
 layers_num = config.FLAGS.layers_num
 num_classes = config.FLAGS.num_classes
+max_grad_norm = config.FLAGS.max_grad_norm
+model_save_path = config.FLAGS.model_save_path
 
 # NN Model
 model = bi_lstm_crf(num_steps, vocab_size, embedding_size, hidden_units, layers_num, num_classes)
@@ -99,20 +101,15 @@ def run_epoch(dataset):
     batch_num = int(data_size / _batch_size)
     _costs = 0.0
     _accs = 0.0
-    # mean_acc = 0.0
-    # mean_cost = 0.0
     for batch in range(batch_num):
         X_batch, y_batch = dataset.next_batch(_batch_size)
         feed_dict = {model.source_input: X_batch,
                      model.target_input: y_batch,
                      model.is_training: False,
-                     model.lr: 1e-5,
-                     model.max_grad_norm: 1.0,
-                     model.batch_size: _batch_size,
-                     model.keep_prob: 0.5}
+                     model.batch_size: _batch_size}
         _acc, _logits, _transition_params, _cost = sess.run(fetches, feed_dict)
 
-        accuracy = acc(_logits, y_batch, _batch_size, config.FLAGS.num_classes, _transition_params)
+        accuracy = acc(_logits, y_batch, _batch_size, num_classes, _transition_params)
         # _accs += _acc
         _accs += accuracy
         _costs += _cost
@@ -153,12 +150,12 @@ with tf.Session(config=conf) as sess:
                          model.target_input: y_batch,
                          model.is_training: True,
                          model.lr: _lr,
-                         model.max_grad_norm: 1.0,
+                         model.max_grad_norm: max_grad_norm,
                          model.batch_size: tr_batch_size,
                          model.keep_prob: 1.0}
             # _acc, _cost, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
             _acc, _cost, _logits, _transition_params, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
-            accuracy = acc(_logits, y_batch, tr_batch_size, config.FLAGS.num_classes, _transition_params)
+            accuracy = acc(_logits, y_batch, tr_batch_size, num_classes, _transition_params)
             # _accs += _acc
             _accs += accuracy
             _costs += _cost
@@ -170,12 +167,11 @@ with tf.Session(config=conf) as sess:
                                                                                  show_costs / display_batch,
                                                                                  valid_acc,
                                                                                  valid_cost))
-                show_accs = 0.0
-                show_costs = 0.0
+                show_accs, show_costs = 0.0, 0.0
         mean_acc = _accs / tr_batch_num
         mean_cost = _costs / tr_batch_num
         if (epoch + 1) % 3 == 0:  # 每 3 个 epoch 保存一次模型
-            save_path = model.saver.save(sess, config.FLAGS.model_save_path, global_step=(epoch + 1))
+            save_path = model.saver.save(sess, model_save_path, global_step=(epoch + 1))
             print('the save path is ', save_path)
         print('\ttraining %d, acc=%g, cost=%g ' % (data_train.y.shape[0], mean_acc, mean_cost))
         print('Epoch training %d, acc=%g, cost=%g, speed=%g s/epoch'
