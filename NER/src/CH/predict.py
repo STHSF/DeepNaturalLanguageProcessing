@@ -60,31 +60,40 @@ else:
     print 'Model not found, please train your model first'
 
 
+def viterbi(X_batch):
+    fetches = [model.logits, model.transition_params]
+    feed_dict = {model.source_input: X_batch,
+                 model.is_training: False,
+                 model.batch_size: 1}
+
+    tf_unary_scores, tf_transition_params = sess.run(fetches, feed_dict)
+
+    tf_unary_scores = np.squeeze(tf_unary_scores)
+
+    viterbi_sequence, _ = tf.contrib.crf.viterbi_decode(tf_unary_scores, tf_transition_params)
+
+    tags = []
+
+    for ids in viterbi_sequence:
+        tags.append(sess.run(id2tag[tf.constant(ids, dtype=tf.int64)]))
+
+    return tags
+
+
+
 # 获取predict 文本
 pred_file_path = './data/predict.txt'
 file_iter = file_content_iterator(pred_file_path)
+
 
 try:
     for i in file_iter:
         X_batch = [word2id[elem] for elem in i.split()]
         print(np.shape(X_batch))
 
-        # fetches = [model.logits, model.transition_params]
-        # feed_dict = {model.source_input: X_batch,
-        #              model.is_training: False,
-        #              model.batch_size: 1}
-        #
-        # tf_unary_scores, tf_transition_params = sess.run(fetches, feed_dict)
-        #
-        # tf_unary_scores = np.squeeze(tf_unary_scores)
-        #
-        # viterbi_sequence, _ = tf.contrib.crf.viterbi_decode(tf_unary_scores, tf_transition_params)
-        #
-        # tags = []
-        #
-        # for ids in viterbi_sequence:
-        #     tags.append(sess.run(id2tag[tf.constant(ids, dtype=tf.int64)]))
-        # write_result_to_file(file_iter, tags)
+        tags = viterbi(X_batch)
+
+        write_result_to_file(file_iter, tags)
 
 except KeyError:
     print("eddro")
