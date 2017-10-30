@@ -66,13 +66,26 @@ file_iter = file_content_iterator(pred_file_path)
 
 try:
     for i in file_iter:
-        for j in i.split():
-            print(j)
-        a = [word2id[alpha] for alpha in i.split()]
-        print(a)
-        # for j in i.split():
-        #     print(j)
-        #     print(word2id[j])
+        X_batch = [word2id[elem] for elem in i.split()]
+        print(np.shape(X_batch))
+
+        # fetches = [model.logits, model.transition_params]
+        # feed_dict = {model.source_input: X_batch,
+        #              model.is_training: False,
+        #              model.batch_size: 1}
+        #
+        # tf_unary_scores, tf_transition_params = sess.run(fetches, feed_dict)
+        #
+        # tf_unary_scores = np.squeeze(tf_unary_scores)
+        #
+        # viterbi_sequence, _ = tf.contrib.crf.viterbi_decode(tf_unary_scores, tf_transition_params)
+        #
+        # tags = []
+        #
+        # for ids in viterbi_sequence:
+        #     tags.append(sess.run(id2tag[tf.constant(ids, dtype=tf.int64)]))
+        # write_result_to_file(file_iter, tags)
+
 except KeyError:
     print("eddro")
 
@@ -104,3 +117,6 @@ except KeyError:
 #     for id in viterbi_sequence:
 #         tags.append(sess.run(id2tag[tf.constant(id, dtype=tf.int64)]))
 #     write_result_to_file(file_iter, tags)
+
+
+
