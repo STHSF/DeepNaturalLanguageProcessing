@@ -48,7 +48,7 @@ print('tr_batch_num', tr_batch_num)
 print('display_batch', display_batch)
 
 
-def acc(logits, y_batch, batch_size, num_classes, transition_params):
+def acc_crf(logits, y_batch, batch_size, num_classes, transition_params):
     """
     Compute the accuracy of the crf predicted and the target
     :param logits: (batch_size * num_steps, num_classes)
@@ -60,7 +60,7 @@ def acc(logits, y_batch, batch_size, num_classes, transition_params):
     """
     correct_labels = 0  # prediction accuracy
     total_labels = 0
-    accuracy = 0.0
+    # accuracy = 0.0
     # shape = (batch_size, num_steps, num_classes)
     unary_scores = np.reshape(logits, [batch_size, -1, num_classes])
     # iterate over batches [batch_size, num_steps, target_num], [batch_size, target_num]
@@ -73,9 +73,9 @@ def acc(logits, y_batch, batch_size, num_classes, transition_params):
         total_labels += len(y_)
         # print ("viterbi_prediction")
         # print (viterbi_prediction)
-        accuracy = 100.0 * correct_labels / float(total_labels)
+    accuracy_crf = 100.0 * correct_labels / float(total_labels)
 
-    return accuracy
+    return accuracy_crf
 
 
 # hyper-parameter
@@ -95,7 +95,8 @@ model = bi_lstm_crf(num_steps, vocab_size, embedding_size, hidden_units, layers_
 def run_epoch(dataset):
     """Testing or valid accuracy"""
     _batch_size = 500
-    fetches = [model.accuracy, model.logits, model.transition_params, model.cost]
+    # fetches = [model.accuracy, model.logits, model.transition_params, model.cost]
+    fetches = [model.logits, model.transition_params, model.cost]
     _y = dataset.y
     data_size = _y.shape[0]
     batch_num = int(data_size / _batch_size)
@@ -106,10 +107,12 @@ def run_epoch(dataset):
         feed_dict = {model.source_input: X_batch,
                      model.target_input: y_batch,
                      model.is_training: False,
-                     model.batch_size: _batch_size}
-        _acc, _logits, _transition_params, _cost = sess.run(fetches, feed_dict)
+                     model.batch_size: _batch_size,
+                     model.keep_prob: 0.6}
+        # _acc, _logits, _transition_params, _cost = sess.run(fetches, feed_dict)
+        _logits, _transition_params, _cost = sess.run(fetches, feed_dict)
 
-        accuracy = acc(_logits, y_batch, _batch_size, num_classes, _transition_params)
+        accuracy = acc_crf(_logits, y_batch, _batch_size, num_classes, _transition_params)
         # _accs += _acc
         _accs += accuracy
         _costs += _cost
@@ -123,7 +126,7 @@ conf = tf.ConfigProto()
 conf.gpu_options.allow_growth = True
 init = tf.global_variables_initializer()
 # all_vars = tf.trainable_variables()
-# saver = tf.train.Saver(all_vars)  # 最多保存的模型数量
+# saver = tf.traylin.Saver(all_vars)  # 最多保存的模型数量
 # summary_writer = tf.train.SummaryWriter('/tmp/tensorflowlogs')
 
 with tf.Session(config=conf) as sess:
@@ -139,7 +142,8 @@ with tf.Session(config=conf) as sess:
         show_accs = 0.0
         show_costs = 0.0
         for batch in range(tr_batch_num):
-            fetches = [model.accuracy, model.cost, model.logits, model.transition_params, model.train_op]
+            # fetches = [model.accuracy, model.cost, model.logits, model.transition_params, model.train_op]
+            fetches = [model.cost, model.logits, model.transition_params, model.train_op]
 
             X_batch, y_batch = data_train.next_batch(tr_batch_size)
             # print('size of x_batch', np.shape(X_batch))
@@ -151,12 +155,14 @@ with tf.Session(config=conf) as sess:
                          model.max_grad_norm: max_grad_norm,
                          model.batch_size: tr_batch_size,
                          model.keep_prob: 1.0}
-            _acc, _cost, _logits, _transition_params, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
-            accuracy = acc(_logits, y_batch, tr_batch_size, num_classes, _transition_params)
+            # _acc, _cost, _logits, _transition_params, _ = sess.run(fetches, feed_dict)
+            _cost, _logits, _transition_params, _ = sess.run(fetches, feed_dict)  # the cost is the mean cost of one batch
+            accuracy = acc_crf(_logits, y_batch, tr_batch_size, num_classes, _transition_params)
             # _accs += _acc
             _accs += accuracy
             _costs += _cost
-            show_accs += _acc
+            # show_accs += _acc
+            show_accs += accuracy
             show_costs += _cost
             if (batch + 1) % display_batch == 0:
                 valid_acc, valid_cost = run_epoch(data_valid)  # valid

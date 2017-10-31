@@ -49,7 +49,7 @@ class bi_lstm_crf(object):
                                                      self.num_steps, self.num_classes)
 
         # self.accuracy = acc(self.logits, self.target_input, self.transition_params, self.batch_size, self.num_classes)
-        self.accuracy = acc(self.logits, self.target_input)
+        # self.accuracy = (self.logits, self.target_input)
 
         self.train_op = train_operation(self.cost, self.lr, self.max_grad_norm)
         # 模型保存
@@ -118,6 +118,8 @@ def bi_RNN(inputs, is_training, hidden_units, keep_prob, layers_num, batch_size)
 
     # shape = [batch_size * num_steps, hidden_units * 2]
     outputs = tf.reshape(_outputs, [-1, hidden_units * 2], name='predict')
+    print ("LSTM NN layer output size:")
+    print (outputs.get_shape())
     return outputs
 
 
@@ -132,7 +134,7 @@ def add_output_layer(outputs, hidden_units, num_classes):
     with tf.variable_scope("logits"):
         # shape = (batch_size * num_steps, num_classes)
         logits = tf.matmul(outputs, softmax_w) + softmax_b
-        print('size of logits', np.shape(logits))
+        print('Size of logits', logits.get_shape())
 
     return logits
 
@@ -154,11 +156,12 @@ def cost_crf(logits, labels, batch_size, sequence_length, num_classes):
     print('size of labels', np.shape(labels))
 
     with tf.variable_scope("crf"):
-        _sequence_length = tf.tile([sequence_length], [batch_size])
-        # _sequence_length = tf.constant(np.full(batch_size, sequence_length, dtype=np.int32))
-        print('size of sequence_length', np.shape(_sequence_length))
+        # shape: [batch_size], value: [T-1, T-1,...]
+        _sequence_lengths = tf.tile([sequence_length], [batch_size])
+        # _sequence_lengths = tf.constant(np.full(batch_size, sequence_length, dtype=np.int32))
+        print('size of sequence_length', np.shape(_sequence_lengths))
 
-        log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(unary_scores, labels, _sequence_length)
+        log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(unary_scores, labels, _sequence_lengths)
 
     # with tf.variable_scope('verterbi_decode'):
     #     # Compute the highest scoring sequence.
@@ -182,14 +185,14 @@ def train_operation(cost, lr, max_grad_norm):
     return train_op
 
 
-def acc(logits, target_inputs):
-    # Evaluate word-level accuracy.
-    correct_prediction = tf.equal(tf.cast(tf.argmax(logits, 1), tf.int32), tf.reshape(target_inputs, [-1]))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    # correct_prediction = tf.equal(viterbi_sequence, target_input)
-    # accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
-    return accuracy
+# def acc(logits, target_inputs):
+#     # Evaluate word-level accuracy.
+#     correct_prediction = tf.equal(tf.cast(tf.argmax(logits, 1), tf.int32), tf.reshape(target_inputs, [-1]))
+#     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+#     # correct_prediction = tf.equal(viterbi_sequence, target_input)
+#     # accuracy = tf.reducacce_mean(tf.cast(correct_prediction, tf.float32))
+#
+#     return accuracy
 
 
 # def acc(logits, target_inputs, transition_params, batch_size, num_classes):

@@ -60,9 +60,9 @@ else:
     print 'Model not found, please train your model first'
 
 
-def viterbi(X_batch):
+def viterbi_decoder(x_batch):
     fetches = [model.logits, model.transition_params]
-    feed_dict = {model.source_input: X_batch,
+    feed_dict = {model.source_input: x_batch,
                  model.is_training: False,
                  model.batch_size: 1}
 
@@ -80,21 +80,33 @@ def viterbi(X_batch):
     return tags
 
 
-
 # 获取predict 文本
 pred_file_path = './data/predict.txt'
 file_iter = file_content_iterator(pred_file_path)
 
 
+def text2ids(text, max_len):
+    """把字片段text转为 ids."""
+    words = list(text)
+    ids = list(word2id[words])
+    if len(ids) >= max_len:  # 长则弃掉
+        print u'输出片段超过%d部分无法处理' % max_len
+        return ids[:max_len]
+    ids.extend([0]*(max_len-len(ids)))  # 短则补全
+    ids = np.asarray(ids).reshape([-1, max_len])
+    return ids
+
+
 try:
     for i in file_iter:
-        X_batch = [word2id[elem] for elem in i.split()]
-        print(np.shape(X_batch))
-
-        tags = viterbi(X_batch)
-
-        write_result_to_file(file_iter, tags)
-
+        print(i)
+        # shape = (1, 100)
+        text_ids = text2ids(i.split(), 100)
+        print(np.shape(text_ids))
+        print(text_ids)
+        # tags = viterbi(text_ids)
+        #
+        # write_result_to_file(file_iter, tags)
 except KeyError:
     print("eddro")
 
