@@ -5,7 +5,7 @@ import pickle
 import tensorflow as tf
 import numpy as np
 import config
-from NER_Model import bi_lstm_crf
+from NER_Model_advanced import bi_lstm_crf
 
 
 # 数据导入

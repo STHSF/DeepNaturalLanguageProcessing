@@ -36,11 +36,11 @@ with open(pred_file) as predicts:
 
 word_set = list(set(word_list))
 word_set.insert(0, '$UNK$')  # 添加$UNK$标识符，如果predict中存在训练集中没有的词汇则使用$UNK$表示。
-# word_set.insert(1, '$PADDING$')  # 添加padding标识符，用于固定长度的字符补全。区别与其他的tags
+word_set.insert(1, '$PADDING$')  # 添加padding标识符，用于固定长度的字符补全。区别与其他的tags
 
 print('length of word', len(word_set))
-set_ids = range(2, len(word_set) + 2)
-# set_ids = range(len(word_set))
+# set_ids = range(1, len(word_set) + 1)
+set_ids = range(len(word_set))
 print(set_ids)
 
 word2id = pd.Series(set_ids, index=word_set)

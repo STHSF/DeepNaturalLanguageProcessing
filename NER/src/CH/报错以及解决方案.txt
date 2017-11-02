@@ -1,2 +1,79 @@
 1、TypeError: Using a `tf.Tensor` as a Python `bool` is not allowed. Use `if t is not None:` instead of `if t:` to test if a tensor is defined, and use TensorFlow ops such as tf.cond to execute subgraphs conditioned on the value of a tensor.
 解决方案：将 if is_training 改写成 if is_training is not None
+
+
+
+
+X_train.shape=(3142, 30), y_train.shape=(3142, 30);
+X_valid.shape=(786, 30), y_valid.shape=(786, 30);
+X_test.shape=(982, 30), y_test.shape=(982, 30)
+Creating the data generator ...
+Finished creating the data generator.
+('data_train.y.shape[0]', 3142)
+('tr_batch_num', 24)
+('display_batch', 4)
+
+
+未解决的问题
+1、在类NER_Model中将
+```
+tvars = tf.trainable_variables()
+grads, _ = tf.clip_by_global_norm(tf.gradients(self.cost, tvars),
+                                  self.max_grad_norm)
+optimizer = tf.train.GradientDescentOptimizer(self.lr)
+self.train_op = optimizer.apply_gradients(zip(grads, tvars),
+                                          global_step=tf.contrib.framework.get_or_create_global_step())
+```
+
+分装成一个函数：
+```
+def train_operation(cost, lr, max_grad_norm):
+    # ***** 优化求解 *******
+    tvars = tf.trainable_variables()  # 获取模型的所有参数
+    grads, _ = tf.clip_by_global_norm(tf.gradients(cost, tvars), max_grad_norm)  # 获取损失函数对于每个参数的梯度
+    optimizer = tf.train.AdamOptimizer(learning_rate=lr)  # 优化器
+
+    # 梯度下降计算
+    train_op = optimizer.apply_gradients(zip(grads, tvars),
+                                         global_step=tf.contrib.framework.get_or_create_global_step())
+    return train_op
+```
+然后在类中调用：
+
+```
+self.train_op = train_operation(self.cost, self.lr, self.max_grad_norm)
+```
+
+错误提示：
+```
+Traceback (most recent call last):
+  File "/Users/li/workshop/MyRepository/DeepNaturalLanguageProcessing/NER/src/CH/train1.py", line 191, in <module>
+    valid_model = bi_lstm_crf(is_training=False, config=train_config)
+  File "/Users/li/workshop/MyRepository/DeepNaturalLanguageProcessing/NER/src/CH/NER_Model.py", line 70, in __init__
+    self.train_op = train_operation(self.cost, self.lr, self.max_grad_norm)
+  File "/Users/li/workshop/MyRepository/DeepNaturalLanguageProcessing/NER/src/CH/NER_Model.py", line 213, in train_operation
+    global_step=tf.contrib.framework.get_or_create_global_step())
+  File "/Users/li/workshop/virtualenv/tensor/tensor/lib/python2.7/site-packages/tensorflow/python/training/optimizer.py", line 446, in apply_gradients
+    self._create_slots([_get_variable_for(v) for v in var_list])
+  File "/Users/li/workshop/virtualenv/tensor/tensor/lib/python2.7/site-packages/tensorflow/python/training/adam.py", line 132, in _create_slots
+    self._zeros_slot(v, "m", self._name)
+  File "/Users/li/workshop/virtualenv/tensor/tensor/lib/python2.7/site-packages/tensorflow/python/training/optimizer.py", line 766, in _zeros_slot
+    named_slots[_var_key(var)] = slot_creator.create_zeros_slot(var, op_name)
+  File "/Users/li/workshop/virtualenv/tensor/tensor/lib/python2.7/site-packages/tensorflow/python/training/slot_creator.py", line 174, in create_zeros_slot
+    colocate_with_primary=colocate_with_primary)
+  File "/Users/li/workshop/virtualenv/tensor/tensor/lib/python2.7/site-packages/tensorflow/python/training/slot_creator.py", line 146, in create_slot_with_initializer
+    dtype)
+  File "/Users/li/workshop/virtualenv/tensor/tensor/lib/python2.7/site-packages/tensorflow/python/training/slot_creator.py", line 66, in _create_slot_var
+    validate_shape=validate_shape)
+  File "/Users/li/workshop/virtualenv/tensor/tensor/lib/python2.7/site-packages/tensorflow/python/ops/variable_scope.py", line 1065, in get_variable
+    use_resource=use_resource, custom_getter=custom_getter)
+  File "/Users/li/workshop/virtualenv/tensor/tensor/lib/python2.7/site-packages/tensorflow/python/ops/variable_scope.py", line 962, in get_variable
+    use_resource=use_resource, custom_getter=custom_getter)
+  File "/Users/li/workshop/virtualenv/tensor/tensor/lib/python2.7/site-packages/tensorflow/python/ops/variable_scope.py", line 367, in get_variable
+    validate_shape=validate_shape, use_resource=use_resource)
+  File "/Users/li/workshop/virtualenv/tensor/tensor/lib/python2.7/site-packages/tensorflow/python/ops/variable_scope.py", line 352, in _true_getter
+    use_resource=use_resource)
+  File "/Users/li/workshop/virtualenv/tensor/tensor/lib/python2.7/site-packages/tensorflow/python/ops/variable_scope.py", line 682, in _get_single_variable
+    "VarScope?" % name)
+ValueError: Variable Model/Valid/Model/embedding/embedding/Adam/ does not exist, or was not created with tf.get_variable(). Did you mean to set reuse=None in VarScope?
+```

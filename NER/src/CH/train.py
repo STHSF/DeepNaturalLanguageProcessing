@@ -89,6 +89,7 @@ max_grad_norm = config.FLAGS.max_grad_norm
 model_save_path = config.FLAGS.model_save_path
 
 # DNN Model
+# model = bi_lstm_crf(num_steps, vocab_size, embedding_size, hidden_units, layers_num, num_classes)
 model = bi_lstm_crf(num_steps, vocab_size, embedding_size, hidden_units, layers_num, num_classes)
 
 
@@ -184,4 +185,3 @@ with tf.Session(config=conf) as sess:
     print('**TEST RESULT:')
     test_acc, test_cost = run_epoch(data_test)
     print('**Test %d, acc=%g, cost=%g' % (data_test.y.shape[0], test_acc, test_cost))
-
