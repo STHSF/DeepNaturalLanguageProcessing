@@ -34,8 +34,6 @@ int_to_vocab = dict(enumerate(vocab))
 
 # 文本编码
 encoded = np.array([vocab_to_int[c] for c in text], dtype=np.int32)
-
-
 # print('encoded\n', encoded)
 # print('encoded_shape\n', np.shape(encoded))
 
@@ -47,9 +45,7 @@ def get_batch(raw_data, batch_size, seq_length):
         array:
         batch_size:
         seq_length:
-
     Returns:
-
     """
     data = np.array(raw_data)
     data_length = data.shape[0]
@@ -67,6 +63,9 @@ def get_batch(raw_data, batch_size, seq_length):
 
 
 class language_model:
+    """
+    文本生成模型
+    """
     def __init__(self, num_classes, batch_size=100, seq_length=50, learning_rate=0.01, num_layers=5, hidden_units=128,
                  keep_prob=0.8, grad_clip=5, is_training=True):
         tf.reset_default_graph()  # 模型的训练和预测放在同一个文件下时如果没有这个函数会报错。
@@ -91,6 +90,8 @@ class language_model:
             self.add_multi_cells()
         with tf.name_scope('build_output'):
             self.build_output()
+        with tf.name_scope('acc'):
+            self.acc()
         with tf.name_scope('cost'):
             self.compute_cost()
         with tf.name_scope('optimizer'):
@@ -136,8 +137,9 @@ class language_model:
                                                                 initial_state=self.initial_state)
 
     def build_output(self):
-        seq_output = tf.concat(self.cell_outputs, axis=1)
-        y0 = tf.reshape(seq_output, [-1, self.hidden_units])  # y0: [batch_size * seq_length, hidden_units]
+        # seq_output = tf.concat(self.cell_outputs, axis=1)
+        # y0 = tf.reshape(seq_output, [-1, self.hidden_units])  # y0: [batch_size * seq_length, hidden_units]
+        y0 = tf.reshape(self.cell_outputs, [-1, self.hidden_units])  # y0: [batch_size * seq_length, hidden_units]
 
         with tf.name_scope('weights'):
             sofmax_w = tf.Variable(tf.truncated_normal([self.hidden_units, self.num_classes], stddev=0.1))
@@ -149,6 +151,11 @@ class language_model:
         self.prediction = tf.nn.softmax(logits=self.logits, name='prediction')
 
         return self.prediction, self.logits
+
+    def acc(self):
+        correct_prediction = tf.equal(tf.cast(tf.argmax(self.prediction, 1), tf.int32), tf.reshape(self.y, [-1]))
+        self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        return self.accuracy
 
     def compute_cost(self):
         y_reshaped = tf.reshape(self.targets,
@@ -180,7 +187,7 @@ class conf:
     grad_clip = 5
     num_classes = len(vocab)
 
-    num_epochs = 1
+    num_epochs = 10
     # 每n轮进行一次变量保存
     save_every_n = 200
 
@@ -214,22 +221,26 @@ def train():
                         model.initial_state: new_state
                     }
 
-                _, batch_loss, new_state, predict = sess.run([model.train_op,
-                                                              model.loss,
-                                                              model.final_state,
-                                                              model.prediction],
-                                                             feed_dict=feed_dict)
+                _, batch_loss, new_state, acc, predict = sess.run([model.train_op,
+                                                                   model.loss,
+                                                                   model.final_state,
+                                                                   model.accuracy,
+                                                                   model.prediction],
+                                                                  feed_dict=feed_dict)
                 end = time.time()
                 # control the print lines
                 if counter % 100 == 0:
-                    print(u'轮数: {}/{}... '.decode('utf-8').format(epoch + 1, conf.num_epochs),
-                          u'训练步数: {}... '.decode('utf-8').format(counter),
-                          u'训练误差: {:.4f}... '.decode('utf-8').format(batch_loss),
-                          u'{:.4f} sec/batch'.decode('utf-8').format((end - start)))
+                    print "pre: ", sess.run(tf.cast(tf.argmax(predict, 1), tf.int32))
+                    print 'y_batch: ', sess.run(tf.reshape(y, [-1]))
+                    print 'train_acc: ', acc
+                    print '轮数: {}/{}... '.decode('utf-8').format(epoch + 1, conf.num_epochs), \
+                        '训练步数: {}... '.decode('utf-8').format(counter),\
+                        '训练误差: {:.4f}... '.decode('utf-8').format(batch_loss),\
+                        '{:.4f} sec/batch'.decode('utf-8').format((end - start))
 
                 if counter % conf.save_every_n == 0:
-                    saver.save(sess, u'checkpointss/i{}_l{}.ckpt'.decode('utf-8').format(counter, conf.lstm_size))
-        saver.save(sess, u"checkpointss/i{}_l{}.ckpt".decode('utf-8').format(counter, conf.lstm_size))
+                    saver.save(sess, 'checkpoints/i{}_l{}.ckpt'.decode('utf-8').format(counter, conf.lstm_size))
+        saver.save(sess, 'checkpoints/i{}_l{}.ckpt'.decode('utf-8').format(counter, conf.lstm_size))
 
 
 def pick_top_n(preds, vocab_size, top_n=5):
@@ -285,10 +296,10 @@ def generate_samples(checkpoint, num_samples, prime='The '):
 if __name__ == '__main__':
     train()
 
-    tf.train.latest_checkpoint('checkpointss')
+    tf.train.latest_checkpoint('checkpoints')
 
     # 选用最终的训练参数作为输入进行文本生成
-    checkpoint = tf.train.latest_checkpoint('checkpointss')
+    checkpoint = tf.train.latest_checkpoint('checkpoints')
     samp = generate_samples(checkpoint, 20000, prime="The ")
     print(samp)
 

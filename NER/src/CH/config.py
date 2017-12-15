@@ -15,18 +15,19 @@ tf.app.flags.DEFINE_string("log_path", 'model/log/', "log save path")
 tf.app.flags.DEFINE_integer("vocab_size", 20957, "Size of vocabulary.")
 
 tf.app.flags.DEFINE_integer("embedding_size", 100, "Size of word embedding.")
-tf.app.flags.DEFINE_integer("max_sequence", 30, "max sequence length.")
-tf.app.flags.DEFINE_integer("hidden_units", 100, "hidden units in lstm.")
+tf.app.flags.DEFINE_integer("max_sequence", 20, "max sequence length.")
+# tf.app.flags.DEFINE_integer("num_steps", 20, "max sequence length.")
+
+tf.app.flags.DEFINE_integer("hidden_units", 32, "hidden units in lstm.")
 tf.app.flags.DEFINE_integer("layers_num", 32, "hidden layers in lstm.")
-tf.app.flags.DEFINE_integer("num_steps", 30, "max sequence length.")
 tf.app.flags.DEFINE_integer("num_classes", 17, "num classes.")
 
 
-tf.app.flags.DEFINE_integer("batch_size", 128, "batch size.")
-tf.app.flags.DEFINE_integer("epoch", 30000, "epoch.")
+tf.app.flags.DEFINE_integer("batch_size", 64, "batch size.")
+# tf.app.flags.DEFINE_integer("epoch", 30000, "epoch.")
 tf.app.flags.DEFINE_float("dropout", 0.6, "drop out")
 tf.app.flags.DEFINE_float("lr", 0.0001, "learning rate")
-tf.app.flags.DEFINE_float("max_grad_norm", 1.0, "max_grad_norm.")
+tf.app.flags.DEFINE_float("max_grad_norm", 5.0, "max_grad_norm.")
 
 tf.app.flags.DEFINE_string("ner_scope_name", "ner_var_scope", "Define NER Tagging Variable Scope Name")
 tf.app.flags.DEFINE_string("action", 'train', "train | predict")

@@ -10,7 +10,7 @@ import numpy as np
 
 
 class bi_lstm_crf(object):
-    def __init__(self, config, is_training):
+    def __init__(self, name_scope, config, is_training):
         # tf.reset_default_graph()
         self.num_steps = config.num_steps
         self.vocab_size = config.vocab_size
@@ -20,55 +20,72 @@ class bi_lstm_crf(object):
         self.num_classes = config.num_classes
         self.max_grad_norm = config.max_grad_norm
         self.keep_prob = config.keep_pro
+        self.batch_size = config.batch_size
         self.is_training = is_training
+        with tf.variable_scope('graph'):
+            self._build_graph()
+        with tf.name_scope('saver'):
+            # 模型保存
+            self.saver = tf.train.Saver(tf.global_variables())
 
+        with tf.name_scope('summary'):
+            self.merged = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES, name_scope))
+
+    def _build_graph(self):
         # 在训练和测试的时候，我们想用不同batch_size的数据，所以将batch_size也采用占位符的形式
-        self.batch_size = tf.placeholder(tf.int32, [], name="batch_size")  # 注意类型必须为 tf.int32
+        # self.batch_size = tf.placeholder(tf.int32, [], name="batch_size")  # 注意类型必须为 tf.int32
         # self.is_training = tf.placeholder(tf.bool, [], name="is_training")
         # self.lr = tf.placeholder(tf.float32, [], name="lr")
         # self.max_grad_norm = tf.placeholder(tf.float32, [], name="max_grad_norm")
         # self.keep_prob = tf.placeholder(tf.float32, [], name="keep_pro")
-
-        # shape = (batch_size, num_steps)
-        self.source_input = tf.placeholder(dtype=tf.int32, shape=(None, self.num_steps), name="source_input")
-        # shape = (batch_size, num_steps)
-        self.target_input = tf.placeholder(dtype=tf.int32, shape=(None, self.num_steps), name="labels")
+        with tf.variable_scope('source_input'):
+            # shape = (batch_size, num_steps)
+            self.source_input = tf.placeholder(dtype=tf.int32, shape=(None, self.num_steps), name="source_input")
+        with tf.variable_scope('target_input'):
+            # shape = (batch_size, num_steps)
+            self.target_input = tf.placeholder(dtype=tf.int32, shape=(None, self.num_steps), name="labels")
 
         with tf.variable_scope("embedding"):
             _embedding = tf.Variable(tf.random_normal([self.vocab_size, self.embedding_size], -1.0, 1.0),
-                                     dtype=tf.float32, name="embedding")
+                                     dtype=tf.float32, name="embedding_init")
             # shape = (batch_size, num_steps, embedding_size)
-            target_inputs_embedding = tf.nn.embedding_lookup(_embedding, self.source_input, name="target_inputs_embedding")
-        # shape = [batch_size * num_steps, hidden_units * 2]
-        bi_cell_outputs = bi_RNN(target_inputs_embedding, self.is_training, self.hidden_units,
-                                 self.keep_prob, self.layers_num, self.batch_size)
-        # shape = [batch_size, num_steps, num_classes]
-        self.logits = add_output_layer(bi_cell_outputs, self.hidden_units, self.batch_size, self.num_classes)
-        # print('shape of self.unary_scores', np.shape(self.unary_scores))
-        # print('shape of self.target_inputs', np.shape(self.target_input))
-        # print('shape of self.batch_size', np.shape(self.batch_size), self.batch_size)
-        # print('shape of self.num_steps', np.shape(self.num_steps), self.num_steps)
+            source_inputs_embedding = tf.nn.embedding_lookup(_embedding, self.source_input, name="inputs_embedding")
 
-        self.cost, self.transition_params = cost_crf(self.logits, self.target_input, self.batch_size,
-                                                     self.num_steps, self.num_classes)
+        with tf.variable_scope('bidirecrional_LSTM'):
+            # shape = [batch_size * num_steps, hidden_units * 2]
+            bi_cell_outputs = bi_RNN(source_inputs_embedding, self.is_training, self.hidden_units,
+                                     self.keep_prob, self.layers_num, self.batch_size)
+
+        # shape = [batch_size, num_steps, num_classes]
+        with tf.variable_scope('output_layer'):
+            self.logits = add_output_layer(bi_cell_outputs, self.hidden_units, self.batch_size, self.num_classes)
+            # print('shape of self.unary_scores', np.shape(self.unary_scores))
+            # print('shape of self.target_inputs', np.shape(self.target_input))
+            # print('shape of self.batch_size', np.shape(self.batch_size), self.batch_size)
+            # print('shape of self.num_steps', np.shape(self.num_steps), self.num_steps)
+        with tf.variable_scope('crf'):
+            self.cost, self.transition_params = cost_crf(self.logits, self.target_input, self.batch_size,
+                                                         self.num_steps, self.num_classes)
 
         # self.accuracy = acc(self.logits, self.target_input, self.transition_params, self.batch_size, self.num_classes)
         # self.accuracy = (self.logits, self.target_input)
-        self.lr = tf.Variable(0.0001, trainable=False)
+
+        if not self.is_training:
+            return
+
         # 优化求解
+        self.lr = tf.Variable(0.0001, trainable=False)
         tvars = tf.trainable_variables()
         grads, _ = tf.clip_by_global_norm(tf.gradients(self.cost, tvars),
                                           self.max_grad_norm)
         optimizer = tf.train.GradientDescentOptimizer(self.lr)
         self.train_op = optimizer.apply_gradients(zip(grads, tvars),
-                                                  global_step=tf.contrib.framework.get_or_create_global_step())
+                                                  global_step=tf.train.get_or_create_global_step())
 
         # self.train_op = train_operation(self.cost, self.lr, self.max_grad_norm)
 
         self._new_lr = tf.placeholder(tf.float32, shape=[], name="new_learning_rate")
         self._lr_update = tf.assign(self.lr, self._new_lr)
-        # 模型保存
-        self.saver = tf.train.Saver(tf.global_variables())
 
     def assign_lr(self, session, lr_value):
         session.run(self._lr_update, feed_dict={self._new_lr: lr_value})
@@ -93,7 +110,7 @@ def bw_rnn_cell(is_training, hidden_units, keep_prob):
     bw_cell = tf.contrib.rnn.LSTMCell(hidden_units,
                                       reuse=tf.get_variable_scope().reuse,
                                       state_is_tuple=True)
-    if is_training :
+    if is_training:
         bw_cell = tf.contrib.rnn.DropoutWrapper(bw_cell,
                                                 input_keep_prob=1.0,
                                                 output_keep_prob=keep_prob)
@@ -152,8 +169,13 @@ def add_output_layer(outputs, hidden_units, batch_size, num_classes):
     Computing Tag Scores
     """
     with tf.variable_scope("output_layer"):
-        softmax_w = tf.Variable(tf.truncated_normal(shape=[hidden_units * 2, num_classes], stddev=0.1), name="softmax_w")
-        softmax_b = tf.Variable(tf.constant(1.0, shape=[num_classes]), name="softmax_b")
+        with tf.variable_scope('weight'):
+            softmax_w = tf.get_variable(name='softmax_w',
+                                        initializer=tf.truncated_normal(shape=[hidden_units * 2, num_classes], stddev=0.1))
+        with tf.variable_scope('bais'):
+            softmax_b = tf.get_variable(name='softmax_b',
+                                        initializer=tf.zeros(shape=[num_classes]))
+        # softmax_b = tf.get_variable('softmax_b', initializer=tf.ones(shape=[num_classes]))
 
     with tf.variable_scope("logits"):
         # shape = (batch_size * num_steps, num_classes)
@@ -198,17 +220,22 @@ def cost_crf(logits, labels, batch_size, sequence_length, num_classes):
     return cost, transition_params
 
 
-def train_operation(cost, lr, max_grad_norm):
-    # ***** 优化求解 *******
-    tvars = tf.trainable_variables()  # 获取模型的所有参数
-    grads, _ = tf.clip_by_global_norm(tf.gradients(cost, tvars), max_grad_norm)  # 获取损失函数对于每个参数的梯度
-    optimizer = tf.train.AdamOptimizer(learning_rate=lr)  # 优化器
+# def train_operation(cost, lr, max_grad_norm):
+#     # ***** 优化求解 *******
+#     tvars = tf.trainable_variables()  # 获取模型的所有参数
+#     grads, _ = tf.clip_by_global_norm(tf.gradients(cost, tvars), max_grad_norm)  # 获取损失函数对于每个参数的梯度
+#     optimizer = tf.train.AdamOptimizer(learning_rate=lr)  # 优化器
+#
+#     # 梯度下降计算
+#     train_op = optimizer.apply_gradients(zip(grads, tvars),
+#                                          global_step=tf.contrib.framework.get_or_create_global_step())
+#     return train_op
 
-    # 梯度下降计算
-    train_op = optimizer.apply_gradients(zip(grads, tvars),
-                                         global_step=tf.contrib.framework.get_or_create_global_step())
-    return train_op
+"""
+存在的问题
 
+将optimizer封装成一个函数，不同的model的申明是会报错
+"""
 
 # def acc(logits, target_inputs):
 #     # Evaluate word-level accuracy.

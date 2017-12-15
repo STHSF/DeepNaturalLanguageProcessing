@@ -3,16 +3,18 @@
 Training model
 """
 
-import time
 import pickle
+import time
+
 import numpy as np
 import tensorflow as tf
-import config
-from NER_Model_advanced import bi_lstm_crf
 from sklearn.model_selection import train_test_split
+import config
 from batch_generate import BatchGenerator
+from NER_Model_advanced import bi_lstm_crf
 
 # 数据导入
+# data_path = "/Users/li/workshop/MyRepository/DeepNaturalLanguageProcessing/NER/src/CH/"
 with open('data.pkl', 'rb') as pk:
     X = pickle.load(pk)
     y = pickle.load(pk)
@@ -33,19 +35,6 @@ data_train = BatchGenerator(X_train, y_train, shuffle=True)
 data_valid = BatchGenerator(X_valid, y_valid, shuffle=False)
 data_test = BatchGenerator(X_test, y_test, shuffle=False)
 print('Finished creating the data generator.')
-
-decay = 0.85
-tr_batch_size = 128
-max_epoch = 1
-max_max_epoch = 1
-display_num = 5  # 每个 epoch 显示是个结果
-# model_save_path = 'ckpt/bi-lstm-crf.ckpt'  # 模型保存位置
-print('data_train.y.shape[0]', data_train.y.shape[0])
-tr_batch_num = int(data_train.y.shape[0] / tr_batch_size)  # 每个 epoch 中包含的 batch 数
-display_batch = int(tr_batch_num / display_num)  # 每训练 display_batch 之后输出一次
-
-print('tr_batch_num', tr_batch_num)
-print('display_batch', display_batch)
 
 
 def acc_crf(unary_scores, y_batch, transition_params):
@@ -71,17 +60,17 @@ def acc_crf(unary_scores, y_batch, transition_params):
         total_labels += len(y_)
         # print ("viterbi_prediction")
         # print (viterbi_prediction)
+        # print("y_")
+        # print(y_)
     accuracy_crf = 100.0 * correct_labels / float(total_labels)
-
     return accuracy_crf
 
 
 class configuration(object):
     # hyper-parameter
     init_scale = 0.04
-    batch_size = 128  # size of per batch
-
-    num_steps = config.FLAGS.num_steps
+    batch_size = config.FLAGS.batch_size  # size of per batch
+    num_steps = config.FLAGS.max_sequence
     vocab_size = config.FLAGS.vocab_size
     embedding_size = config.FLAGS.embedding_size
     hidden_units = config.FLAGS.hidden_units
@@ -93,73 +82,61 @@ class configuration(object):
     keep_pro = config.FLAGS.dropout
 
 
-# # hyper-parameter
-# num_steps = config.FLAGS.num_steps
-# vocab_size = config.FLAGS.vocab_size
-# embedding_size = config.FLAGS.embedding_size
-# hidden_units = config.FLAGS.hidden_units
-# layers_num = config.FLAGS.layers_num
-# num_classes = config.FLAGS.num_classes
-# max_grad_norm = config.FLAGS.max_grad_norm
-# model_save_path = config.FLAGS.model_save_path
-#
-# # DNN Model
-# model = bi_lstm_crf(num_steps, vocab_size, embedding_size, hidden_units, layers_num, num_classes)
-
-
-def run_epoch(sess, dataset, batch_size, model, train_op):
-    """Runs the model on the given data."""
+def run_epoch(dataset, session, model, summary_writer):
     start_time = time.time()
-    _batch_size = batch_size
-
-    _y = dataset.y
-    data_size = _y.shape[0]
+    display_batch = 5
+    _batch_size = model.batch_size
+    print("model_batch_size in run_epoch", _batch_size)
+    data_size = dataset.y.shape[0]
+    print("data_size %s", data_size)
     batch_num = int(data_size / _batch_size)
-    # batch_num = int(((data_size // _batch_size) - 1) // model.num_steps)
-    _costs = 0.0
-    _accs = 0.0
-    for batch in range(batch_num):
-        X_batch, y_batch = dataset.next_batch(_batch_size)
-
-        if model.is_training:
-            # fetches = [model.accuracy, model.logits, model.transition_params, model.cost]
-            fetches = [model.logits, model.transition_params, model.cost, train_op]
-            feed_dict = {model.source_input: X_batch,
-                         model.target_input: y_batch,
-                         model.batch_size: _batch_size}
-
-            _logits, _transition_params, _cost, _ = sess.run(fetches, feed_dict)
-
-        else:
-
-            fetches = [model.logits, model.transition_params, model.cost, tf.no_op()]
-            feed_dict = {model.source_input: X_batch,
-                         model.target_input: y_batch,
-                         model.batch_size: _batch_size}
-            _logits, _transition_params, _cost, _ = sess.run(fetches, feed_dict)
-
-        accuracy = acc_crf(_logits, y_batch, _transition_params)
-        # _accs += _acc
-        _accs += accuracy
-        _costs += _cost
-
-        if batch % (batch_num // 10) == 10:
-            print("Accuracy: %.2f%%" % (_accs / batch_num))
-
-        if model.is_training and batch % (batch_num // 10) == 10:  # 每 3 个 epoch 保存一次模型
-            save_path = model.saver.save(sess, config.FLAGS.model_save_path, global_step=(batch + 1))
-            print("Model Saved... at time step " + str(batch))
-            print('the save path is ', save_path)
-
-    mean_acc = _accs / batch_num
-    mean_cost = np.exp(_costs / batch_num)
+    print("batch_num: %d", batch_num)
 
     if model.is_training:
-        print('\ttraining %d, acc=%g, cost=%g ' % (data_train.y.shape[0], mean_acc, mean_cost))
-        print('Epoch training %d, acc=%g, cost=%g, speed=%g s/epoch'
-              % (data_train.y.shape[0], mean_acc, mean_cost, time.time() - start_time))
+        print("=========================== Train ===============================")
+        fetches = [model.logits, model.transition_params, model.cost, model.train_op]
+    else:
+        print("======================= Valid or Test ============================")
+        fetches = [model.logits, model.transition_params, model.cost, tf.no_op()]
 
-    return mean_cost
+    iters = 0
+    _costs = 0.0
+    _accs = 0.0
+    show_accs = 0.0
+    show_costs = 0.0
+
+    for batch in range(batch_num):
+        X_batch, y_batch = dataset.next_batch(_batch_size)
+        feed_dict = {model.source_input: X_batch,
+                     model.target_input: y_batch}
+        _logits, _transition_params, _cost, _ = session.run(fetches, feed_dict)
+
+        accuracy = acc_crf(_logits, y_batch, _transition_params)
+        _accs += accuracy
+        _costs += _cost
+        iters += model.num_steps
+
+        if batch % 10 == 0:
+            summary = session.run(model.merged, feed_dict=feed_dict)
+            summary_writer.add_summary(summary, batch)
+
+        if model.is_training:
+            show_accs += accuracy
+            show_costs += _cost
+            if (batch + 1) % display_batch == 0:
+                print('batch: %s', batch + 1)
+                print('\t training acc: %g, cost: %g, speed: %.0f wps' %
+                      (show_accs / display_batch, show_costs / display_batch,
+                       (iters * model.batch_size) / (time.time() - start_time)))
+                show_accs, show_costs = 0.0, 0.0
+    mean_acc = _accs / batch_num
+    mean_cost = _costs / batch_num
+
+    # save model
+    if model.is_training:
+        pass
+
+    return mean_acc, mean_cost
 
 
 train_config = configuration()
@@ -167,57 +144,66 @@ eval_config = configuration()
 eval_config.batch_size = 1
 # eval_config.num_steps = 1
 
-# 设置cpu按需增长
-conf = tf.ConfigProto()
-conf.gpu_options.allow_growth = True
-init = tf.global_variables_initializer()
-# all_vars = tf.trainable_variables()
-# saver = tf.traylin.Saver(all_vars)  # 最多保存的模型数量
+decay = 0.85
+max_epoch = 3
+max_max_epoch = 10
 
 merged = tf.summary.merge_all()
 
 
-with tf.Session(config=conf) as sess:
-    initializer = tf.random_uniform_initializer(-train_config.init_scale,
-                                                train_config.init_scale)
-    with tf.name_scope("Train"):
-        with tf.variable_scope("Model", reuse=None, initializer=initializer):
-            train_model = bi_lstm_crf(is_training=True, config=train_config)
-        tf.summary.scalar("Training Loss", train_model.cost)
-        tf.summary.scalar("Learning Rate", train_model.lr)
+# sv = tf.train.Supervisor(logdir=config.FLAGS.log_path)
+# with sv.managed_session() as session:
 
-    with tf.name_scope("Valid"):
-        with tf.variable_scope("Model", reuse=True, initializer=initializer):
-            valid_model = bi_lstm_crf(is_training=False, config=train_config)
-        tf.summary.scalar("Validation Loss", valid_model.cost)
+def main():
+    with tf.Graph().as_default():
+        initializer = tf.random_uniform_initializer(-train_config.init_scale,
+                                                    train_config.init_scale)
+        with tf.name_scope("Train") as train_scope:
+            with tf.variable_scope("Model", reuse=None, initializer=initializer):
+                train_model = bi_lstm_crf(train_scope, is_training=True, config=train_config)
+            tf.summary.scalar("Training Loss", train_model.cost)
+            tf.summary.scalar("Learning Rate", train_model.lr)
 
-    with tf.name_scope("Test"):
-        with tf.variable_scope("Model", reuse=True, initializer=initializer):
-            test_model = bi_lstm_crf(is_training=False, config=eval_config)
+        with tf.name_scope("Valid") as valid_scope:
+            with tf.variable_scope("Model", reuse=True, initializer=initializer):
+                valid_model = bi_lstm_crf(valid_scope, is_training=False, config=train_config)
+            tf.summary.scalar("Validation Loss", valid_model.cost)
 
-    # CheckPoint State
-    ckpt = tf.train.get_checkpoint_state(train_config.model_save_path)
-    if ckpt:
-        print("Loading model parameters from %s" % ckpt.model_checkpoint_path)
-        train_model.saver.restore(sess, tf.train.latest_checkpoint(train_config.model_save_path))
-    else:
-        print("Created model with fresh parameters.")
-        sess.run(tf.global_variables_initializer())
+        with tf.name_scope("Test") as test_scope:
+            with tf.variable_scope("Model", reuse=True, initializer=initializer):
+                test_model = bi_lstm_crf(test_scope, is_training=False, config=eval_config)
 
-    summary_writer = tf.summary.FileWriter('data/model/tensorflowlogs', sess.graph)
-    #
-    # for epoch in range(max_max_epoch):
-    #     lr_decay = 1e-4
-    #     if epoch > max_epoch:
-    #         lr_decay = lr_decay * (decay ** (epoch - max_epoch))
-    #         train_model.assign_lr(sess, train_config.lr * lr_decay)
-    #     print('EPOCH %d， lr=%g' % (epoch + 1, lr_decay))
-    #
-    #     train_perplexity = run_epoch(sess, data_train, train_config.batch_size, train_model, train_model.train_op)
-    #     print("Epoch: %d Train Perplexity: %.3f" % (epoch + 1, train_perplexity))
-    #     valid_perplexity = run_epoch(sess, data_valid, 500, valid_model, tf.no_op())
-    #     print("Epoch: %d Valid Perplexity: %.3f" % (epoch + 1, valid_perplexity))
-    #
-    # test_perplexity = run_epoch(sess, data_test, 500, test_model, tf.no_op())
-    # print("Test Perplexity: %.3f" % test_perplexity)
+        with tf.Session() as session:
+            train_summary_writer = tf.summary.FileWriter('data/model/tensorflowlogs/train', session.graph)
+            valid_summary_writer = tf.summary.FileWriter('data/model/tensorflowlogs/test', session.graph)
+            test_summary_writer = tf.summary.FileWriter('data/model/tensorflowlogs/test', session.graph)
 
+            # CheckPoint State
+            ckpt = tf.train.get_checkpoint_state(train_config.model_save_path)
+            if ckpt:
+                print("Loading model parameters from %s" % ckpt.model_checkpoint_path)
+                train_model.saver.restore(session, tf.train.latest_checkpoint(train_config.model_save_path))
+            else:
+                print("Created model with fresh parameters.")
+                session.run(tf.global_variables_initializer())
+
+            for epoch in range(max_max_epoch):
+                lr_decay = 1e-4
+                if epoch > max_epoch:
+                    lr_decay = lr_decay * (decay ** (epoch - max_epoch))
+                    train_model.assign_lr(session, train_config.lr * lr_decay)
+                print('EPOCH %d， lr=%g' % (epoch + 1, lr_decay))
+
+                train_perplexity = run_epoch(data_train, session, train_model, train_summary_writer)
+                print("Epoch: %d Train acc: %.3f, Train cost: %.3f " % (
+                    epoch + 1, train_perplexity[0], train_perplexity[1]))
+                valid_perplexity = run_epoch(data_valid, session, valid_model, valid_summary_writer)
+                print("Epoch: %d Valid acc: %.3f, Valid cost: %.3f " % (
+                    epoch + 1, valid_perplexity[0], valid_perplexity[1]))
+
+            test_perplexity = run_epoch(data_test, session, test_model, test_summary_writer)
+            print("Test acc: %.3f, Test cost:  %.3f" % (test_perplexity[0], test_perplexity[1]))
+
+
+if __name__ == '__main__':
+    main()

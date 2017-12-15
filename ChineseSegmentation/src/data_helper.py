@@ -97,7 +97,7 @@ vocab_size = len(set_words)
 print 'vocab_size={}'.format(vocab_size)
 
 
-max_len = 32
+max_len = 15
 
 
 def X_padding(words):
@@ -133,56 +133,58 @@ print 'Example of y: ', y[0]
 # # 将word2id和tag2id保存下来
 # word2id.to_pickle("word_to_id.pkl")
 # tag2id.to_pickle("tag_to_id.pkl")
-#
-#
-# # 利用 labels（即状态序列）来统计转移概率
-# # 因为状态数比较少，这里用 dict={'I_tI_{t+1}'：p} 来实现
-# # A统计状态转移的频数
-# A = {
-#     'sb': 0,
-#     'ss': 0,
-#     'be': 0,
-#     'bm': 0,
-#     'me': 0,
-#     'mm': 0,
-#     'eb': 0,
-#     'es': 0
-# }
-#
-# # zy 表示转移概率矩阵
-# zy = dict()
-# for label in labels:
-#     for t in xrange(len(label) - 1):
-#         key = label[t] + label[t + 1]
-#         A[key] += 1.0
-#
-# zy['sb'] = A['sb'] / (A['sb'] + A['ss'])
-# zy['ss'] = 1.0 - zy['sb']
-# zy['be'] = A['be'] / (A['be'] + A['bm'])
-# zy['bm'] = 1.0 - zy['be']
-# zy['me'] = A['me'] / (A['me'] + A['mm'])
-# zy['mm'] = 1.0 - zy['me']
-# zy['eb'] = A['eb'] / (A['eb'] + A['es'])
-# zy['es'] = 1.0 - zy['eb']
-# keys = sorted(zy.keys())
-# print 'the transition probability: '
-# for key in keys:
-#     print key, zy[key]
-#
-# zy = {i: np.log(zy[i]) for i in zy.keys()}
-#
-#
-# # 数据保存成pickle的格式。
-# with open('data.pkl', 'wb') as outp:
-#     pickle.dump(X, outp)
-#     pickle.dump(y, outp)
-#     pickle.dump(word2id, outp)
-#     pickle.dump(id2word, outp)
-#     pickle.dump(tag2id, outp)
-#     pickle.dump(id2tag, outp)
-#     pickle.dump(zy, outp)
-# print '** Finished saving the data.'
-#
-#
-#
-#
+
+
+# 利用 labels（即状态序列）来统计转移概率
+# 因为状态数比较少，这里用 dict={'I_tI_{t+1}'：p} 来实现
+# A统计状态转移的频数
+A = {
+    'sb': 0,
+    'ss': 0,
+    'be': 0,
+    'bm': 0,
+    'me': 0,
+    'mm': 0,
+    'eb': 0,
+    'es': 0
+}
+
+# zy 表示转移概率矩阵
+zy = dict()
+for label in labels:
+    for t in xrange(len(label) - 1):
+        key = label[t] + label[t + 1]
+        A[key] += 1.0
+
+zy['sb'] = A['sb'] / (A['sb'] + A['ss'])
+zy['ss'] = 1.0 - zy['sb']
+zy['be'] = A['be'] / (A['be'] + A['bm'])
+zy['bm'] = 1.0 - zy['be']
+zy['me'] = A['me'] / (A['me'] + A['mm'])
+zy['mm'] = 1.0 - zy['me']
+zy['eb'] = A['eb'] / (A['eb'] + A['es'])
+zy['es'] = 1.0 - zy['eb']
+keys = sorted(zy.keys())
+print 'the transition probability: '
+for key in keys:
+    print key, zy[key]
+
+zy = {i: np.log(zy[i]) for i in zy.keys()}
+
+
+# 数据保存成pickle的格式。
+data_path = "/Users/li/workshop/MyRepository/DeepNaturalLanguageProcessing/ChineseSegmentation/dataset/"
+
+with open('data.pkl', 'wb') as outp:
+    pickle.dump(X, outp)
+    pickle.dump(y, outp)
+    pickle.dump(word2id, outp)
+    pickle.dump(id2word, outp)
+    pickle.dump(tag2id, outp)
+    pickle.dump(id2tag, outp)
+    pickle.dump(zy, outp)
+print '** Finished saving the data.'
+
+
+
+
