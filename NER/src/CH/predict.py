@@ -63,8 +63,8 @@ else:
 def viterbi_decoder(x_batch):
     fetches = [model.logits, model.transition_params]
     feed_dict = {model.source_input: x_batch,
-                 model.is_training: False,
-                 model.batch_size: 1}
+                 model._is_training: False,
+                 model._batch_size: 1}
 
     tf_unary_scores, tf_transition_params = sess.run(fetches, feed_dict)
 

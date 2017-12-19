@@ -175,7 +175,7 @@ def main():
 
         with tf.Session() as session:
             train_summary_writer = tf.summary.FileWriter('data/model/tensorflowlogs/train', session.graph)
-            valid_summary_writer = tf.summary.FileWriter('data/model/tensorflowlogs/test', session.graph)
+            valid_summary_writer = tf.summary.FileWriter('data/model/tensorflowlogs/valid', session.graph)
             test_summary_writer = tf.summary.FileWriter('data/model/tensorflowlogs/test', session.graph)
 
             # CheckPoint State

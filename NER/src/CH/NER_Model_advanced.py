@@ -10,26 +10,24 @@ import numpy as np
 
 
 class bi_lstm_crf(object):
-    def __init__(self, name_scope, config, is_training):
+    def __init__(self, scope_name, config, is_training):
         # tf.reset_default_graph()
-        self.num_steps = config.num_steps
-        self.vocab_size = config.vocab_size
-        self.embedding_size = config.embedding_size
-        self.hidden_units = config.hidden_units
-        self.layers_num = config.layers_num
-        self.num_classes = config.num_classes
-        self.max_grad_norm = config.max_grad_norm
-        self.keep_prob = config.keep_pro
-        self.batch_size = config.batch_size
-        self.is_training = is_training
-        with tf.variable_scope('graph'):
+        self._num_steps = config.num_steps
+        self._vocab_size = config.vocab_size
+        self._embedding_size = config.embedding_size
+        self._hidden_units = config.hidden_units
+        self._layers_num = config.layers_num
+        self._num_classes = config.num_classes
+        self._max_grad_norm = config.max_grad_norm
+        self._keep_prob = config.keep_pro
+        self._batch_size = config.batch_size
+        self._is_training = is_training
+
+        with tf.variable_scope(scope_name):
             self._build_graph()
-        with tf.name_scope('saver'):
-            # 模型保存
-            self.saver = tf.train.Saver(tf.global_variables())
 
         with tf.name_scope('summary'):
-            self.merged = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES, name_scope))
+            self.merged = tf.summary.merge(tf.get_collection(tf.GraphKeys.SUMMARIES, scope_name))
 
     def _build_graph(self):
         # 在训练和测试的时候，我们想用不同batch_size的数据，所以将batch_size也采用占位符的形式
@@ -40,44 +38,44 @@ class bi_lstm_crf(object):
         # self.keep_prob = tf.placeholder(tf.float32, [], name="keep_pro")
         with tf.variable_scope('source_input'):
             # shape = (batch_size, num_steps)
-            self.source_input = tf.placeholder(dtype=tf.int32, shape=(None, self.num_steps), name="source_input")
+            self.source_input = tf.placeholder(dtype=tf.int32, shape=(None, self._num_steps), name="source_input")
         with tf.variable_scope('target_input'):
             # shape = (batch_size, num_steps)
-            self.target_input = tf.placeholder(dtype=tf.int32, shape=(None, self.num_steps), name="labels")
+            self.target_input = tf.placeholder(dtype=tf.int32, shape=(None, self._num_steps), name="labels")
 
         with tf.variable_scope("embedding"):
-            _embedding = tf.Variable(tf.random_normal([self.vocab_size, self.embedding_size], -1.0, 1.0),
+            _embedding = tf.Variable(tf.random_normal([self._vocab_size, self._embedding_size], -1.0, 1.0),
                                      dtype=tf.float32, name="embedding_init")
             # shape = (batch_size, num_steps, embedding_size)
             source_inputs_embedding = tf.nn.embedding_lookup(_embedding, self.source_input, name="inputs_embedding")
 
         with tf.variable_scope('bidirecrional_LSTM'):
             # shape = [batch_size * num_steps, hidden_units * 2]
-            bi_cell_outputs = bi_RNN(source_inputs_embedding, self.is_training, self.hidden_units,
-                                     self.keep_prob, self.layers_num, self.batch_size)
+            bi_cell_outputs = bi_RNN(source_inputs_embedding, self._is_training, self._hidden_units,
+                                     self._keep_prob, self._layers_num, self._batch_size)
 
         # shape = [batch_size, num_steps, num_classes]
         with tf.variable_scope('output_layer'):
-            self.logits = add_output_layer(bi_cell_outputs, self.hidden_units, self.batch_size, self.num_classes)
+            self.logits = add_output_layer(bi_cell_outputs, self._hidden_units, self._batch_size, self._num_classes)
             # print('shape of self.unary_scores', np.shape(self.unary_scores))
             # print('shape of self.target_inputs', np.shape(self.target_input))
             # print('shape of self.batch_size', np.shape(self.batch_size), self.batch_size)
             # print('shape of self.num_steps', np.shape(self.num_steps), self.num_steps)
         with tf.variable_scope('crf'):
-            self.cost, self.transition_params = cost_crf(self.logits, self.target_input, self.batch_size,
-                                                         self.num_steps, self.num_classes)
+            self.cost, self.transition_params = cost_crf(self.logits, self.target_input, self._batch_size,
+                                                         self._num_steps, self._num_classes)
 
         # self.accuracy = acc(self.logits, self.target_input, self.transition_params, self.batch_size, self.num_classes)
         # self.accuracy = (self.logits, self.target_input)
 
-        if not self.is_training:
+        if not self._is_training:
             return
 
         # 优化求解
         self.lr = tf.Variable(0.0001, trainable=False)
         tvars = tf.trainable_variables()
         grads, _ = tf.clip_by_global_norm(tf.gradients(self.cost, tvars),
-                                          self.max_grad_norm)
+                                          self._max_grad_norm)
         optimizer = tf.train.GradientDescentOptimizer(self.lr)
         self.train_op = optimizer.apply_gradients(zip(grads, tvars),
                                                   global_step=tf.train.get_or_create_global_step())
@@ -86,6 +84,10 @@ class bi_lstm_crf(object):
 
         self._new_lr = tf.placeholder(tf.float32, shape=[], name="new_learning_rate")
         self._lr_update = tf.assign(self.lr, self._new_lr)
+
+        with tf.name_scope('saver'):
+            # 模型保存
+            self.saver = tf.train.Saver(tf.global_variables())
 
     def assign_lr(self, session, lr_value):
         session.run(self._lr_update, feed_dict={self._new_lr: lr_value})
