@@ -27,8 +27,14 @@ with open('data.pkl', 'rb') as pk:
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=0.2, random_state=42)
 
-print('X_train.shape={}, y_train.shape={}; \nX_valid.shape={}, y_valid.shape={};\nX_test.shape={}, y_test.shape={}'.format(
-    X_train.shape, y_train.shape, X_valid.shape, y_valid.shape, X_test.shape, y_test.shape))
+print('X_train.shape={}, y_train.shape={}; '
+      '\nX_valid.shape={}, y_valid.shape={};'
+      '\nX_test.shape={}, y_test.shape={}'.format(X_train.shape,
+                                                  y_train.shape,
+                                                  X_valid.shape,
+                                                  y_valid.shape,
+                                                  X_test.shape,
+                                                  y_test.shape))
 
 print('Creating the data generator ...')
 data_train = BatchGenerator(X_train, y_train, shuffle=True)
@@ -68,7 +74,7 @@ def acc_crf(unary_scores, y_batch, transition_params):
 
 class configuration(object):
     # hyper-parameter
-    init_scale = 0.04
+    init_scale = config.FLAGS.init_scale
     batch_size = config.FLAGS.batch_size  # size of per batch
     num_steps = config.FLAGS.max_sequence
     vocab_size = config.FLAGS.vocab_size
@@ -161,7 +167,7 @@ def main():
         with tf.name_scope("Train") as train_scope:
             with tf.variable_scope("Model", reuse=None, initializer=initializer):
                 train_model = bi_lstm_crf(train_scope, is_training=True, config=train_config)
-            tf.summary.scalar("Training Loss", train_model.cost)
+                tf.summary.scalar("Training Loss", train_model.cost)
             tf.summary.scalar("Learning Rate", train_model.lr)
 
         with tf.name_scope("Valid") as valid_scope:

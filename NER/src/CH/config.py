@@ -23,6 +23,7 @@ tf.app.flags.DEFINE_integer("layers_num", 32, "hidden layers in lstm.")
 tf.app.flags.DEFINE_integer("num_classes", 17, "num classes.")
 
 
+tf.app.flags.DEFINE_integer("init_scale", 0.04, "random_uniform_initializer.")
 tf.app.flags.DEFINE_integer("batch_size", 64, "batch size.")
 # tf.app.flags.DEFINE_integer("epoch", 30000, "epoch.")
 tf.app.flags.DEFINE_float("dropout", 0.6, "drop out")
