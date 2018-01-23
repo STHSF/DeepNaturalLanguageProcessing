@@ -34,6 +34,12 @@ def read_file(file_path):
 
 
 def build_vocab(file_patch, vocab_size=5000):
+    """
+    统计输入文件中的中文字符的出现次数，将出现次数最多的前vocab_size个中文字符保留下来，保存到文件中。
+    :param file_patch:
+    :param vocab_size:
+    :return:
+    """
     _, contents = read_file(file_patch)
     all_data = []
     # 拼接
@@ -42,14 +48,14 @@ def build_vocab(file_patch, vocab_size=5000):
     # 统计中文字符出现的次数
     counter = Counter(all_data)
     # 挑选前vocab_size个中文字符
-    counter_dict = counter.most_common(vocab_size - 1)
-
-    words, _ = list(zip(*counter_dict))
+    counter_lists = counter.most_common(vocab_size - 1)
+    # 巧用zip函数
+    words, _ = map(list, zip(*counter_lists))
     # 添加一个 <PAD> 来将所有文本pad为同一长度
-    words = ['<PAD>'] + list(words)
+    words = ['<PAD>'] + words
 
     # 将筛选出来的中文字符写入文件
-    with open('rr.txt', 'w') as f:
+    with open('vocab_list.txt', 'w') as f:
         f.write('\n'.join(words) + '\n')
 
 
