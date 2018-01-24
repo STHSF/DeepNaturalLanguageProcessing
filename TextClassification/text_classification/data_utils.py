@@ -13,6 +13,7 @@ class config(object):
     train_file_patch = './data/cnews/cnews.train.txt'
     val_file_patch = './data/cnews/cnews.val.txt'
     test_file_path = './data/cnews/cnews.test.txt'
+    vocab_path = "./data/vocab_list.txt"
 
 
 class data_utils(object):
@@ -58,17 +59,47 @@ class data_utils(object):
         words = ['<PAD>'] + words
 
         # 将筛选出来的中文字符写入文件
-        vocab_path = "./data/vocab_list.txt"
-        with open(vocab_path, 'w') as f:
+        with open(config.vocab_path, 'w') as f:
             f.write('\n'.join(words) + '\n')
 
-    def build_word(self):
-        pass
+    def build_word(self, vocab_path):
+        """
+        读取词汇表，并生成word_to_id表。
+        :param vocab_path:
+        :return:
+        """
+        with open(vocab_path) as f:
+            words = [word.encode('utf-8').strip() for word in f.readlines()]
+        word_to_id = list(zip(words, range(len(words))))
+
+        return words, word_to_id
+
+    def build_category(self, categories=None):
+        """
+        生成标签列表，以及标签编号列表
+        :return:
+        """
+        if categories is None:
+            categories = ['体育', '财经', '房产', '家居', '教育', '科技', '时尚', '时政', '游戏', '娱乐']
+        else:
+            categories = categories
+
+        cate_to_id = list(zip(categories, range(len(categories))))
+
+        return categories, cate_to_id
+
+
+
+
+def main():
+    data_processing = data_utils()
+    # data_processing.build_vocab(config.train_file_patch)
+    # data_processing.build_word(config.vocab_path)
+    data_processing.build_category()
 
 
 if __name__ == '__main__':
-    data_processing = data_utils()
-    data_processing.build_vocab(config.val_file_patch)
+    main()
 
 
 
