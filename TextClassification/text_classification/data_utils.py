@@ -64,7 +64,7 @@ class data_utils(object):
 
     def build_word(self, vocab_path):
         """
-        读取词汇表，并生成word_to_id表。
+        读取词汇表，并生成{word: id}表。
         :param vocab_path:
         :return:
         """
@@ -76,7 +76,7 @@ class data_utils(object):
 
     def build_category(self, categories=None):
         """
-        生成标签列表，以及标签编号列表
+        生成标签列表，以及{category: id}表
         :return:
         """
         if categories is None:
