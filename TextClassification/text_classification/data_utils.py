@@ -88,7 +88,21 @@ class data_utils(object):
 
         return categories, cate_to_id
 
+    def to_words(self, words, content):
+        """
+        将id转化成中文字符。
+        :param words: list
+        :param content: list
+        :return: str
+        """
 
+        return ''.join(words[x] for x in content)
+
+    def padding(self, sentence, word_to_id, cate_to_id):
+
+
+
+        pass
 
 
 def main():

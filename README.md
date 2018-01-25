@@ -1,6 +1,7 @@
 # DeepNaturallanguageprocessing
 
 深度自然语言处理
+这是一个python程序。
 
 ## [LanguageModel](https://github.com/STHSF/DeepNaturalLanguageProcessing/tree/master/language_model)
 使用深度学习建立语言模型，其中包括文本生成，翻译等
