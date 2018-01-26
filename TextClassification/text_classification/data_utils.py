@@ -100,7 +100,7 @@ class data_utils(object):
 
     def padding(self, sentence, word_to_id, length):
         """
-
+        将sentence padding成固定长度的list
         :param sentence:
         :param word_to_id:
         :param length:
@@ -110,24 +110,24 @@ class data_utils(object):
             content_list = sentence
         else:
             content_list = list(sentence)
+        # 现将中文字符转化成id
         padding_result = []
         for word in content_list:
             if word.encode('utf-8') in word_to_id:
                 padding_result.append(word_to_id[word.encode('utf-8')])
             else:
                 padding_result.append(0)
-        print 'padding_pre', padding_result
+        # print 'padding_pre', padding_result
 
         length_pre = len(padding_result)
-        print 'len_re', length_pre
-
+        # print 'len_re', length_pre
         if length_pre < length:
             padd = np.zeros([length - length_pre], dtype=int)
             padding_result.extend(padd)
         elif length_pre > length:
             padding_result = padding_result[:length]
-        print 'padding_after', padding_result
-        print 'padding_afte_lenr', len(padding_result)
+        # print 'padding_after', padding_result
+        # print 'padding_afte_lenr', len(padding_result)
         return padding_result
 
 
@@ -137,7 +137,8 @@ def main():
     word, word_to_id = data_processing.build_word(config.vocab_path)
     categories, cate_to_id = data_processing.build_category()
     test_data = u'首先根据文本的存储格式，将标签和正堍文分别提取出来，处理过程中注意中文的编码.'
-    data_processing.padding(test_data, word_to_id, 50)
+    a = data_processing.padding(test_data, word_to_id, 50)
+    print np.shape(a)
 
 
 if __name__ == '__main__':
