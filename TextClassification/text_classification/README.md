@@ -15,4 +15,8 @@
 然后就是将中文字符和category分别处理成{word: id}和{category: id}的形式。
 
 
+2、模型的输入数据准备
 
+1）由于模型接受固定长度的输入，所以需要把每篇文章padding成固定长度。
+
+2）batch数据准备，模型在feeding的过程中每次feed进入的是一个batch的数据，所以先要把训练集整理成bath的数据

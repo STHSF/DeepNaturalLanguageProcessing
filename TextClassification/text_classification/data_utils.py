@@ -70,7 +70,7 @@ class data_utils(object):
         """
         with open(vocab_path) as f:
             words = [word.encode('utf-8').strip() for word in f.readlines()]
-        word_to_id = list(zip(words, range(len(words))))
+        word_to_id = dict(zip(words, range(len(words))))
 
         return words, word_to_id
 
@@ -80,11 +80,11 @@ class data_utils(object):
         :return:
         """
         if categories is None:
-            categories = ['体育', '财经', '房产', '家居', '教育', '科技', '时尚', '时政', '游戏', '娱乐']
+            categories = [u'体育', u'财经', '房产', '家居', '教育', '科技', '时尚', '时政', '游戏', '娱乐']
         else:
             categories = categories
 
-        cate_to_id = list(zip(categories, range(len(categories))))
+        cate_to_id = dict(zip(categories, range(len(categories))))
 
         return categories, cate_to_id
 
@@ -98,22 +98,47 @@ class data_utils(object):
 
         return ''.join(words[x] for x in content)
 
-    def padding(self, sentence, word_to_id, cate_to_id):
+    def padding(self, sentence, word_to_id, length):
+        """
 
+        :param sentence:
+        :param word_to_id:
+        :param length:
+        :return:
+        """
+        if sentence is list:
+            content_list = sentence
+        else:
+            content_list = list(sentence)
+        padding_result = []
+        for word in content_list:
+            if word.encode('utf-8') in word_to_id:
+                padding_result.append(word_to_id[word.encode('utf-8')])
+            else:
+                padding_result.append(0)
+        print 'padding_pre', padding_result
 
+        length_pre = len(padding_result)
+        print 'len_re', length_pre
 
-        pass
+        if length_pre < length:
+            padd = np.zeros([length - length_pre], dtype=int)
+            padding_result.extend(padd)
+        elif length_pre > length:
+            padding_result = padding_result[:length]
+        print 'padding_after', padding_result
+        print 'padding_afte_lenr', len(padding_result)
+        return padding_result
 
 
 def main():
     data_processing = data_utils()
     # data_processing.build_vocab(config.train_file_patch)
-    # data_processing.build_word(config.vocab_path)
-    data_processing.build_category()
+    word, word_to_id = data_processing.build_word(config.vocab_path)
+    categories, cate_to_id = data_processing.build_category()
+    test_data = u'首先根据文本的存储格式，将标签和正堍文分别提取出来，处理过程中注意中文的编码.'
+    data_processing.padding(test_data, word_to_id, 50)
 
 
 if __name__ == '__main__':
     main()
-
-
-
