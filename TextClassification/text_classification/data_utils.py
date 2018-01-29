@@ -14,6 +14,7 @@ class config(object):
     val_file_patch = './data/cnews/cnews.val.txt'
     test_file_path = './data/cnews/cnews.test.txt'
     vocab_path = "./data/vocab_list.txt"
+    test_path = "./data/cnews/test.txt"
 
 
 class data_utils(object):
@@ -69,7 +70,7 @@ class data_utils(object):
         :return:
         """
         with open(vocab_path) as f:
-            words = [word.encode('utf-8').strip() for word in f.readlines()]
+            words = [word.decode('utf-8').strip() for word in f.readlines()]
         word_to_id = dict(zip(words, range(len(words))))
 
         return words, word_to_id
@@ -80,7 +81,7 @@ class data_utils(object):
         :return:
         """
         if categories is None:
-            categories = [u'体育', u'财经', '房产', '家居', '教育', '科技', '时尚', '时政', '游戏', '娱乐']
+            categories = [u'体育', u'财经', u'房产', u'家居', u'教育', u'科技', u'时尚', u'时政', u'游戏', u'娱乐']
         else:
             categories = categories
 
@@ -107,28 +108,47 @@ class data_utils(object):
         :return:
         """
         if sentence is list:
-            content_list = sentence
+            content_list = sentence.decode('utf-8')
         else:
-            content_list = list(sentence)
+            content_list = list(sentence.decode('utf-8'))
         # 现将中文字符转化成id
         padding_result = []
         for word in content_list:
-            if word.encode('utf-8') in word_to_id:
-                padding_result.append(word_to_id[word.encode('utf-8')])
+            if word in word_to_id:
+                padding_result.append(word_to_id[word])
             else:
                 padding_result.append(0)
         # print 'padding_pre', padding_result
 
         length_pre = len(padding_result)
-        # print 'len_re', length_pre
+        # print 'length_re', length_pre
         if length_pre < length:
             padd = np.zeros([length - length_pre], dtype=int)
             padding_result.extend(padd)
         elif length_pre > length:
             padding_result = padding_result[:length]
         # print 'padding_after', padding_result
-        # print 'padding_afte_lenr', len(padding_result)
+        # print 'padding_after_length', len(padding_result)
         return padding_result
+
+    def contents_padding(self, word_to_id, input_file=config.test_path):
+        """
+        将input_file中的正文内容进行编码和padding
+        :param word_to_id: 
+        :param input_file: 
+        :return: 
+        """
+        result = []
+        with open(input_file) as f:
+            for line in f.readlines():
+                _, content = line.strip().split('\t')
+                content_padding_list = self.padding(content, word_to_id, 10)
+                result.append(content_padding_list)
+        print np.shape(result)
+        print result
+
+    def batch_generate(self):
+        pass
 
 
 def main():
@@ -136,9 +156,23 @@ def main():
     # data_processing.build_vocab(config.train_file_patch)
     word, word_to_id = data_processing.build_word(config.vocab_path)
     categories, cate_to_id = data_processing.build_category()
-    test_data = u'首先根据文本的存储格式，将标签和正堍文分别提取出来，处理过程中注意中文的编码.'
-    a = data_processing.padding(test_data, word_to_id, 50)
-    print np.shape(a)
+
+    # 测试padding模块
+    # test_data = u'首先根据文本的存储格式，将标签和正堍文分别提取出来，处理过程中注意中文的编码.'
+    # a = data_processing.padding(test_data, word_to_id, 50)
+    # print a
+    # print np.shape(a)
+
+    # 测试contents_padding模块
+    # result = []
+    # with open(config.test_path) as f:
+    #     for line in f.readlines():
+    #         _, content = line.strip().split('\t')
+    #         content_padding_list = data_processing.padding(content, word_to_id, 10)
+    #         result.append(content_padding_list)
+    # print np.shape(result)
+    # print result
+    data_processing.contents_padding(word_to_id)
 
 
 if __name__ == '__main__':
