@@ -65,7 +65,7 @@ class data_utils(object):
 
     def build_word(self, vocab_path):
         """
-        读取词汇表，并生成{word: id}表。
+        读取词汇表，并生成{word: id}字典。
         :param vocab_path:
         :return:
         """
@@ -144,10 +144,10 @@ class data_utils(object):
                 _, content = line.strip().split('\t')
                 content_padding_list = self.padding(content, word_to_id, 10)
                 result.append(content_padding_list)
-        print np.shape(result)
-        print result
+        print(np.shape(result))
+        print(result)
 
-    def batch_generate(self):
+    def batch_generater(self):
         pass
 
 
