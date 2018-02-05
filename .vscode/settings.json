@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "/Users/li/workshop/virtualenv/tensor/tensor/bin/python"
+    "python.linting.enabled": false,
+    "python.pythonPath": "${workspaceFolder}/.env/bin/python"
 }

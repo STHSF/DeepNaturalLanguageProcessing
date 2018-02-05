@@ -144,8 +144,8 @@ class data_utils(object):
                 _, content = line.strip().split('\t')
                 content_padding_list = self.padding(content, word_to_id, 10)
                 result.append(content_padding_list)
-        print(np.shape(result))
-        print(result)
+        # print(np.shape(result))
+        print('result{}'.format(result))
 
     def batch_generater(self):
         pass
