@@ -1,10 +1,18 @@
-# coding=utf-8
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+@version: ??
+@author: li
+@file: test.py
+@time: 2018/3/27 下午5:10
+"""
 
 import os
 import sys
 import numpy as np
 from collections import Counter
-
+import tensorflow.contrib.keras as ks
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
@@ -131,30 +139,57 @@ class data_utils(object):
         # print 'padding_after_length', len(padding_result)
         return padding_result
 
-    def contents_padding(self, word_to_id, category_to_id, input_file=config.test_path):
+    def contents_padding(self, word_to_id, category_to_id, padding_length, input_file=config.test_path):
         """
         将input_file中的正文内容进行编码和padding
         :param word_to_id: 
         :param input_file:
         :param category_to_id:
+        :param padding_length:
         :return: 
         """
-        content_id, category_id = [], []
+        content_id_pad, category_id = [], []
         with open(input_file) as f:
             for line in f.readlines():
                 category, content = line.strip().split('\t')
-                content_padding_list = self.padding(content, word_to_id, 10)
-                content_id.append(content_padding_list)
+                content_padding_list = self.padding(content, word_to_id, padding_length)
+                content_id_pad.append(content_padding_list)
                 category_id.append(category_to_id[category.decode('utf-8')])
+        category_id_pad = ks.utils.to_categorical(category_id, num_classes=len(category_to_id))
+        print("shape_of_result: \n{}".format(np.shape(content_id_pad)))
+        print('content_id: \n{}'.format(np.array(content_id_pad)))
+        print("shape_of_category: \n{}".format(np.shape(category_id)))
+        print('category_id: \n{}'.format(category_id))
+        print("shape_of_category_pad: \n{}".format(np.shape(category_id_pad)))
+        print('category_id_pad: \n{}'.format(category_id_pad))
 
-        print("shape_of_result: {}".format(np.shape(content_id)))
-        print('content_id: {}'.format(content_id))
-        print("shape_of_category: {}".format(np.shape(category_id)))
-        print('category_id: {}'.format(category_id))
+        return np.array(content_id_pad), category_id_pad
 
+    def batch_generater(self, x_pad, y_pad, batch_size=2):
+        """
+        :return:
+        """
+        data_len = len(x_pad)
+        print("data_len: \n{}".format(data_len))
+        num_batch = int((data_len - 1) / batch_size) + 1
+        print("num_batch: \n{}".format(num_batch))
 
-    def batch_generater(self):
-        pass
+        indices = np.random.permutation(np.arange(data_len))
+
+        print("indices: \n{}".format(indices))
+
+        x_shuffle = x_pad[indices]
+        y_shuffle = y_pad[indices]
+
+        print("x_shuffle: \n{}".format(x_shuffle))
+        print("y_shuffle: \n{}".format(y_shuffle))
+        print("x_pad: \n{}".format(x_pad))
+        print("y_pad: \n{}".format(y_pad))
+
+        for num in range(num_batch):
+            start_id = num * batch_size
+            end_id = min((num + 1) * batch_size, data_len)
+            yield x_shuffle[start_id:end_id], y_shuffle[start_id:end_id]
 
 
 def main():
@@ -178,7 +213,11 @@ def main():
     #         result.append(content_padding_list)
     # print np.shape(result)
     # print result
-    data_processing.contents_padding(word_to_id, category_to_id)
+    x_pad, y_pad = data_processing.contents_padding(word_to_id, category_to_id, 10)
+
+    batch_data = data_processing.batch_generater(x_pad, y_pad, 2)
+    print(batch_data.next())
+
 
 
 if __name__ == '__main__':
