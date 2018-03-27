@@ -14,16 +14,17 @@ input_embedding_size = 20
 encoder_hidden_units = 512
 decoder_hidden_units = encoder_hidden_units * 2
 
+# define inputs
 encoder_input = tf.placeholder(shape=(None, None), dtype=tf.int32, name='encoder_inputs')
 # encoder_input_length = tf.placeholder(shape=(None,), dtype=tf.int32, name='encoder_input_length')
 decoder_targets = tf.placeholder(shape=(None, None), dtype=tf.int32, name='decoder_target')
 decoder_input = tf.placeholder(shape=(None, None), dtype=tf.int32, name='decoder_input')
 
+# define embedding layer
 embedding = tf.Variable(tf.random_uniform([vocab_size, input_embedding_size], -1.0, 1.0), dtype=tf.float32)
 
-encoder_inputs_embedded = tf.nn.embedding_lookup(embedding, encoder_input)
-
-decoder_inputs_embedded = tf.nn.embedding_lookup(embedding, decoder_input)
+encoder_inputs_embedded = tf.nn.embedding_lookup(embedding, encoder_input, name='encoder_inputs_embedded')
+decoder_inputs_embedded = tf.nn.embedding_lookup(embedding, decoder_input, name='decoder_inputs_embedded')
 
 encoder_cell_fw = tf.contrib.rnn.LSTMCell(encoder_hidden_units)
 encoder_cell_bw = tf.contrib.rnn.LSTMCell(encoder_hidden_units)
@@ -60,9 +61,7 @@ decoder_logits = tf.contrib.layers.linear(decoder_outputs, vocab_size)
 decoder_prediction = tf.argmax(decoder_logits, 2)
 
 stepwise_cross_entropy = tf.nn.softmax_cross_entropy_with_logits(
-    labels=tf.one_hot(decoder_targets,
-                      depth=vocab_size,
-                      dtype=tf.float32),
+    labels=tf.one_hot(decoder_targets, depth=vocab_size, dtype=tf.float32),
     logits=decoder_logits)
 
 loss = tf.reduce_mean(stepwise_cross_entropy)

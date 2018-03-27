@@ -47,3 +47,9 @@ batch 3000
     input     > [4 8 9 9 6 9 8 3]
     predicted > [4 8 9 9 6 9 8 3 1]
 ```
+
+## reference
+[深度学习要多深，才能读懂人话？阿里小蜜前沿探索](https://baijiahao.baidu.com/s?id=1570986733987329&wfr=spider&for=pc)
+[颠覆传统的电商智能助理-阿里小蜜技术揭秘](http://www.infoq.com/cn/articles/electricity-supplier-intelligent-assistant/)
+[揭秘阿里小蜜：基于检索模型和生成模型相结合的聊天引擎](http://blog.csdn.net/Uwr44UOuQcNsUQb60zk2/article/details/78849003)
+[阿里小蜜技术学习笔记--知识点整理](http://blog.csdn.net/l18930738887/article/details/55667427)

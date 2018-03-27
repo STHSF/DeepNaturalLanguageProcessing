@@ -34,7 +34,7 @@ class data_utils(object):
                     label, data = line.strip().split('\t')
                     labels.append(label)
                     contents.append(data)
-                except:
+                except ValueError:
                     pass
         return labels, contents
 
@@ -91,7 +91,7 @@ class data_utils(object):
 
     def to_words(self, words, content):
         """
-        将id转化成中文字符。
+        将id表示的内容转化成中文字符。
         :param words: list
         :param content: list
         :return: str
@@ -131,21 +131,27 @@ class data_utils(object):
         # print 'padding_after_length', len(padding_result)
         return padding_result
 
-    def contents_padding(self, word_to_id, input_file=config.test_path):
+    def contents_padding(self, word_to_id, category_to_id, input_file=config.test_path):
         """
         将input_file中的正文内容进行编码和padding
         :param word_to_id: 
-        :param input_file: 
+        :param input_file:
+        :param category_to_id:
         :return: 
         """
-        result = []
+        content_id, category_id = [], []
         with open(input_file) as f:
             for line in f.readlines():
-                _, content = line.strip().split('\t')
+                category, content = line.strip().split('\t')
                 content_padding_list = self.padding(content, word_to_id, 10)
-                result.append(content_padding_list)
-        # print(np.shape(result))
-        print('result{}'.format(result))
+                content_id.append(content_padding_list)
+                category_id.append(category_to_id[category.decode('utf-8')])
+
+        print("shape_of_result: {}".format(np.shape(content_id)))
+        print('content_id: {}'.format(content_id))
+        print("shape_of_category: {}".format(np.shape(category_id)))
+        print('category_id: {}'.format(category_id))
+
 
     def batch_generater(self):
         pass
@@ -155,7 +161,7 @@ def main():
     data_processing = data_utils()
     # data_processing.build_vocab(config.train_file_patch)
     word, word_to_id = data_processing.build_word(config.vocab_path)
-    categories, cate_to_id = data_processing.build_category()
+    categories, category_to_id = data_processing.build_category()
 
     # 测试padding模块
     # test_data = u'首先根据文本的存储格式，将标签和正堍文分别提取出来，处理过程中注意中文的编码.'
@@ -172,7 +178,7 @@ def main():
     #         result.append(content_padding_list)
     # print np.shape(result)
     # print result
-    data_processing.contents_padding(word_to_id)
+    data_processing.contents_padding(word_to_id, category_to_id)
 
 
 if __name__ == '__main__':
