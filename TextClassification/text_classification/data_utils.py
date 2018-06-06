@@ -104,7 +104,6 @@ class data_utils(object):
         :param content: list
         :return: str
         """
-
         return ''.join(words[x] for x in content)
 
     def padding(self, sentence, word_to_id, length):
@@ -199,10 +198,10 @@ def main():
     categories, category_to_id = data_processing.build_category()
 
     # 测试padding模块
-    # test_data = u'首先根据文本的存储格式，将标签和正堍文分别提取出来，处理过程中注意中文的编码.'
-    # a = data_processing.padding(test_data, word_to_id, 50)
-    # print a
-    # print np.shape(a)
+    test_data = u'首先根据文本的存储格式，将标签和正堍文分别提取出来，处理过程中注意中文的编码.'
+    a = data_processing.padding(test_data, word_to_id, 50)
+    print a
+    print np.shape(a)
 
     # 测试contents_padding模块
     # result = []
@@ -213,11 +212,11 @@ def main():
     #         result.append(content_padding_list)
     # print np.shape(result)
     # print result
+
     x_pad, y_pad = data_processing.contents_padding(word_to_id, category_to_id, 10)
 
     batch_data = data_processing.batch_generater(x_pad, y_pad, 2)
     print(batch_data.next())
-
 
 
 if __name__ == '__main__':

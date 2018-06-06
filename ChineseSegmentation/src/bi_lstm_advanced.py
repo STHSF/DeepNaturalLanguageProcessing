@@ -36,12 +36,12 @@ class bi_lstm(object):
                                      dtype=tf.float32, name='embedding')
             # shape = [batch_size, num_steps, embedding_size]
             inputs_embedded = tf.nn.embedding_lookup(_embedding, self._source_inputs)
-
+        # shape = [batch_size, num_steps, hidden_units*2]
         bi_lstm_output = bi_RNN(self.is_training, inputs_embedded, self.layers_num,
                                 self.batch_size, self.hidden_units, self.keep_prob)
-
+        # shape = [batch_size, num_steps, num_classes]
         self._logits = add_output_layer(bi_lstm_output, self.hidden_units, self.num_classes)
-
+        # 损失函数
         self._cost = cost_compute(self._logits, self.target_inputs, self.num_classes)
 
         correct_prediction = tf.equal(tf.cast(tf.argmax(self._logits, 1), tf.int32), tf.reshape(self._target_inputs, [-1]))
@@ -140,6 +140,7 @@ def bi_RNN(is_training, inputs, layers_num, batch_size, hidden_units, keep_prob)
 
 
 def add_output_layer(outputs, hidden_units, num_classes):
+    # 全连接层
     with tf.variable_scope('output_layer'):
         softmax_w = tf.Variable(tf.truncated_normal(shape=[hidden_units * 2, num_classes], stddev=0.1),
                                 name="soft_max_w")

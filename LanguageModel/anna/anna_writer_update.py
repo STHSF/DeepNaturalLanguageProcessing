@@ -66,6 +66,7 @@ x, y = next(get_batch(encoded, 10, 6))
 print x
 print y
 
+
 class language_model:
     def __init__(self, num_classes, batch_size=100, seq_length=50, learning_rate=0.01, num_layers=5, hidden_units=128,
                  keep_prob=0.8, grad_clip=5, is_training=True):
