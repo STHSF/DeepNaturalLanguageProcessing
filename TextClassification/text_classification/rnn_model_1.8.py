@@ -4,7 +4,7 @@
 """
 @version: ??
 @author: li
-@file: rnn_model.py
+@file: rnn_model_1.8.py
 @time: 2018/3/27 下午5:41
 """
 import tensorflow as tf
@@ -23,7 +23,7 @@ class TRNNConfig(object):
     dropout_keep_prob = 0.8
     learning_rate = 1e-3
 
-    batch_size = 200
+    batch_size = 128
     num_epochs = 10
 
     print_per_batch = 100
@@ -37,17 +37,17 @@ class TextRNN(object):
         self._build_graph()
 
     def lstm_cell(self):
-        return tf.contrib.rnn.BasicLSTMCell(self.config.hidden_dim, state_is_tuple=True)
+        return tf.nn.rnn_cell.BasicLSTMCell(self.config.hidden_dim, state_is_tuple=True)
 
     def gru_cell(self):
-        return tf.contrib.rnn.GRUCell(self.config.hidden_dim)
+        return tf.nn.rnn_cell.GRUCell(self.config.hidden_dim)
 
     def dropout(self):
         if self.config.rnn == 'lstm':
             cell = self.lstm_cell()
         else:
             cell = self.gru_cell()
-        return tf.contrib.rnn.DropoutWrapper(cell, output_keep_prob=self.keep_prob)
+        return tf.nn.rnn_cell.DropoutWrapper(cell, output_keep_prob=self.keep_prob)
 
     def _build_graph(self):
         with tf.variable_scope("input_data"):
@@ -64,24 +64,22 @@ class TextRNN(object):
 
         with tf.name_scope("rnn"):
             cells = [self.dropout() for _ in range(self.config.num_layers)]
-            rnn_cell = tf.contrib.rnn.MultiRNNCell(cells, state_is_tuple=True)
+            rnn_cell = tf.nn.rnn_cell.MultiRNNCell(cells, state_is_tuple=True)
 
-            self._outputs, _ = tf.nn.dynamic_rnn(cell=rnn_cell, inputs=embedding_imputs, dtype=tf.float32)
-            # print('shape_of_outputs: %s' % _outputs.get_shape())
-            last = self._outputs[:, -1, :]    # 取最后一个时序输出作为结果
-            # print('shape_of_outputs: %s' % last.get_shape())
+            _outputs, _ = tf.nn.dynamic_rnn(cell=rnn_cell, inputs=embedding_imputs, dtype=tf.float32)
+            last = _outputs[:, -1, :]
 
         with tf.name_scope("score"):
             # 全连接层
             fc = tf.layers.dense(last, self.config.hidden_dim, name='fc1')
-            fc = tf.contrib.layers.dropout(fc, self.keep_prob)
+            fc = tf.nn.dropout(fc, self.keep_prob)
             fc = tf.nn.relu(fc)
 
             self.logits = tf.layers.dense(fc, self.config.num_classes, name='f2')
             self.y_pred_cls = tf.arg_max(tf.nn.softmax(self.logits), 1)
 
         with tf.name_scope("optimizer"):
-            cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.input_y)
+            cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.logits, labels=self.input_y)
             self.loss = tf.reduce_mean(cross_entropy)
 
             self.optim = tf.train.AdamOptimizer(learning_rate=self.config.learning_rate).minimize(self.loss)

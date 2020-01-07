@@ -148,7 +148,7 @@ if __name__ == '__main__':
     _, cat_to_id = read_category()
     x_pad, y_pad = process_file(config.test_path, word_to_id, cat_to_id)
 
-    # test_data = u'首先根据文本的存储格式，将标签和正堍文分别提取出来，处理过程中注意中文的编码.'
+    # test_data = u'首先根据文本的存储格式，将标签和正文分别提取出来，处理过程中注意中文的编码.'
     # a = process_file(test_data, word_to_id, 50)
     # print a
     # print np.shape(a)

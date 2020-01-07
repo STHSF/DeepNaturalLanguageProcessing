@@ -4,7 +4,7 @@
 """
 @version: ??
 @author: li
-@file: test.py
+@file: model_running.py
 @time: 2018/3/27 下午5:10
 """
 
@@ -198,7 +198,7 @@ def main():
     categories, category_to_id = data_processing.build_category()
 
     # 测试padding模块
-    test_data = u'首先根据文本的存储格式，将标签和正堍文分别提取出来，处理过程中注意中文的编码.'
+    test_data = u'首先根据文本的存储格式，将标签和正文分别提取出来，处理过程中注意中文的编码.'
     a = data_processing.padding(test_data, word_to_id, 50)
     print a
     print np.shape(a)

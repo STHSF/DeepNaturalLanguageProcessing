@@ -4,13 +4,14 @@
 """
 @version: ??
 @author: li
-@file: test.py
+@file: model_running.py
 @time: 2018/3/27 下午5:10
 """
 import os
 import time
 from datetime import timedelta
 import tensorflow as tf
+import numpy as np
 from rnn_model import TRNNConfig, TextRNN
 from cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
 
@@ -26,12 +27,24 @@ save_path = os.path.join(save_dir, 'best_validation')
 
 
 def get_time_dif(start_time):
+    """
+    耗时计算
+    :param start_time:
+    :return:
+    """
     end_time = time.time()
     time_dif = end_time - start_time
     return timedelta(seconds=int(round(time_dif)))
 
 
 def feed_data(x_batch, y_batch, keep_prob):
+    """
+    将模型需要feed的参数
+    :param x_batch:
+    :param y_batch:
+    :param keep_prob:
+    :return: 返回一个数据字典
+    """
     feed_dict = {
         model.input_x: x_batch,
         model.input_y: y_batch,
@@ -41,6 +54,13 @@ def feed_data(x_batch, y_batch, keep_prob):
 
 
 def evaluate(sess, x_, y_):
+    """
+    develop model
+    :param sess:
+    :param x_:
+    :param y_:
+    :return:
+    """
     data_len = len(x_)
     batch_eval = batch_iter(x_, y_, 128)
     total_loss = 0.0
@@ -56,6 +76,10 @@ def evaluate(sess, x_, y_):
 
 
 def train():
+    """
+    model training
+    :return:
+    """
     print("Configuring TensorBoard and Saver...")
     tensorboard_dir = 'tensorboard/textrnn'
     if not os.path.exists(tensorboard_dir):
@@ -102,6 +126,9 @@ def train():
                 loss_train, acc_train = session.run([model.loss, model.acc], feed_dict=feed_dict)
                 loss_val, acc_val = evaluate(session, x_val, y_val)
 
+                # print("prediction %s" % session.run(tf.cast(tf.arg_max(model.y_pred_cls, 1), tf.int32)))
+                # print("y_batch %s" % session.run(tf.reshape(model.input_y, [-1])))
+
                 if acc_val > best_acc_val:
                     best_acc_val = acc_val
                     last_improved = total_batch
@@ -116,6 +143,9 @@ def train():
 
             session.run(model.optim, feed_dict=feed_dict)
             total_batch += 1
+            print('y_pre', session.run(model.y_pred_cls, feed_dict=feed_dict))
+            print('input_y', session.run(tf.arg_max(model.input_y, 1), feed_dict=feed_dict))
+            print('_outputs', session.run(np.shape(model._outputs), feed_dict=feed_dict))
 
             if total_batch - last_improved > require_improvement:
                 print("No optimization for a long time ,auto-stoppping...")
