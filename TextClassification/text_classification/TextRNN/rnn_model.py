@@ -23,7 +23,7 @@ class TRNNConfig(object):
     dropout_keep_prob = 0.8
     learning_rate = 1e-3
 
-    batch_size = 200
+    batch_size = 128
     num_epochs = 10
 
     print_per_batch = 100
