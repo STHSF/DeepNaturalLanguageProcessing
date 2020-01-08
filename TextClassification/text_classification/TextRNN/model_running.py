@@ -16,8 +16,8 @@ import time
 from datetime import timedelta
 import tensorflow as tf
 import numpy as np
-# from rnn_model import TRNNConfig, TextRNN
-from bi_rnn_model import TRNNConfig, TextBiLSTM
+from rnn_model import TRNNConfig, TextRNN
+# from bi_rnn_model import TRNNConfig, TextBiRNN
 from cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
 
 
@@ -90,16 +90,16 @@ def train():
     if not os.path.exists(tensorboard_dir):
         os.makedirs(tensorboard_dir)
 
-    # tf.summary.scalar("loss", model.loss)
-    # tf.summary.scalar("accuracy", model.acc)
-
-    # mergerd_summary = tf.summary.merge_all()
-    # writer = tf.summary.FileWriter(tensorboard_dir)
-
-    # saver = tf.train.Saver()
-    # if not os.path.exists(save_dir):
-    #     os.makedirs(save_dir)
+    tf.summary.scalar("loss", model.loss)
+    tf.summary.scalar("accuracy", model.acc)
     #
+    mergerd_summary = tf.summary.merge_all()
+    writer = tf.summary.FileWriter(tensorboard_dir)
+    #
+    saver = tf.train.Saver()
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
     print("Loading training and validation data ...")
 
     start_time = time.time()
@@ -115,7 +115,7 @@ def train():
 
     session = tf.Session()
     session.run(tf.global_variables_initializer())
-    # writer.add_graph(session.graph)
+    writer.add_graph(session.graph)
 
     print("Training and evaluating...")
     start_time = time.time()
@@ -142,7 +142,7 @@ def train():
                 if acc_val > best_acc_val:
                     best_acc_val = acc_val
                     last_improved = total_batch
-                    # saver.save(sess=session, save_path=save_path)
+                    saver.save(sess=session, save_path=save_path)
                     improved_str = '*'
                 else:
                     improved_str = ''
@@ -160,7 +160,6 @@ def train():
                 print("No optimization for a long time ,auto-stoppping...")
                 flag = True
                 break
-
             if flag:
                 break
 
@@ -174,8 +173,7 @@ if __name__ == '__main__':
     words, word_to_id = read_vocab(vocab_dir)
     config.vocab_size = len(words)
     # TextRNN
-    # model = TextRNN(config)
+    model = TextRNN(config)
     # TextBiRNN
-    model = TextBiLSTM(config)
-
+    # model = TextBiRNN(config)
     train()

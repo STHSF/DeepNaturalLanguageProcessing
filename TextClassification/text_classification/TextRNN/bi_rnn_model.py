@@ -31,7 +31,7 @@ class TRNNConfig(object):
     save_per_batch = 10
 
 
-class TextBiLSTM(object):
+class TextBiRNN(object):
 
     def __init__(self, config):
         self.config = config
