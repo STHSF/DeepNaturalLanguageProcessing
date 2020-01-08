@@ -22,8 +22,6 @@ else:
     sys.setdefaultencoding("utf-8")
     is_py3 = False
 
-print(is_py3)
-
 
 def native_word(word, encoding='utf-8'):
     """如果在python2下面使用python3训练的模型，可考虑调用此函数转化一下字符编码"""
@@ -45,7 +43,7 @@ def open_file(filename, mode='r'):
     常用文件操作，可在python2和python3间切换.
     mode: 'r' or 'w' for read or write
     """
-    if is_py3:
+    if not is_py3:
         return open(filename, mode, encoding='utf-8', errors='ignore')
     else:
         return open(filename, mode)
