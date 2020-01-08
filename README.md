@@ -11,6 +11,10 @@
 ## TextClassification
 ### 文本分类(text_classification)
 #### [TextRNN(lstm, bilstm)](https://github.com/STHSF/DeepNaturalLanguageProcessing/tree/master/TextClassification/text_classification/TextRNN)
+1、Embedding-> LSTM（GRU）—dropout—LSTM（GRU）—dropout—全连接层—输出层
+
+2、Embedding—> bi-directional lstm(GRU)—> concat output—> average/last output -> softmax layer
+
 #### [TextCNN](https://github.com/STHSF/DeepNaturalLanguageProcessing/tree/master/TextClassification/text_classification/TextCNN)
 
 ### 文本情感分析(sentiment_analysis)

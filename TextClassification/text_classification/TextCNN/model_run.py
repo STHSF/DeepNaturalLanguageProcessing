@@ -94,7 +94,7 @@ def train():
     with tf.Session() as session:
         session.run(tf.global_variables_initializer())
         merged_summary = tf.summary.merge_all()
-        writer_train = tf.summary.FileWriter(tensorboard_dir, session.graph)
+        writer_train = tf.summary.FileWriter(tensorboard_dir + '/train', session.graph)
         writer_valid = tf.summary.FileWriter(tensorboard_dir + '/valid')
 
         print('Training and evaluating...')

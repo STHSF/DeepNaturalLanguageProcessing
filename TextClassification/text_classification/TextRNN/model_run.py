@@ -105,14 +105,14 @@ def train():
     time_dif = get_time_dif(start_time)
     print("Time usage:", time_dif)
 
-    # print(x_train)git
+    # print(x_train)
     # print(type(x_train), np.shape(x_train))
     # print(y_train)
     # print(type(y_train), np.shape(y_train))
     with tf.Session() as session:
         session.run(tf.global_variables_initializer())
         merged_summary = tf.summary.merge_all()
-        writer_train = tf.summary.FileWriter(tensorboard_dir, session.graph)
+        writer_train = tf.summary.FileWriter(tensorboard_dir + '/train', session.graph)
         writer_valid = tf.summary.FileWriter(tensorboard_dir + '/valid')
         # writer_train.add_graph(session.graph)
 

@@ -21,6 +21,7 @@ class TCNNConfig(object):
     num_classes = 10  # 类别数
     num_filters = 256  # 卷积核数目
     kernel_size = 5  # 卷积核尺寸
+    kernel_size_list = [3, 4, 5]
     vocab_size = 5000  # 词汇表达小
 
     hidden_dim = 128  # 全连接层神经元
@@ -51,15 +52,25 @@ class TextCNN(object):
             self.dropout_keep_prob = tf.placeholder(tf.float32, name='dropout_keep_prob')
 
         # 词向量映射
-        with tf.device('/cpu:0'):
+        with tf.device('/cpu:0'), tf.name_scope('Embedding'):
             embedding = tf.get_variable('embedding', [self.config.vocab_size, self.config.embedding_dim])
             embedding_inputs = tf.nn.embedding_lookup(embedding, self.input_x)
 
-        with tf.name_scope("CNN"):
-            # CNN layer
-            conv = tf.layers.conv1d(embedding_inputs, self.config.num_filters, self.config.kernel_size, name='conv')
-            # global max pooling layer
-            gmp = tf.reduce_max(conv, reduction_indices=[1], name='gmp')
+        # with tf.name_scope("CNN"):
+        #     # CNN layer
+        #     conv = tf.layers.conv1d(embedding_inputs, self.config.num_filters, self.config.kernel_size, name='conv')
+        #     # global max pooling layer
+        #     gmp = tf.reduce_max(conv, reduction_indices=[1], name='gmp')
+
+        pooled_outputs = []
+        for i, filter_size in enumerate(self.config.kernel_size_list):
+            with tf.name_scope("conv-maxpool-%s" % filter_size):
+                conv = tf.layers.conv1d(embedding_inputs, self.config.num_filters, filter_size, name='conv')
+                mp = tf.reduce_max(conv, reduction_indices=[1], name='mp')
+                pooled_outputs.append(mp)
+        num_filter_total = self.config.num_filters * len(self.config.kernel_size_list)
+        self.h_pool = tf.concat(pooled_outputs, 3)
+        gmp = tf.reshape(self.h_pool, [-1, num_filter_total])
 
         with tf.name_scope("Score"):
             # 全连接层，后面接dropout以及relu激活
