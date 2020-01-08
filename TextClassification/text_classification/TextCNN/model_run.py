@@ -74,10 +74,8 @@ def train():
     if not os.path.exists(tensorboard_dir):
         os.makedirs(tensorboard_dir)
 
-    tf.summary.scalar("train_loss", model.loss)
-    tf.summary.scalar("train_accuracy", model.acc)
-    tf.summary.scalar("val_loss", model.loss)
-    tf.summary.scalar("val_accuracy", model.acc)
+    tf.summary.scalar("loss", model.loss)
+    tf.summary.scalar("accuracy", model.acc)
 
     # 配置 Saver
     saver = tf.train.Saver()
@@ -118,7 +116,11 @@ def train():
                     # 每多少轮次将训练结果写入tensorboard scalar
                     summary_train = session.run(merged_summary, feed_dict=feed_dict)
                     writer_train.add_summary(summary_train, total_batch)
-                    summary_valid = session.run(merged_summary, feed_dict=feed_dict_val)
+
+                    batch_eval = batch_iter(x_val, y_val, config.batch_size)
+                    for _x_batch, _y_batch in batch_eval:
+                        feed_dict = feed_data(_x_batch, _y_batch, 1.0)
+                    summary_valid = session.run(merged_summary, feed_dict=feed_dict)
                     writer_valid.add_summary(summary_valid, total_batch)
 
                 if total_batch % config.print_per_batch == 0:
