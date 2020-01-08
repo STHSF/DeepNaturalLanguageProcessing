@@ -4,7 +4,7 @@
 """
 @version: ??
 @author: li
-@file: model_running.py
+@file: model_run.py
 @time: 2018/3/27 下午5:10
 """
 import sys
