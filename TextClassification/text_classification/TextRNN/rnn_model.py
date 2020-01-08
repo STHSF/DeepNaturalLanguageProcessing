@@ -77,7 +77,7 @@ class TextRNN(object):
             fc = tf.contrib.layers.dropout(fc, self.keep_prob)
             fc = tf.nn.relu(fc)
 
-            self.logits = tf.layers.dense(fc, self.config.num_classes, name='f2')
+            self.logits = tf.layers.dense(fc, self.config.num_classes, name='fc2')
             self.y_pred_cls = tf.arg_max(tf.nn.softmax(self.logits), 1)
 
         with tf.name_scope("optimizer"):
