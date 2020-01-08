@@ -12,11 +12,11 @@ import time
 from datetime import timedelta
 import tensorflow as tf
 import numpy as np
-from rnn_model import TRNNConfig, TextRNN
-from cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
+from TextClassification.text_classification.TextRNN.rnn_model import TRNNConfig, TextRNN
+from TextClassification.text_classification.cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
 
 
-base_dir = "data/cnews"
+base_dir = "../data/cnews"
 train_dir = os.path.join(base_dir, "cnews.train.txt")
 test_dir = os.path.join(base_dir, "cnews.test.txt")
 val_dir = os.path.join(base_dir, "cnews.val.txt")
@@ -81,7 +81,7 @@ def train():
     :return:
     """
     print("Configuring TensorBoard and Saver...")
-    tensorboard_dir = 'tensorboard/textrnn'
+    tensorboard_dir = '../tensorboard/textrnn'
     if not os.path.exists(tensorboard_dir):
         os.makedirs(tensorboard_dir)
 
@@ -102,6 +102,11 @@ def train():
     x_val, y_val = process_file(val_dir, word_to_id, cat_to_id, config.seq_length)
     time_dif = get_time_dif(start_time)
     print("Time usage:", time_dif)
+
+    # print(x_train)
+    # print(type(x_train), np.shape(x_train))
+    # print(y_train)
+    # print(type(y_train), np.shape(y_train))
 
     session = tf.Session()
     session.run(tf.global_variables_initializer())
@@ -145,7 +150,6 @@ def train():
             total_batch += 1
             print('y_pre', session.run(model.y_pred_cls, feed_dict=feed_dict))
             print('input_y', session.run(tf.arg_max(model.input_y, 1), feed_dict=feed_dict))
-            print('_outputs', session.run(np.shape(model._outputs), feed_dict=feed_dict))
 
             if total_batch - last_improved > require_improvement:
                 print("No optimization for a long time ,auto-stoppping...")

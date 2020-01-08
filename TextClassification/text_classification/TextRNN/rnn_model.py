@@ -67,7 +67,7 @@ class TextRNN(object):
             rnn_cell = tf.contrib.rnn.MultiRNNCell(cells, state_is_tuple=True)
 
             self._outputs, _ = tf.nn.dynamic_rnn(cell=rnn_cell, inputs=embedding_imputs, dtype=tf.float32)
-            # print('shape_of_outputs: %s' % _outputs.get_shape())
+            print('shape_of_outputs: %s' % self._outputs.get_shape())
             last = self._outputs[:, -1, :]    # 取最后一个时序输出作为结果
             # print('shape_of_outputs: %s' % last.get_shape())
 
