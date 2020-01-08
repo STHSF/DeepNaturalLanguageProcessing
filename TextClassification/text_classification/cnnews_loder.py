@@ -85,8 +85,10 @@ def read_vocab(vocab_dir):
     # words = open_file(vocab_dir).read().strip().split('\n')
     with open(vocab_dir) as fp:
         # 如果是py2 则每个值都转化为unicode
-        # words = [native_content(_.strip()) for _ in fp.readlines()]
-        words = [word.decode('utf-8').strip() for word in fp.readlines()]
+        if is_py3:
+            words = [native_content(_.strip()) for _ in fp.readlines()]
+        else:
+            words = [word.decode('utf-8').strip() for word in fp.readlines()]
     word_to_id = dict(zip(words, range(len(words))))
     for i in word_to_id.items():
         print(i)
