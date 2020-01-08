@@ -44,7 +44,7 @@ class TextCNN(object):
         # 三个待输入的数据
         self.input_x = tf.placeholder(tf.int32, [None, self.config.seq_length], name='input_x')
         self.input_y = tf.placeholder(tf.float32, [None, self.config.num_classes], name='input_y')
-        self.keep_prob = tf.placeholder(tf.float32, name='keep_prob')
+        self.dropout_keep_prob = tf.placeholder(tf.float32, name='dropout_keep_prob')
 
         self.cnn()
 
@@ -64,7 +64,7 @@ class TextCNN(object):
         with tf.name_scope("score"):
             # 全连接层，后面接dropout以及relu激活
             fc = tf.layers.dense(gmp, self.config.hidden_dim, name='fc1')
-            fc = tf.contrib.layers.dropout(fc, self.keep_prob)
+            fc = tf.contrib.layers.dropout(fc, self.dropout_keep_prob)
             fc = tf.nn.relu(fc)
 
             # 分类器

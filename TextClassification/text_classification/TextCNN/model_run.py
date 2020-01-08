@@ -7,9 +7,6 @@
 @file: model_run.py
 @time: 2020/1/8 2:52 下午
 """
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 from __future__ import print_function
 
 import os
@@ -18,6 +15,7 @@ sys.path.append('../')
 sys.path.append('../../')
 sys.path.append('../../../')
 import time
+import argparse
 from datetime import timedelta
 
 import numpy as np
@@ -48,7 +46,7 @@ def feed_data(x_batch, y_batch, keep_prob):
     feed_dict = {
         model.input_x: x_batch,
         model.input_y: y_batch,
-        model.keep_prob: keep_prob
+        model.dropout_keep_prob: keep_prob
     }
     return feed_dict
 
@@ -120,7 +118,7 @@ def train():
 
                 if total_batch % config.print_per_batch == 0:
                     # 每多少轮次输出在训练集和验证集上的性能
-                    feed_dict[model.keep_prob] = 1.0
+                    feed_dict[model.dropout_keep_prob] = 1.0
                     loss_train, acc_train = session.run([model.loss, model.acc], feed_dict=feed_dict)
                     loss_val, acc_val = evaluate(session, x_val, y_val, config.batch_size)  # todo
 
@@ -138,7 +136,7 @@ def train():
                           + ' Val Loss: {3:>6.2}, Val Acc: {4:>7.2%}, Time: {5} {6}'
                     print(msg.format(total_batch, loss_train, acc_train, loss_val, acc_val, time_dif, improved_str))
 
-                feed_dict[model.keep_prob] = config.dropout_keep_prob
+                feed_dict[model.dropout_keep_prob] = config.dropout_keep_prob
                 session.run(model.optim, feed_dict=feed_dict)  # 运行优化
                 total_batch += 1
 
@@ -177,7 +175,7 @@ def test():
         end_id = min((i + 1) * batch_size, data_len)
         feed_dict = {
             model.input_x: x_test[start_id:end_id],
-            model.keep_prob: 1.0
+            model.dropout_keep_prob: 1.0
         }
         y_pred_cls[start_id:end_id] = session.run(model.y_pred_cls, feed_dict=feed_dict)
 
@@ -195,8 +193,13 @@ def test():
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2 or sys.argv[1] not in ['train', 'test']:
-        raise ValueError("""usage: python run_cnn.py [train / test]""")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--type', dest='type', default="train", type=str, required=True, choices=['train', 'test'], help="类型")
+    parser.add_argument('--model', dest='model', default="RNN", type=str, required=True, choices=['RNN', 'BiRNN'], help="模型")
+
+    args = parser.parse_args()
+    _type = args.type
+    _model = args.model
 
     print('Configuring CNN model...')
     config = TCNNConfig()
@@ -206,8 +209,8 @@ if __name__ == '__main__':
     words, word_to_id = read_vocab(vocab_dir)
     config.vocab_size = len(words)
     model = TextCNN(config)
-    train()
-    if sys.argv[1] == 'train':
+
+    if _type == 'train':
         train()
-    else:
+    if _type == 'test':
         test()
