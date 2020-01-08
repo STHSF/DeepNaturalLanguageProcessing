@@ -7,13 +7,17 @@
 @file: model_running.py
 @time: 2018/3/27 下午5:10
 """
+import sys
+sys.path.append('../')
+sys.path.append('../../')
+sys.path.append('../../../')
 import os
 import time
 from datetime import timedelta
 import tensorflow as tf
 import numpy as np
-from TextClassification.text_classification.TextRNN.rnn_model import TRNNConfig, TextRNN
-from TextClassification.text_classification.cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
+from rnn_model import TRNNConfig, TextRNN
+from cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
 
 
 base_dir = "../data/cnews"
