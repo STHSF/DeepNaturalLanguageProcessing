@@ -17,7 +17,7 @@ from datetime import timedelta
 import tensorflow as tf
 import numpy as np
 # from rnn_model import TRNNConfig, TextRNN
-from bilstm_model import TRNNConfig, TextBiLSTM
+from bi_rnn_model import TRNNConfig, TextBiLSTM
 from cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
 
 
