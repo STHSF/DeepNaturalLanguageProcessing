@@ -67,7 +67,7 @@ class TextCNN(object):
             pooled_outputs = []
             for i, filter_size in enumerate(self.config.kernel_size_list):
                 with tf.name_scope("conv-maxpool-%s" % filter_size):
-                    filter_shape = [filter_size, self.config.embedding_size, 1, self.config.num_filters]
+                    filter_shape = [filter_size, self.config.embedding_dim, 1, self.config.num_filters]
                     W = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.1), name="W")
                     b = tf.Variable(tf.constant(0.1, shape=[self.config.num_filters]), name="b")
                     conv = tf.nn.conv2d(
