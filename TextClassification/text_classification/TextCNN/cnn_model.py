@@ -62,15 +62,17 @@ class TextCNN(object):
         #     # global max pooling layer
         #     gmp = tf.reduce_max(conv, reduction_indices=[1], name='gmp')
 
-        pooled_outputs = []
-        for i, filter_size in enumerate(self.config.kernel_size_list):
-            with tf.name_scope("conv-maxpool-%s" % filter_size):
-                conv = tf.layers.conv1d(embedding_inputs, self.config.num_filters, filter_size, name='conv', reuse=True)
-                mp = tf.reduce_max(conv, reduction_indices=[1], name='mp')
-                pooled_outputs.append(mp)
-        num_filter_total = self.config.num_filters * len(self.config.kernel_size_list)
-        self.h_pool = tf.concat(pooled_outputs, 3)
-        gmp = tf.reshape(self.h_pool, [-1, num_filter_total])
+        with tf.name_scope('cnn'):
+            pooled_outputs = []
+            for i, filter_size in enumerate(self.config.kernel_size_list):
+                with tf.name_scope("conv-maxpool-%s" % filter_size):
+                    conv = tf.layers.conv1d(embedding_inputs, self.config.num_filters, filter_size, name='conv',
+                                            reuse=True)
+                    mp = tf.reduce_max(conv, reduction_indices=[1], name='mp')
+                    pooled_outputs.append(mp)
+            num_filter_total = self.config.num_filters * len(self.config.kernel_size_list)
+            self.h_pool = tf.concat(pooled_outputs, 3)
+            gmp = tf.reshape(self.h_pool, [-1, num_filter_total])
 
         with tf.name_scope("Score"):
             # 全连接层，后面接dropout以及relu激活
