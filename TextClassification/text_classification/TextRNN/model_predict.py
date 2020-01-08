@@ -13,15 +13,12 @@ import sys
 sys.path.append('../')
 sys.path.append('../../')
 sys.path.append('../../../')
-
-
 import os
 import tensorflow as tf
 import tensorflow.contrib.keras as kr
 
 # from rnn_model import TRNNConfig, TextRNN
 from bi_rnn_model import TRNNConfig, TextBiRNN
-
 from cnnews_loder import read_category, read_vocab
 
 try:
@@ -42,7 +39,7 @@ class RNNModel:
         self.categories, self.cat_to_id = read_category()
         self.words, self.word_to_id = read_vocab(vocab_dir)
         self.config.vocab_size = len(self.words)
-        self.model = TextRNN(self.config)
+        self.model = TextBiRNN(self.config)
 
         self.session = tf.Session()
         self.session.run(tf.global_variables_initializer())

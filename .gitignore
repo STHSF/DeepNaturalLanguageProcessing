@@ -1,0 +1,151 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+.hypothesis/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# IPython Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
+
+# dotenv
+.env
+.vscode
+.idea
+
+# virtualenv
+venv/
+ENV/
+
+# Spyder project settings
+.spyderproject
+
+# Rope project settings
+.ropeproject
+.idea/*
+sentiment_analysis/sentiment_analysis/cs224d/datasets/__MACOSX
+sentiment_analysis/sentiment_analysis/cs224d/datasets/stanfordSentimentTreebank/
+sentiment_analysis/env/
+/sentiment_analysis/sentiment_analysis/cs224d/datasets/__MACOSX/
+/sentiment_analysis/sentiment_analysis/cs224d/datasets/stanfordSentimentTreebank/
+/sentiment_analysis/embedding/data
+/sentiment_analysis/embedding/text8.zip
+word2vecmodel
+word2vec/text8
+MNIST_data/
+spider/豆瓣影评数据.xls
+*.pyc
+embedding
+
+
+/sentiment_analysis/sentiment_analysis_zh/globe.py
+/sentiment_analysis/sentiment_analysis_zh/plot.py
+/sentiment_analysis/sentiment_analysis_zh/data/
+.DS_Store
+.idea/
+LanguageModel/anna.ipynb
+LanguageModel/anna/checkpoints/
+/LanguageModel/anna/ex.py
+LanguageModel/lyrics_writer/data/
+/Seq2Seq/.ipynb_checkpoints/
+
+/Seq2Seq/char_rank/data/
+/Segmentation/src/data.pkl
+/Segmentation/msr_train.txt
+/Segmentation/train_clean.txt
+/Segmentation/tag_to_id.pkl
+/Segmentation/word_to_id.pkl
+/Segmentation/dataset/
+TextClassification/sentiment_analysis/sentiment_analysis/cs224d/datasets/__MACOSX/
+/Segmentation/ckpt/
+Segmentation/model/
+/dd.py
+NER/src/CH/data/
+POS/data/
+Textsum/data/
+/ChineseSegmentation/ckpt/
+/ChineseSegmentation/dataset/
+/ChineseSegmentation/logs/
+/ChineseSegmentation/dataset/data.pkl
+TextClassification/CAS/data/
+/NER/src/CH/data/
+/NER/src/EN/data_EN/
+/NER/src/CH/data.pkl
+NER/src/CH/data.pkl
+/NER/src/CH/报错以及解决方案.txt
+/NER/src/CH/data/predict.txt
+NER/src/CH/mRMR.ipynb
+/NER/src/CH/te.py
+/ChineseSegmentation/src/bi_lstm_crf/data/
+ChineseSegmentation/src/bi_lstm_crf/data/
+/TextClassification/text_classification/data/cnews/
+/TextClassification/text_classification/data/vocab_list.txt
+/TextClassification/text_classification/TextCNN/checkpoints/
+/TextClassification/text_classification/tensorboard/
