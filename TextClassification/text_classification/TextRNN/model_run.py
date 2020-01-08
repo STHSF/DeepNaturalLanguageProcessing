@@ -31,9 +31,9 @@ test_dir = os.path.join(base_dir, "cnews.test.txt")
 val_dir = os.path.join(base_dir, "cnews.val.txt")
 vocab_dir = os.path.join(base_dir, "cnews.vocab.txt")
 
-save_dir = '../checkpoints/textrnn'
+save_dir = '../checkpoints/textbirnn'
 save_path = os.path.join(save_dir, 'best_validation')
-tensorboard_dir = '../tensorboard/textrnn'
+tensorboard_dir = '../tensorboard/textbirnn'
 
 
 def get_time_dif(start_time):
@@ -112,8 +112,9 @@ def train():
     with tf.Session() as session:
         session.run(tf.global_variables_initializer())
         merged_summary = tf.summary.merge_all()
-        writer = tf.summary.FileWriter(tensorboard_dir, session.graph)
-        writer.add_graph(session.graph)
+        writer_train = tf.summary.FileWriter(tensorboard_dir, session.graph)
+        writer_valid = tf.summary.FileWriter(tensorboard_dir + '/valid')
+        # writer_train.add_graph(session.graph)
 
         print("Training and evaluating...")
         start_time = time.time()
@@ -129,14 +130,21 @@ def train():
             for x_batch, y_batch in batch_train:
                 feed_dict = feed_data(x_batch, y_batch, config.dropout_keep_prob)
                 if total_batch % config.save_per_batch == 0:
+                    # 每多少轮次将训练结果写入tensorboard scalar
+                    # train
                     summary_str = session.run(merged_summary, feed_dict=feed_dict)
-                    writer.add_summary(summary_str, total_batch)
+                    writer_train.add_summary(summary_str, total_batch)
+                    # valid
+                    batch_eval = batch_iter(x_val, y_val, config.batch_size)
+                    for _x_batch, _y_batch in batch_eval:
+                        feed_dict_valid = feed_data(_x_batch, _y_batch, 1.0)
+                    summary_valid = session.run(merged_summary, feed_dict=feed_dict_valid)
+                    writer_valid.add_summary(summary_valid, total_batch)
 
                 if total_batch % config.print_per_batch == 0:
                     feed_dict[model.dropout_keep_prob] = 1.0
                     loss_train, acc_train = session.run([model.loss, model.acc], feed_dict=feed_dict)
                     y_pred_cls_1, loss_val, acc_val = evaluate(session, x_val, y_val, config.batch_size)
-
                     # print("prediction %s" % session.run(tf.cast(tf.arg_max(model.y_pred_cls, 1), tf.int32)))
                     # print("y_batch %s" % session.run(tf.reshape(model.input_y, [-1])))
 
@@ -164,6 +172,8 @@ def train():
                     break
                 if flag:
                     break
+    writer_train.close()
+    writer_valid.close()
 
 
 def test():

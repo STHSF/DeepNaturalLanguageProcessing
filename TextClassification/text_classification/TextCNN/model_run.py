@@ -110,7 +110,6 @@ def train():
             batch_train = batch_iter(x_train, y_train, config.batch_size)
             for x_batch, y_batch in batch_train:
                 feed_dict = feed_data(x_batch, y_batch, config.dropout_keep_prob)
-                feed_dict_val = feed_data(x_val, y_val, 1.0)
 
                 if total_batch % config.save_per_batch == 0:
                     # 每多少轮次将训练结果写入tensorboard scalar
