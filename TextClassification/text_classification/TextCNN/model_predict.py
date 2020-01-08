@@ -17,8 +17,7 @@ import os
 import tensorflow as tf
 import tensorflow.contrib.keras as kr
 
-# from rnn_model import TRNNConfig, TextRNN
-from bi_rnn_model import TBRNNConfig, TextBiRNN
+from cnn_model import TCNNConfig, TextCNN
 from cnnews_loder import read_category, read_vocab
 
 try:
@@ -29,17 +28,17 @@ except NameError:
 base_dir = '../data/cnews'
 vocab_dir = os.path.join(base_dir, 'cnews.vocab.txt')
 
-save_dir = '../checkpoints/textbirnn'
+save_dir = '../checkpoints/textcnn'
 save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保存路径
 
 
-class RNNModel:
+class CNNModel:
     def __init__(self):
-        self.config = TBRNNConfig()
+        self.config = TCNNConfig()
         self.categories, self.cat_to_id = read_category()
         self.words, self.word_to_id = read_vocab(vocab_dir)
         self.config.vocab_size = len(self.words)
-        self.model = TextBiRNN(self.config)
+        self.model = TextCNN(self.config)
 
         self.session = tf.Session()
         self.session.run(tf.global_variables_initializer())
@@ -61,8 +60,8 @@ class RNNModel:
 
 
 if __name__ == '__main__':
-    rnn_model = RNNModel()
+    cnn_model = CNNModel()
     test_demo = ['三星ST550以全新的拍摄方式超越了以往任何一款数码相机',
                  '热火vs骑士前瞻：皇帝回乡二番战 东部次席唾手可得新浪体育讯北京时间3月30日7:00']
     for i in test_demo:
-        print(rnn_model.predict(i))
+        print(cnn_model.predict(i))
