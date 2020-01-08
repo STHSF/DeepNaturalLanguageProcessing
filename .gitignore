@@ -77,6 +77,8 @@ celerybeat-schedule
 
 # dotenv
 .env
+.vscode
+.idea
 
 # virtualenv
 venv/
@@ -122,14 +124,28 @@ LanguageModel/lyrics_writer/data/
 /Segmentation/word_to_id.pkl
 /Segmentation/dataset/
 TextClassification/sentiment_analysis/sentiment_analysis/cs224d/datasets/__MACOSX/
-.gitignore
 /Segmentation/ckpt/
 Segmentation/model/
 /dd.py
-NER/data/
+NER/src/CH/data/
 POS/data/
 Textsum/data/
 /ChineseSegmentation/ckpt/
 /ChineseSegmentation/dataset/
 /ChineseSegmentation/logs/
-/ChineseSegmentation/src/data.pkl
+/ChineseSegmentation/dataset/data.pkl
+TextClassification/CAS/data/
+/NER/src/CH/data/
+/NER/src/EN/data_EN/
+/NER/src/CH/data.pkl
+NER/src/CH/data.pkl
+/NER/src/CH/报错以及解决方案.txt
+/NER/src/CH/data/predict.txt
+NER/src/CH/mRMR.ipynb
+/NER/src/CH/te.py
+/ChineseSegmentation/src/bi_lstm_crf/data/
+ChineseSegmentation/src/bi_lstm_crf/data/
+/TextClassification/text_classification/data/cnews/
+/TextClassification/text_classification/data/vocab_list.txt
+/TextClassification/text_classification/checkpoints/
+/TextClassification/text_classification/tensorboard/

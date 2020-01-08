@@ -30,10 +30,13 @@ config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
 saver = tf.train.Saver()
-best_model_path = tf.train.latest_checkpoint('../ckpt/')
 
-# best_model_path = './ckpt/bi-lstm.ckpt-6'
-saver.restore(sess, best_model_path)
+best_model_path = tf.train.latest_checkpoint('../ckpt/')
+if best_model_path is not None:
+    print 'loading pre-trained model from %s.....' % best_model_path
+    saver.restore(sess, best_model_path)
+else:
+    print 'Model not found, please train your model first'
 
 
 def viterbi(nodes):

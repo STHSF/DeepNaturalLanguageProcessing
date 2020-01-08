@@ -105,8 +105,7 @@ with tf.Session(config=config) as sess:
                 print('\t training acc=%g, cost=%g;  valid acc= %g, cost=%g ' % (show_accs / display_batch,
                                                                                  show_costs / display_batch, valid_acc,
                                                                                  valid_cost))
-                show_accs = 0.0
-                show_costs = 0.0
+                show_accs, show_costs = 0.0, 0.0
         mean_acc = _accs / tr_batch_num
         mean_cost = _costs / tr_batch_num
         if (epoch + 1) % 3 == 0:  # 每 3 个 epoch 保存一次模型

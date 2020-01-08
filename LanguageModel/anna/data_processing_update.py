@@ -6,7 +6,7 @@
 @version: 1.0
 @author: Li Yu
 @license: Apache Licence 
-@file: data_processing.py
+@file: data_utils.py
 @time: 2017/7/3 上午9:59
 @version: python3 tensorflow1.0
 """
@@ -21,7 +21,7 @@ with open(file_path, 'r') as f:
 # 字符集合
 vocab = set(text)
 # 字符数字映射
-vocab_to_int = {char:i for i, char in enumerate(vocab)}
+vocab_to_int = {char: i for i, char in enumerate(vocab)}
 # 数字字符映射
 int_to_vocab = dict(enumerate(vocab))
 

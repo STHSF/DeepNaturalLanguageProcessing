@@ -62,10 +62,16 @@ def get_batch(raw_data, batch_size, seq_length):
         yield x, y
 
 
-class language_model:
+x, y = next(get_batch(encoded, 10, 6))
+print x
+print y
+
+
+class language_model(object):
     def __init__(self, num_classes, batch_size=100, seq_length=50, learning_rate=0.01, num_layers=5, hidden_units=128,
                  keep_prob=0.8, grad_clip=5, is_training=True):
 
+        tf.reset_default_graph()  # 模型的训练和预测放在同一个文件下时如果没有这个函数会报错。
         self.learning_rate = learning_rate
         self.num_layers = num_layers
         self.hidden_units = hidden_units
@@ -137,7 +143,8 @@ class language_model:
 
     def build_output(self):
         seq_output = tf.concat(self.cell_outputs, axis=1)
-        y0 = tf.reshape(seq_output, [-1, self.hidden_units])    # y0: [batch_size * seq_length, hidden_units]
+        # y0: [batch_size * seq_length, hidden_units]
+        y0 = tf.reshape(seq_output, [-1, self.hidden_units])
 
         with tf.name_scope('softmax'):
             sofmax_w = tf.Variable(tf.truncated_normal([self.hidden_units, self.num_classes], stddev=0.1))
@@ -272,6 +279,12 @@ with tf.Session() as sess:
             end = time.time()
             # control the print lines
             if counter % 100 == 0:
+                correct_prediction = tf.equal(tf.cast(tf.argmax(predict, 1), tf.int32),
+                                              tf.reshape(y, [-1]))
+                accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+                print "accuracy"
+                print sess.run(accuracy)
+
                 print('轮数: {}/{}... '.format(e + 1, conf.epochs),
                       '训练步数: {}... '.format(counter),
                       '训练误差: {:.4f}... '.format(batch_loss),
@@ -288,6 +301,5 @@ checkpoint = tf.train.latest_checkpoint('checkpoints')
 samp = generate_samples(checkpoint, 20000, prime="The ")
 print(samp)
 
-
-
-    # 其中还存在的问题，程序每运行一次vocab_to_int都会改变，导致train和predict不能分开。
+# 其中还存在的问题，程序每运行一次vocab_to_int都会改变，导致train和predict不能分开。
+# 解决方式：将vocab_to_int等数据预先封装成data_utils.py并保存成pkl或着csv文件，train 或predict时直接调用保存的文件即可。

@@ -99,9 +99,9 @@ class language_model:
 
     def add_input_layer(self):
         self.x = tf.placeholder(tf.int32,
-                                shape=(self.batch_size, self.seq_length), name='inputs')  # [batch_size, seq_length]
+                                shape=(None, self.seq_length), name='inputs')  # [batch_size, seq_length]
         self.y = tf.placeholder(tf.int32,
-                                shape=(self.batch_size, self.seq_length), name='targets')  # [batch_size, seq_length]
+                                shape=(None, self.seq_length), name='targets')  # [batch_size, seq_length]
         # One-hot编码
         self.inputs = tf.one_hot(self.x, self.num_classes)  # [batch_size, seq_length, num_classes]
         # self.inputs = tf.reshape(self.y, [-1, self.num_classes])
@@ -110,7 +110,7 @@ class language_model:
     def lstm_cell(self):
         # Or GRUCell, LSTMCell(args.hiddenSize)
         with tf.variable_scope('lstm_cell'):
-            cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_units,
+            cell = tf.nn.rnn_cell.BasicLSTMCell(self.hidden_units,
                                                 state_is_tuple=True)
 
         # with tf.variable_scope('lstm_cell'):
@@ -119,13 +119,13 @@ class language_model:
         #                                         reuse=tf.get_variable_scope().reuse)
 
         if self.is_training:
-            cell = tf.contrib.rnn.DropoutWrapper(cell,
+            cell = tf.nn.rnn_cell.DropoutWrapper(cell,
                                                  input_keep_prob=1.0,
                                                  output_keep_prob=self.keep_prob)
         return cell
 
     def add_multi_cells(self):
-        stacked_cells = tf.contrib.rnn.MultiRNNCell([self.lstm_cell() for _ in range(self.num_layers)],
+        stacked_cells = tf.nn.rnn_cell.MultiRNNCell([self.lstm_cell() for _ in range(self.num_layers)],
                                                     state_is_tuple=True)
         with tf.name_scope('initial_state'):
             # initial_state: [batch_size, hidden_units * num_layers]
@@ -166,14 +166,15 @@ class language_model:
                                                        labels=y_reshaped)  # loss: [batch_size, seq_length]
 
         self.loss = tf.reduce_mean(loss)
-        # return self.loss
+        return self.loss
 
     def optimizer(self):
         tvars = tf.trainable_variables()
         grads, _ = tf.clip_by_global_norm(tf.gradients(self.loss, tvars), self.grad_clip)
         optimizer = tf.train.AdamOptimizer(self.learning_rate)
         self.train_optimizer = optimizer.apply_gradients(zip(grads, tvars))
-        # return self.train_optimizer
+
+        return self.train_optimizer
 
 
 class conf(object):
