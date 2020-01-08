@@ -91,8 +91,7 @@ def train():
     tf.summary.scalar("loss", model.loss)
     tf.summary.scalar("accuracy", model.acc)
     #
-    merged_summary = tf.summary.merge_all()
-    writer = tf.summary.FileWriter(tensorboard_dir)
+
     #
     saver = tf.train.Saver()
     if not os.path.exists(save_dir):
@@ -110,60 +109,62 @@ def train():
     # print(type(x_train), np.shape(x_train))
     # print(y_train)
     # print(type(y_train), np.shape(y_train))
+    with tf.Session() as session:
+        session.run(tf.global_variables_initializer())
+        merged_summary = tf.summary.merge_all()
+        writer = tf.summary.FileWriter(tensorboard_dir, session.graph)
 
-    session = tf.Session()
-    session.run(tf.global_variables_initializer())
-    writer.add_graph(session.graph)
+        # writer.add_graph(session.graph)
 
-    print("Training and evaluating...")
-    start_time = time.time()
-    total_batch = 0
-    best_acc_val = 0.0
-    last_improved = 0
-    require_improvement = 1000
+        print("Training and evaluating...")
+        start_time = time.time()
+        total_batch = 0
+        best_acc_val = 0.0
+        last_improved = 0
+        require_improvement = 1000
 
-    flag = False
-    for epoch in range(config.num_epochs):
-        print('Epoch:', epoch + 1)
-        batch_train = batch_iter(x_train, y_train, config.batch_size)
-        for x_batch, y_batch in batch_train:
-            feed_dict = feed_data(x_batch, y_batch, config.dropout_keep_prob)
-            if total_batch % config.save_per_batch == 0:
-                summary_str = session.run(merged_summary, feed_dict=feed_dict)
-                writer.add_summary(summary_str, total_batch)
+        flag = False
+        for epoch in range(config.num_epochs):
+            print('Epoch:', epoch + 1)
+            batch_train = batch_iter(x_train, y_train, config.batch_size)
+            for x_batch, y_batch in batch_train:
+                feed_dict = feed_data(x_batch, y_batch, config.dropout_keep_prob)
+                if total_batch % config.save_per_batch == 0:
+                    summary_str = session.run(merged_summary, feed_dict=feed_dict)
+                    writer.add_summary(summary_str, total_batch)
 
-            if total_batch % config.print_per_batch == 0:
-                feed_dict[model.dropout_keep_prob] = 1.0
-                loss_train, acc_train = session.run([model.loss, model.acc], feed_dict=feed_dict)
-                y_pred_cls_1, loss_val, acc_val = evaluate(session, x_val, y_val, config.batch_size)
+                if total_batch % config.print_per_batch == 0:
+                    feed_dict[model.dropout_keep_prob] = 1.0
+                    loss_train, acc_train = session.run([model.loss, model.acc], feed_dict=feed_dict)
+                    y_pred_cls_1, loss_val, acc_val = evaluate(session, x_val, y_val, config.batch_size)
 
-                # print("prediction %s" % session.run(tf.cast(tf.arg_max(model.y_pred_cls, 1), tf.int32)))
-                # print("y_batch %s" % session.run(tf.reshape(model.input_y, [-1])))
+                    # print("prediction %s" % session.run(tf.cast(tf.arg_max(model.y_pred_cls, 1), tf.int32)))
+                    # print("y_batch %s" % session.run(tf.reshape(model.input_y, [-1])))
 
-                if acc_val > best_acc_val:
-                    # 保存最好结果
-                    best_acc_val = acc_val
-                    last_improved = total_batch
-                    saver.save(sess=session, save_path=save_path)
-                    improved_str = '*'
-                else:
-                    improved_str = ''
+                    if acc_val > best_acc_val:
+                        # 保存最好结果
+                        best_acc_val = acc_val
+                        last_improved = total_batch
+                        saver.save(sess=session, save_path=save_path)
+                        improved_str = '*'
+                    else:
+                        improved_str = ''
 
-                time_dif = get_time_dif(start_time)
-                msg = 'Iter: {0:>6}, Train Loss: {1:>6.2}, Train Acc: {2:>7.2%}, Val Loss: {3:>6.2}, Val Acc: {4:>7.2%}, Time: {5} {6}'
-                print(msg.format(total_batch, loss_train, acc_train, loss_val, acc_val, time_dif, improved_str))
+                    time_dif = get_time_dif(start_time)
+                    msg = 'Iter: {0:>6}, Train Loss: {1:>6.2}, Train Acc: {2:>7.2%}, Val Loss: {3:>6.2}, Val Acc: {4:>7.2%}, Time: {5} {6}'
+                    print(msg.format(total_batch, loss_train, acc_train, loss_val, acc_val, time_dif, improved_str))
 
-            session.run(model.optim, feed_dict=feed_dict)
-            total_batch += 1
-            # print('y_pre', session.run(model.y_pred_cls, feed_dict=feed_dict))
-            # print('input_y', session.run(tf.arg_max(model.input_y, 1), feed_dict=feed_dict))
+                session.run(model.optim, feed_dict=feed_dict)
+                total_batch += 1
+                # print('y_pre', session.run(model.y_pred_cls, feed_dict=feed_dict))
+                # print('input_y', session.run(tf.arg_max(model.input_y, 1), feed_dict=feed_dict))
 
-            if total_batch - last_improved > require_improvement:
-                print("No optimization for a long time ,auto-stoppping...")
-                flag = True
-                break
-            if flag:
-                break
+                if total_batch - last_improved > require_improvement:
+                    print("No optimization for a long time ,auto-stoppping...")
+                    flag = True
+                    break
+                if flag:
+                    break
 
 
 def test():
