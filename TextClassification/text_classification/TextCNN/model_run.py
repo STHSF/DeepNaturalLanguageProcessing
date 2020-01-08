@@ -114,13 +114,14 @@ def train():
 
                 if total_batch % config.save_per_batch == 0:
                     # 每多少轮次将训练结果写入tensorboard scalar
+                    # train
                     summary_train = session.run(merged_summary, feed_dict=feed_dict)
                     writer_train.add_summary(summary_train, total_batch)
-
+                    # valid
                     batch_eval = batch_iter(x_val, y_val, config.batch_size)
                     for _x_batch, _y_batch in batch_eval:
-                        feed_dict = feed_data(_x_batch, _y_batch, 1.0)
-                    summary_valid = session.run(merged_summary, feed_dict=feed_dict)
+                        feed_dict_valid = feed_data(_x_batch, _y_batch, 1.0)
+                    summary_valid = session.run(merged_summary, feed_dict=feed_dict_valid)
                     writer_valid.add_summary(summary_valid, total_batch)
 
                 if total_batch % config.print_per_batch == 0:
