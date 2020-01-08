@@ -16,7 +16,8 @@ import time
 from datetime import timedelta
 import tensorflow as tf
 import numpy as np
-from rnn_model import TRNNConfig, TextRNN
+# from rnn_model import TRNNConfig, TextRNN
+from bilstm_model import TRNNConfig, TextBiLSTM
 from cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
 
 
@@ -52,7 +53,7 @@ def feed_data(x_batch, y_batch, keep_prob):
     feed_dict = {
         model.input_x: x_batch,
         model.input_y: y_batch,
-        model.keep_prob: keep_prob
+        model.dropout_keep_prob: keep_prob
     }
     return feed_dict
 
@@ -131,7 +132,7 @@ def train():
             feed_dict = feed_data(x_batch, y_batch, config.dropout_keep_prob)
 
             if total_batch % config.print_per_batch == 0:
-                feed_dict[model.keep_prob] = 1.0
+                feed_dict[model.dropout_keep_prob] = 1.0
                 loss_train, acc_train = session.run([model.loss, model.acc], feed_dict=feed_dict)
                 loss_val, acc_val = evaluate(session, x_val, y_val)
 
@@ -172,6 +173,9 @@ if __name__ == '__main__':
     categories, cat_to_id = read_category()
     words, word_to_id = read_vocab(vocab_dir)
     config.vocab_size = len(words)
-    model = TextRNN(config)
+    # TextRNN
+    # model = TextRNN(config)
+    # TextBiRNN
+    model = TextBiLSTM(config)
 
     train()

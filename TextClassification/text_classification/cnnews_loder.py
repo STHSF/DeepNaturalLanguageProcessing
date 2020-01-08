@@ -22,6 +22,8 @@ else:
     sys.setdefaultencoding("utf-8")
     is_py3 = False
 
+print(is_py3)
+
 
 def native_word(word, encoding='utf-8'):
     """如果在python2下面使用python3训练的模型，可考虑调用此函数转化一下字符编码"""
