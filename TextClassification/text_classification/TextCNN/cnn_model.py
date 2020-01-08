@@ -40,16 +40,16 @@ class TextCNN(object):
 
     def __init__(self, config):
         self.config = config
+        self._build_graph()
 
-        # 三个待输入的数据
-        self.input_x = tf.placeholder(tf.int32, [None, self.config.seq_length], name='input_x')
-        self.input_y = tf.placeholder(tf.float32, [None, self.config.num_classes], name='input_y')
-        self.dropout_keep_prob = tf.placeholder(tf.float32, name='dropout_keep_prob')
-
-        self.cnn()
-
-    def cnn(self):
+    def _build_graph(self):
         """CNN模型"""
+        with tf.variable_scope("input_data"):
+            # 三个待输入的数据
+            self.input_x = tf.placeholder(tf.int32, [None, self.config.seq_length], name='input_x')
+            self.input_y = tf.placeholder(tf.float32, [None, self.config.num_classes], name='input_y')
+            self.dropout_keep_prob = tf.placeholder(tf.float32, name='dropout_keep_prob')
+
         # 词向量映射
         with tf.device('/cpu:0'):
             embedding = tf.get_variable('embedding', [self.config.vocab_size, self.config.embedding_dim])
@@ -73,7 +73,7 @@ class TextCNN(object):
 
         with tf.name_scope("optimize"):
             # 损失函数，交叉熵
-            cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.input_y)
+            cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.logits, labels=self.input_y)
             self.loss = tf.reduce_mean(cross_entropy)
             # 优化器
             self.optim = tf.train.AdamOptimizer(learning_rate=self.config.learning_rate).minimize(self.loss)

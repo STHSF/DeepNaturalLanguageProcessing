@@ -84,9 +84,10 @@ class TextRNN(object):
             self.y_pred_cls = tf.argmax(tf.nn.softmax(self.logits), 1)
 
         with tf.name_scope("optimizer"):
+            # 损失函数，交叉熵
             cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.input_y)
             self.loss = tf.reduce_mean(cross_entropy)
-
+            # 优化器
             self.optim = tf.train.AdamOptimizer(learning_rate=self.config.learning_rate).minimize(self.loss)
 
         with tf.name_scope("accuracy"):
