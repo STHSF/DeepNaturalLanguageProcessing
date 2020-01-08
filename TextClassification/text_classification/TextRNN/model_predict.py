@@ -17,7 +17,7 @@ import os
 import tensorflow as tf
 import tensorflow.contrib.keras as kr
 
-# from rnn_model import TBRNNConfig, TextRNN
+# from rnn_model import TRNNConfig, TextRNN
 from bi_rnn_model import TBRNNConfig, TextBiRNN
 from cnnews_loder import read_category, read_vocab
 
@@ -29,7 +29,7 @@ except NameError:
 base_dir = '../data/cnews'
 vocab_dir = os.path.join(base_dir, 'cnews.vocab.txt')
 
-save_dir = '../checkpoints/textrnn'
+save_dir = '../checkpoints/textbirnn'
 save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保存路径
 
 
