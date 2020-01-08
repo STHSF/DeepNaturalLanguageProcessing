@@ -90,9 +90,7 @@ def train():
 
     tf.summary.scalar("loss", model.loss)
     tf.summary.scalar("accuracy", model.acc)
-    #
 
-    #
     saver = tf.train.Saver()
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
