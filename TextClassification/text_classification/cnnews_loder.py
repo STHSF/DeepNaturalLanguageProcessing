@@ -44,7 +44,7 @@ def open_file(filename, mode='r'):
     mode: 'r' or 'w' for read or write
     """
     if not is_py3:
-        return open(filename, mode, encoding='utf-8', errors='ignore')
+        return open(filename, mode)
     else:
         return open(filename, mode)
 

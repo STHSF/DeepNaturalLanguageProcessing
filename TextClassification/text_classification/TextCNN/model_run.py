@@ -14,6 +14,9 @@ from __future__ import print_function
 
 import os
 import sys
+sys.path.append('../')
+sys.path.append('../../')
+sys.path.append('../../../')
 import time
 from datetime import timedelta
 
@@ -22,9 +25,9 @@ import tensorflow as tf
 from sklearn import metrics
 
 from cnn_model import TCNNConfig, TextCNN
-from data.cnews_loader import read_vocab, read_category, batch_iter, process_file, build_vocab
+from cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
 
-base_dir = 'data/cnews'
+base_dir = '../data/cnews'
 train_dir = os.path.join(base_dir, 'cnews.train.txt')
 test_dir = os.path.join(base_dir, 'cnews.test.txt')
 val_dir = os.path.join(base_dir, 'cnews.val.txt')
@@ -69,7 +72,7 @@ def evaluate(sess, x_, y_):
 def train():
     print("Configuring TensorBoard and Saver...")
     # 配置 Tensorboard，重新训练时，请将tensorboard文件夹删除，不然图会覆盖
-    tensorboard_dir = 'tensorboard/textcnn'
+    tensorboard_dir = '../tensorboard/textcnn'
     if not os.path.exists(tensorboard_dir):
         os.makedirs(tensorboard_dir)
 
@@ -203,7 +206,7 @@ if __name__ == '__main__':
     words, word_to_id = read_vocab(vocab_dir)
     config.vocab_size = len(words)
     model = TextCNN(config)
-
+    train()
     if sys.argv[1] == 'train':
         train()
     else:

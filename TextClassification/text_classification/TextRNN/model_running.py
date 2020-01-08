@@ -29,7 +29,7 @@ test_dir = os.path.join(base_dir, "cnews.test.txt")
 val_dir = os.path.join(base_dir, "cnews.val.txt")
 vocab_dir = os.path.join(base_dir, "cnews.vocab.txt")
 
-save_dir = 'checkpoints/textrnn'
+save_dir = '../checkpoints/textrnn'
 save_path = os.path.join(save_dir, 'best_validation')
 
 
@@ -113,7 +113,6 @@ def train():
         session.run(tf.global_variables_initializer())
         merged_summary = tf.summary.merge_all()
         writer = tf.summary.FileWriter(tensorboard_dir, session.graph)
-
         # writer.add_graph(session.graph)
 
         print("Training and evaluating...")
