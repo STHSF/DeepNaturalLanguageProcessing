@@ -195,11 +195,8 @@ def test():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--type', dest='type', default="train", type=str, required=True, choices=['train', 'test'], help="类型")
-    parser.add_argument('--model', dest='model', default="RNN", type=str, required=True, choices=['RNN', 'BiRNN'], help="模型")
-
     args = parser.parse_args()
     _type = args.type
-    _model = args.model
 
     print('Configuring CNN model...')
     config = TCNNConfig()
