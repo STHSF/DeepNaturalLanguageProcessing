@@ -60,8 +60,8 @@ class CNNModel:
 
 
 if __name__ == '__main__':
-    rnn_model = CNNModel()
+    cnn_model = CNNModel()
     test_demo = ['三星ST550以全新的拍摄方式超越了以往任何一款数码相机',
                  '热火vs骑士前瞻：皇帝回乡二番战 东部次席唾手可得新浪体育讯北京时间3月30日7:00']
     for i in test_demo:
-        print(rnn_model.predict(i))
+        print(cnn_model.predict(i))
