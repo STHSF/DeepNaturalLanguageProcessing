@@ -55,6 +55,7 @@ class TextCNN(object):
         with tf.device('/cpu:0'), tf.name_scope('Embedding'):
             embedding = tf.get_variable('embedding', [self.config.vocab_size, self.config.embedding_dim])
             embedding_inputs = tf.nn.embedding_lookup(embedding, self.input_x)
+            self.embedding_inputs_expanded = tf.expand_dims(embedding_inputs, -1)
 
         # with tf.name_scope("CNN"):
         #     # CNN layer
@@ -66,9 +67,23 @@ class TextCNN(object):
             pooled_outputs = []
             for i, filter_size in enumerate(self.config.kernel_size_list):
                 with tf.name_scope("conv-maxpool-%s" % filter_size):
-                    conv = tf.layers.conv1d(embedding_inputs, self.config.num_filters, filter_size, name='conv')
-                    mp = tf.reduce_max(conv, reduction_indices=[1], name='mp')
-                    pooled_outputs.append(mp)
+                    filter_shape = [filter_size, self.config.embedding_size, 1, self.config.num_filters]
+                    W = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.1), name="W")
+                    b = tf.Variable(tf.constant(0.1, shape=[self.config.num_filters]), name="b")
+                    conv = tf.nn.conv2d(
+                        self.embedding_inputs_expanded,
+                        W,
+                        strides=[1, 1, 1, 1],
+                        padding="VALID",
+                        name="conv")
+                    h = tf.nn.relu(tf.nn.bias_add(conv, b), name="relu")
+                    pooled = tf.nn.max_pool(
+                        h,
+                        ksize=[1, self.config.seq_length - filter_size + 1, 1, 1],
+                        strides=[1, 1, 1, 1],
+                        padding='VALID',
+                        name="pool")
+                    pooled_outputs.append(pooled)
             num_filter_total = self.config.num_filters * len(self.config.kernel_size_list)
             self.h_pool = tf.concat(pooled_outputs, 3)
             gmp = tf.reshape(self.h_pool, [-1, num_filter_total])
