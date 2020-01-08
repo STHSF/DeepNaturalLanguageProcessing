@@ -61,25 +61,21 @@ def feed_data(x_batch, y_batch, keep_prob):
 
 
 def evaluate(sess, x_, y_):
-    """
-    develop model
-    :param sess:
-    :param x_:
-    :param y_:
-    :return:
-    """
+    """评估在某一数据上的准确率和损失"""
     data_len = len(x_)
     batch_eval = batch_iter(x_, y_, 128)
     total_loss = 0.0
     total_acc = 0.0
+    y_pred_class = None
     for x_batch, y_batch in batch_eval:
         batch_len = len(x_batch)
         feed_dict = feed_data(x_batch, y_batch, 1.0)
-        loss, acc = sess.run([model.loss, model.acc], feed_dict=feed_dict)
-        total_loss += loss*batch_len
-        total_acc += acc*batch_len
+        # 在测试时不用进行dropout
+        y_pred_class, loss, acc = sess.run([model.y_pred_cls, model.loss, model.acc], feed_dict=feed_dict)
+        total_loss += loss * batch_len
+        total_acc += acc * batch_len
 
-    return total_acc / data_len, total_loss / data_len
+    return y_pred_class, total_loss / data_len, total_acc / data_len
 
 
 def train():
@@ -95,7 +91,7 @@ def train():
     tf.summary.scalar("loss", model.loss)
     tf.summary.scalar("accuracy", model.acc)
     #
-    mergerd_summary = tf.summary.merge_all()
+    merged_summary = tf.summary.merge_all()
     writer = tf.summary.FileWriter(tensorboard_dir)
     #
     saver = tf.train.Saver()
@@ -132,16 +128,20 @@ def train():
         batch_train = batch_iter(x_train, y_train, config.batch_size)
         for x_batch, y_batch in batch_train:
             feed_dict = feed_data(x_batch, y_batch, config.dropout_keep_prob)
+            if total_batch % config.save_per_batch == 0:
+                s = session.run(merged_summary, feed_dict=feed_dict)
+                writer.add_summary(s, total_batch)
 
             if total_batch % config.print_per_batch == 0:
                 feed_dict[model.dropout_keep_prob] = 1.0
                 loss_train, acc_train = session.run([model.loss, model.acc], feed_dict=feed_dict)
-                loss_val, acc_val = evaluate(session, x_val, y_val)
+                y_pred_cls_1, loss_val, acc_val = evaluate(session, x_val, y_val)
 
                 # print("prediction %s" % session.run(tf.cast(tf.arg_max(model.y_pred_cls, 1), tf.int32)))
                 # print("y_batch %s" % session.run(tf.reshape(model.input_y, [-1])))
 
                 if acc_val > best_acc_val:
+                    # 保存最好结果
                     best_acc_val = acc_val
                     last_improved = total_batch
                     saver.save(sess=session, save_path=save_path)
