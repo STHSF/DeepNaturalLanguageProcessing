@@ -11,7 +11,7 @@ import tensorflow as tf
 
 
 class TRNNConfig(object):
-    embedding_dim = 50  # 词向量维度
+    embedding_dim = 64  # 词向量维度
     seq_length = 600  # 序列长度
     num_classes = 10   # 类别数
     vocab_size = 5000  # 词汇表大小
@@ -24,7 +24,7 @@ class TRNNConfig(object):
     dropout_keep_prob = 0.8
     learning_rate = 1e-3
 
-    batch_size = 200
+    batch_size = 128
     num_epochs = 10
 
     print_per_batch = 100
