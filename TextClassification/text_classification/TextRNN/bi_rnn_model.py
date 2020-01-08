@@ -8,9 +8,11 @@
 @time: 2018/3/27 下午5:41
 """
 import tensorflow as tf
+import os
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 
-class TRNNConfig(object):
+class TBRNNConfig(object):
     embedding_dim = 64  # 词向量维度
     seq_length = 600  # 序列长度
     num_classes = 10   # 类别数
@@ -89,7 +91,7 @@ class TextBiRNN(object):
             fc = tf.nn.relu(fc)
 
             self.logits = tf.layers.dense(fc, self.config.num_classes, name='fc2')
-            self.y_pred_cls = tf.arg_max(tf.nn.softmax(self.logits), 1)
+            self.y_pred_cls = tf.argmax(tf.nn.softmax(self.logits), 1)
 
         with tf.name_scope("optimizer"):
             cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.input_y)

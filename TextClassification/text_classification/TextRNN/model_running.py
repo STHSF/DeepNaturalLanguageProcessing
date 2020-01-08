@@ -13,15 +13,17 @@ sys.path.append('../../')
 sys.path.append('../../../')
 import os
 import time
-import parser
+import argparse
 from datetime import timedelta
 import tensorflow as tf
 from sklearn import metrics
 
 import numpy as np
 from rnn_model import TRNNConfig, TextRNN
-# from bi_rnn_model import TRNNConfig, TextBiRNN
+from bi_rnn_model import TBRNNConfig, TextBiRNN
 from cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 base_dir = "../data/cnews"
 train_dir = os.path.join(base_dir, "cnews.train.txt")
@@ -103,7 +105,7 @@ def train():
     time_dif = get_time_dif(start_time)
     print("Time usage:", time_dif)
 
-    # print(x_train)
+    # print(x_train)git
     # print(type(x_train), np.shape(x_train))
     # print(y_train)
     # print(type(y_train), np.shape(y_train))
@@ -111,7 +113,7 @@ def train():
         session.run(tf.global_variables_initializer())
         merged_summary = tf.summary.merge_all()
         writer = tf.summary.FileWriter(tensorboard_dir, session.graph)
-        # writer.add_graph(session.graph)
+        writer.add_graph(session.graph)
 
         print("Training and evaluating...")
         start_time = time.time()
@@ -209,22 +211,34 @@ def test():
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2 or sys.argv[1] not in ['train', 'test']:
-        raise ValueError("""usage: python run_cnn.py [train / test]""")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--type', dest='type', default="train", type=str, required=True, choices=['train', 'test'], help="类型")
+    parser.add_argument('--model', dest='model', default="RNN", type=str, required=True, choices=['RNN', 'BiRNN'], help="模型")
+
+    args = parser.parse_args()
+    _type = args.type
+    _model = args.model
 
     print("Configuring RNN Model")
-    config = TRNNConfig()
+    if _model == 'RNN':
+        config = TRNNConfig()
+    if _model == 'BiRNN':
+        config = TBRNNConfig()
+
     if not os.path.exists(vocab_dir):
         build_vocab(train_dir, vocab_dir, config.vocab_size)
     categories, cat_to_id = read_category()
     words, word_to_id = read_vocab(vocab_dir)
     config.vocab_size = len(words)
-    # TextRNN
-    model = TextRNN(config)
-    # TextBiRNN
-    # model = TextBiRNN(config)
 
-    if sys.argv[1] == 'train':
+    if _model == 'RNN':
+        # TextRNN
+        model = TextRNN(config)
+    if _model == 'BiRNN':
+        # TextBiRNN
+        model = TextBiRNN(config)
+
+    if _type == 'train':
         train()
-    else:
+    if _type == 'test':
         test()

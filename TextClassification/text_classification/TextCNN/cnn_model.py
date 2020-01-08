@@ -8,9 +8,9 @@
 @time: 2020/1/8 2:51 下午
 """
 
-# coding: utf-8
-
 import tensorflow as tf
+import os
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 
 class TCNNConfig(object):

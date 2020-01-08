@@ -17,8 +17,8 @@ import os
 import tensorflow as tf
 import tensorflow.contrib.keras as kr
 
-# from rnn_model import TRNNConfig, TextRNN
-from bi_rnn_model import TRNNConfig, TextBiRNN
+# from rnn_model import TBRNNConfig, TextRNN
+from bi_rnn_model import TBRNNConfig, TextBiRNN
 from cnnews_loder import read_category, read_vocab
 
 try:
@@ -35,7 +35,7 @@ save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保�
 
 class RNNModel:
     def __init__(self):
-        self.config = TRNNConfig()
+        self.config = TBRNNConfig()
         self.categories, self.cat_to_id = read_category()
         self.words, self.word_to_id = read_vocab(vocab_dir)
         self.config.vocab_size = len(self.words)

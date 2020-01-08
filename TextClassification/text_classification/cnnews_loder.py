@@ -90,8 +90,6 @@ def read_vocab(vocab_dir):
         else:
             words = [word.decode('utf-8').strip() for word in fp.readlines()]
     word_to_id = dict(zip(words, range(len(words))))
-    for i in word_to_id.items():
-        print(i)
     return words, word_to_id
 
 
