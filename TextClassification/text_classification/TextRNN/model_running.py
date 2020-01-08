@@ -31,6 +31,7 @@ vocab_dir = os.path.join(base_dir, "cnews.vocab.txt")
 
 save_dir = '../checkpoints/textrnn'
 save_path = os.path.join(save_dir, 'best_validation')
+tensorboard_dir = '../tensorboard/textrnn'
 
 
 def get_time_dif(start_time):
@@ -84,7 +85,6 @@ def train():
     :return:
     """
     print("Configuring TensorBoard and Saver...")
-    tensorboard_dir = '../tensorboard/textrnn'
     if not os.path.exists(tensorboard_dir):
         os.makedirs(tensorboard_dir)
 
