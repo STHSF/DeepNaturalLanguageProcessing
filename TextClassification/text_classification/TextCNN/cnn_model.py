@@ -65,7 +65,7 @@ class TextCNN(object):
         pooled_outputs = []
         for i, filter_size in enumerate(self.config.kernel_size_list):
             with tf.name_scope("conv-maxpool-%s" % filter_size):
-                conv = tf.layers.conv1d(embedding_inputs, self.config.num_filters, filter_size, name='conv', reuse=tf.AUTO_REUSE)
+                conv = tf.layers.conv1d(embedding_inputs, self.config.num_filters, filter_size, name='conv', reuse=True)
                 mp = tf.reduce_max(conv, reduction_indices=[1], name='mp')
                 pooled_outputs.append(mp)
         num_filter_total = self.config.num_filters * len(self.config.kernel_size_list)
