@@ -153,8 +153,8 @@ def train():
 
             session.run(model.optim, feed_dict=feed_dict)
             total_batch += 1
-            print('y_pre', session.run(model.y_pred_cls, feed_dict=feed_dict))
-            print('input_y', session.run(tf.arg_max(model.input_y, 1), feed_dict=feed_dict))
+            # print('y_pre', session.run(model.y_pred_cls, feed_dict=feed_dict))
+            # print('input_y', session.run(tf.arg_max(model.input_y, 1), feed_dict=feed_dict))
 
             if total_batch - last_improved > require_improvement:
                 print("No optimization for a long time ,auto-stoppping...")

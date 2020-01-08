@@ -56,26 +56,29 @@ class TextBiLSTM(object):
             embedding = tf.get_variable('embedding', [self.config.vocab_size, self.config.embedding_dim])
             self.embedding_inputs = tf.nn.embedding_lookup(embedding, self.input_x)
 
-        with tf.name_scope("bilstm"):
+        with tf.name_scope("birnn"):
             # define lstm cess:get lstm cell output
-            lstm_fw_cell = tf.contrib.rnn.BasicLSTMCell(self.config.hidden_size)  # forward direction cell
-            lstm_bw_cell = tf.contrib.rnn.BasicLSTMCell(self.config.hidden_size)  # backward direction cell
+            if self.config.rnn == 'lstm':
+                rnn_fw_cell = self.lstm_cell()  # forward direction cell
+                rnn_bw_cell = self.lstm_cell()  # backward direction cell
+            else:
+                rnn_fw_cell = self.gru_cell()  # forward direction cell
+                rnn_bw_cell = self.gru_cell()  # backward direction cell
             if self.dropout_keep_prob is not None:
-                lstm_fw_cell = tf.contrib.rnn.DropoutWrapper(lstm_fw_cell, output_keep_prob=self.dropout_keep_prob)
-                lstm_bw_cell = tf.contrib.rnn.DropoutWrapper(lstm_bw_cell, output_keep_prob=self.dropout_keep_prob)
+                rnn_fw_cell = tf.contrib.rnn.DropoutWrapper(rnn_fw_cell, output_keep_prob=self.dropout_keep_prob)
+                rnn_bw_cell = tf.contrib.rnn.DropoutWrapper(rnn_bw_cell, output_keep_prob=self.dropout_keep_prob)
             # bidirectional_dynamic_rnn:
             # input: [batch_size, max_time, input_size]
             # output: A tuple (outputs, output_states)
             # where:outputs: A tuple (output_fw, output_bw) containing the forward and the backward rnn output `Tensor`.
-            outputs, _ = tf.nn.bidirectional_dynamic_rnn(lstm_fw_cell, lstm_bw_cell, self.embedding_inputs, dtype=tf.float32)  # [batch_size,sequence_length,hidden_size] #creates a dynamic bidirectional recurrent neural network
+            outputs, _ = tf.nn.bidirectional_dynamic_rnn(rnn_fw_cell, rnn_bw_cell, self.embedding_inputs, dtype=tf.float32)  # [batch_size,sequence_length,hidden_size] #creates a dynamic bidirectional recurrent neural network
             print("outputs:===>", outputs)  # outputs:(<tf.Tensor 'bidirectional_rnn/fw/fw/transpose:0' shape=(?, 5, 100) dtype=float32>, <tf.Tensor 'ReverseV2:0' shape=(?, 5, 100) dtype=float32>))
             # 3. concat output
-            output_rnn = tf.concat(outputs, axis=2)  # [batch_size,sequence_length,hidden_size*2]
+            output_rnn = tf.concat(outputs, axis=2)  # [batch_size, sequence_length, hidden_size*2]
             # 4.1 average
-            # self.output_rnn_last=tf.reduce_mean(output_rnn,axis=1) #[batch_size,hidden_size*2]
+            # self.output_rnn_last=tf.reduce_mean(output_rnn,axis=1) #[batch_size, hidden_size*2]
             # 4.2 last output
-            # [batch_size,hidden_size*2]
-            self.output_rnn_last = output_rnn[:, -1, :]
+            self.output_rnn_last = output_rnn[:, -1, :]  # [batch_size, hidden_size*2]
             print("output_rnn_last:", self.output_rnn_last)  # <tf.Tensor 'strided_slice:0' shape=(?, 200) dtype=float32>
             # 5. logits(use linear layer)
 
