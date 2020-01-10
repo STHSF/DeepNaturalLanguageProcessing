@@ -13,17 +13,9 @@ import sys
 import numpy as np
 from collections import Counter
 import tensorflow.contrib.keras as ks
+from config import config
 reload(sys)
 sys.setdefaultencoding("utf-8")
-
-
-class config(object):
-    train_file_patch = './data/cnews/cnews.train.txt'
-    val_file_patch = './data/cnews/cnews.val.txt'
-    test_file_path = './data/cnews/cnews.test.txt'
-    vocab_path = "./data/vocab_list.txt"
-    test_path = "./data/cnews/test.txt"
-    stop_words_path = './data/stopwords.txt'
 
 
 class data_utils(object):
