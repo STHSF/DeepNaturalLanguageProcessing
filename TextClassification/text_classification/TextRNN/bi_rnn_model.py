@@ -58,8 +58,8 @@ class TextBiRNN(object):
 
         with tf.device('/cpu:0'):
             # embedding:[vocab_size, embedding_dim]
-            embedding = tf.get_variable('embedding', [self.config.vocab_size, self.config.embedding_dim])
-            self.embedding_inputs = tf.nn.embedding_lookup(embedding, self.input_x)
+            self.embedding = tf.get_variable('embedding', [self.config.vocab_size, self.config.embedding_dim])
+            self.embedding_inputs = tf.nn.embedding_lookup(self.embedding, self.input_x)
 
         with tf.name_scope("BiRNN"):
             # define lstm cess:get lstm cell output
