@@ -63,23 +63,23 @@ class TextRNN(object):
             self.input_y = tf.placeholder(tf.int32, [None, self.config.num_classes], name='input_y')
             self.dropout_keep_prob = tf.placeholder(tf.float32, name='dropout_keep_prob')
 
-        with tf.device('/cpu:0'):
+        with tf.device('/cpu:0'), tf.name_scope('embedding_layer'):
             # embedding:[vocab_size, embedding_dim]
-            embedding = tf.get_variable('embedding', [self.config.vocab_size, self.config.embedding_dim])
-            embedding_imputs = tf.nn.embedding_lookup(embedding, self.input_x)
+            self.embedding = tf.get_variable('embedding', [self.config.vocab_size, self.config.embedding_dim])
+            embedding_inputs = tf.nn.embedding_lookup(self.embedding, self.input_x)
 
         with tf.name_scope("RNN"):
             cells = [self.dropout() for _ in range(self.config.num_layers)]
             rnn_cell = tf.contrib.rnn.MultiRNNCell(cells, state_is_tuple=True)
 
-            self._outputs, _ = tf.nn.dynamic_rnn(cell=rnn_cell, inputs=embedding_imputs, dtype=tf.float32)
+            self._outputs, _ = tf.nn.dynamic_rnn(cell=rnn_cell, inputs=embedding_inputs, dtype=tf.float32)
             print('shape_of_outputs: %s' % self._outputs.get_shape())
             last = self._outputs[:, -1, :]    # 取最后一个时序输出作为结果
             # print('shape_of_outputs: %s' % last.get_shape())
 
         with tf.name_scope('Attention_layer'):
             # Attention layer
-            attention_output, alphas = attention(self._outputs, self.config.attention_size, return_alphas=True)
+            attention_output, self.alphas = attention(self._outputs, self.config.attention_size, return_alphas=True)
             last = tf.nn.dropout(attention_output, self.dropout_keep_prob)
 
         with tf.name_scope("Score"):

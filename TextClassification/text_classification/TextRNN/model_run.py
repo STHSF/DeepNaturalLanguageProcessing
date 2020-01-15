@@ -92,6 +92,8 @@ def train():
 
     tf.summary.scalar("loss", model.loss)
     tf.summary.scalar("accuracy", model.acc)
+    tf.summary.histogram("embedding_var", model.embedding)
+    tf.summary.histogram("alphas", model.alphas)
 
     saver = tf.train.Saver()
     if not os.path.exists(save_dir):
