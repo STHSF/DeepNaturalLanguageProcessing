@@ -93,7 +93,7 @@ class TextBiRNN(object):
             output_rnn_last = tf.nn.dropout(attention_output, self.dropout_keep_prob)
 
         with tf.name_scope("Score"):
-            # 全连接层
+            # Fully connected layer
             fc = tf.layers.dense(output_rnn_last, self.config.hidden_dim, name='fc1')
             fc = tf.contrib.layers.dropout(fc, self.dropout_keep_prob)
             fc = tf.nn.relu(fc)
