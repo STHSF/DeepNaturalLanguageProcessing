@@ -9,6 +9,7 @@
 """
 
 import tensorflow as tf
+from attention import attention
 import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
@@ -22,6 +23,8 @@ class TRNNConfig(object):
     num_layers = 2  # 隐藏层层数
     hidden_dim = 128  # 隐藏神经单元个数
     rnn = 'gru'  # lstm 或 gru
+
+    attention_size = 50
 
     dropout_keep_prob = 0.8
     learning_rate = 1e-3
@@ -73,6 +76,11 @@ class TextRNN(object):
             print('shape_of_outputs: %s' % self._outputs.get_shape())
             last = self._outputs[:, -1, :]    # 取最后一个时序输出作为结果
             # print('shape_of_outputs: %s' % last.get_shape())
+
+        with tf.name_scope('Attention_layer'):
+            # Attention layer
+            attention_output, alphas = attention(self._outputs, self.config.attention_size, return_alphas=True)
+            last = tf.nn.dropout(attention_output, self.dropout_keep_prob)
 
         with tf.name_scope("Score"):
             # 全连接层
