@@ -8,6 +8,7 @@
 @time: 2018/3/27 下午5:41
 """
 import tensorflow as tf
+from attention import attention
 import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
@@ -22,6 +23,8 @@ class TBRNNConfig(object):
     hidden_size = 2
     hidden_dim = 128  # 隐藏神经单元个数
     rnn = 'gru'  # lstm 或 gru
+
+    attention_size = 50
 
     dropout_keep_prob = 0.8
     learning_rate = 1e-3
@@ -76,17 +79,22 @@ class TextBiRNN(object):
             outputs, _ = tf.nn.bidirectional_dynamic_rnn(rnn_fw_cell, rnn_bw_cell, self.embedding_inputs, dtype=tf.float32)  # [batch_size,sequence_length,hidden_size] #creates a dynamic bidirectional recurrent neural network
             print("outputs:===>", outputs)  # outputs:(<tf.Tensor 'bidirectional_rnn/fw/fw/transpose:0' shape=(?, 5, 100) dtype=float32>, <tf.Tensor 'ReverseV2:0' shape=(?, 5, 100) dtype=float32>))
             # 3. concat output
-            output_rnn = tf.concat(outputs, axis=2)  # [batch_size, sequence_length, hidden_size*2]
+            self.output_rnn = tf.concat(outputs, axis=2)  # [batch_size, sequence_length, hidden_size*2]
             # 4.1 average
             # self.output_rnn_last=tf.reduce_mean(output_rnn,axis=1) #[batch_size, hidden_size*2]
             # 4.2 last output
-            self.output_rnn_last = output_rnn[:, -1, :]  # [batch_size, hidden_size*2]
-            print("output_rnn_last:", self.output_rnn_last)  # <tf.Tensor 'strided_slice:0' shape=(?, 200) dtype=float32>
+            output_rnn_last = self.output_rnn[:, -1, :]  # [batch_size, hidden_size*2]
+            # print("output_rnn_last:", output_rnn_last)  # <tf.Tensor 'strided_slice:0' shape=(?, 200) dtype=float32>
             # 5. logits(use linear layer)
+
+        with tf.name_scope('Attention_layer'):
+            # Attention layer
+            attention_output, self.alphas = attention(self.output_rnn, self.config.attention_size, return_alphas=True)
+            output_rnn_last = tf.nn.dropout(attention_output, self.dropout_keep_prob)
 
         with tf.name_scope("Score"):
             # 全连接层
-            fc = tf.layers.dense(self.output_rnn_last, self.config.hidden_dim, name='fc1')
+            fc = tf.layers.dense(output_rnn_last, self.config.hidden_dim, name='fc1')
             fc = tf.contrib.layers.dropout(fc, self.dropout_keep_prob)
             fc = tf.nn.relu(fc)
 
