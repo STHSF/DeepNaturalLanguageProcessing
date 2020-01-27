@@ -11,6 +11,13 @@ LabelSet = {BA, MA, EA, BO, MO, EO, BP, MP, EP, O}
 LabelSet = {NA, SC, CC, SL, LL, SP, PP}
 其中 NA = No entity, SC = Start Company, CC = Continue Company, SL = Start Location, CL = Continue Location, SP = Start Person, CP = Continue Person
 
+标注方式3、字符级别的标注：
+LabelSet = {O, B-PER, I-PER, B-LOC, I-LOC, B-ORG, I-ORG}
+其中，PER代表人名， LOC代表位置， ORG代表组织
+
+一般来说，NER的标注列表为['O' ,'B-MISC', 'I-MISC', 'B-ORG' ,'I-ORG', 'B-PER' ,'I-PER', 'B-LOC' ,'I-LOC']。
+其中，一般一共分为四大类：PER（人名），LOC（位置），ORG（组织）以及MISC(杂项)，而且B表示开始，I表示中间，O表示单字词。
+
 
 
 
@@ -23,3 +30,5 @@ LabelSet = {NA, SC, CC, SL, LL, SP, PP}
 []()
 []()
 []()
+
+中华人民共和国国务院总理周恩来在外交部长陈毅,副部长王东的陪同下，连续访问了埃塞俄比亚等非洲10国以及阿尔巴尼亚
