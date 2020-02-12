@@ -77,12 +77,12 @@ class TextRNN(object):
             last = self._outputs[:, -1, :]    # 取最后一个时序输出作为结果
             # print('shape_of_outputs: %s' % last.get_shape())
 
-        with tf.name_scope('Attention_layer'):
+        with tf.name_scope('AttentionLayer'):
             # Attention layer
             attention_output, self.alphas = attention(self._outputs, self.config.attention_size, return_alphas=True)
             last = tf.nn.dropout(attention_output, self.dropout_keep_prob)
 
-        with tf.name_scope("Score"):
+        with tf.name_scope("ScoreLayer"):
             # 全连接层
             fc = tf.layers.dense(last, self.config.hidden_dim, name='fc1')
             fc = tf.contrib.layers.dropout(fc, self.dropout_keep_prob)
@@ -91,7 +91,7 @@ class TextRNN(object):
             self.logits = tf.layers.dense(fc, self.config.num_classes, name='fc2')
             self.y_pred_cls = tf.argmax(tf.nn.softmax(self.logits), 1)
 
-        with tf.name_scope("Optimizer"):
+        with tf.name_scope("OptimizerLayer"):
             # 损失函数，交叉熵
             cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.input_y)
             self.loss = tf.reduce_mean(cross_entropy)

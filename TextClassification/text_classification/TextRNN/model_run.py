@@ -19,7 +19,9 @@ import tensorflow as tf
 from sklearn import metrics
 
 import numpy as np
-from rnn_model_attention import TRNNConfig, TextRNN
+# from rnn_model import TextRNN
+from rnn_model_attention import TRNNConfig
+from rnn_model_attention import TextRNN
 from bi_rnn_model import TBRNNConfig, TextBiRNN
 from cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
 
@@ -226,7 +228,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--type', dest='type', default="train", type=str, required=True, choices=['train', 'test'], help="类型")
     parser.add_argument('--model', dest='model', default="RNN", type=str, required=True, choices=['RNN', 'BiRNN'], help="模型")
-
     args = parser.parse_args()
     _type = args.type
     _model = args.model
@@ -237,11 +238,12 @@ if __name__ == '__main__':
     if _model == 'BiRNN':
         config = TBRNNConfig()
 
-    if not os.path.exists(vocab_dir):
-        build_vocab(train_dir, vocab_dir, config.vocab_size)
     categories, cat_to_id = read_category()
     words, word_to_id = read_vocab(vocab_dir)
     config.vocab_size = len(words)
+
+    if not os.path.exists(vocab_dir):
+        build_vocab(train_dir, vocab_dir, config.vocab_size)
 
     if _model == 'RNN':
         # TextRNN
