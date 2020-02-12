@@ -233,9 +233,9 @@ if __name__ == '__main__':
         model_name = "textrnn"
     if _model == 'BiRNN':
         model_name = "textbirnn"
-    save_dir = '../checkpoints/' + model_name
+    save_dir = './checkpoints/' + model_name
     save_path = os.path.join(save_dir, 'best_validation')
-    tensorboard_dir = '../tensorboard/' + model_name
+    tensorboard_dir = './tensorboard/' + model_name
 
     print("Configuring RNN Model")
     config = {}
