@@ -24,6 +24,7 @@ class TRNNConfig(object):
     hidden_dim = 128  # 隐藏神经单元个数
     rnn = 'gru'  # lstm 或 gru
 
+    attention = True
     attention_size = 50
 
     dropout_keep_prob = 0.8
@@ -74,16 +75,18 @@ class TextRNN(object):
 
             self._outputs, _ = tf.nn.dynamic_rnn(cell=rnn_cell, inputs=embedding_inputs, dtype=tf.float32)
             print('shape_of_outputs: %s' % self._outputs.get_shape())
+
+        if self.config.attention is True:
+            with tf.name_scope('AttentionLayer'):
+                # Attention layer
+                attention_output, self.alphas = attention(self._outputs, self.config.attention_size, return_alphas=True)
+                last = tf.nn.dropout(attention_output, self.dropout_keep_prob)
+        else:
             last = self._outputs[:, -1, :]    # 取最后一个时序输出作为结果
             # print('shape_of_outputs: %s' % last.get_shape())
 
-        with tf.name_scope('AttentionLayer'):
-            # Attention layer
-            attention_output, self.alphas = attention(self._outputs, self.config.attention_size, return_alphas=True)
-            last = tf.nn.dropout(attention_output, self.dropout_keep_prob)
-
         with tf.name_scope("ScoreLayer"):
-            # 全连接层
+            # Fully connected layer
             fc = tf.layers.dense(last, self.config.hidden_dim, name='fc1')
             fc = tf.contrib.layers.dropout(fc, self.dropout_keep_prob)
             fc = tf.nn.relu(fc)
