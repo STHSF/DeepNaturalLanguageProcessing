@@ -239,7 +239,7 @@ if __name__ == '__main__':
 
     print("Configuring RNN Model")
     config = {}
-    if _model == 'BiRNN':
+    if _model == 'RNN':
         config = TRNNConfig()
     if _model == 'BiRNN':
         config = TBRNNConfig()
