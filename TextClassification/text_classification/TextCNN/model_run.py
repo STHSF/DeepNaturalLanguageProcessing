@@ -25,15 +25,6 @@ from sklearn import metrics
 from cnn_model import TCNNConfig, TextCNN
 from cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
 
-base_dir = '../data/cnews'
-train_dir = os.path.join(base_dir, 'cnews.train.txt')
-test_dir = os.path.join(base_dir, 'cnews.test.txt')
-val_dir = os.path.join(base_dir, 'cnews.val.txt')
-vocab_dir = os.path.join(base_dir, 'cnews.vocab.txt')
-
-save_dir = '../checkpoints/textcnn'
-save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保存路径
-
 
 def get_time_dif(start_time):
     """获取已使用时间"""
@@ -203,9 +194,18 @@ def test():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--type', dest='type', default="train", type=str, required=True, choices=['train', 'test'], help="类型")
+    parser.add_argument('--type', dest='type', default="train", type=str, choices=['train', 'test'], help="类型")
     args = parser.parse_args()
     _type = args.type
+
+    base_dir = '../data/cnews'
+    train_dir = os.path.join(base_dir, 'cnews.train.txt')
+    test_dir = os.path.join(base_dir, 'cnews.test.txt')
+    val_dir = os.path.join(base_dir, 'cnews.val.txt')
+    vocab_dir = os.path.join(base_dir, 'cnews.vocab.txt')
+
+    save_dir = '../checkpoints/textcnn'
+    save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保存路径
 
     print('Configuring CNN model...')
     config = TCNNConfig()

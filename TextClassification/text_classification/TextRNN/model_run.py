@@ -27,16 +27,6 @@ from cnnews_loder import read_vocab, read_category, batch_iter, process_file, bu
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
-base_dir = "../data/cnews"
-train_dir = os.path.join(base_dir, "cnews.train.txt")
-test_dir = os.path.join(base_dir, "cnews.test.txt")
-val_dir = os.path.join(base_dir, "cnews.val.txt")
-vocab_dir = os.path.join(base_dir, "cnews.vocab.txt")
-
-save_dir = '../checkpoints/textbirnn'
-save_path = os.path.join(save_dir, 'best_validation')
-tensorboard_dir = '../tensorboard/textbirnn'
-
 
 def get_time_dif(start_time):
     """
@@ -79,7 +69,6 @@ def evaluate(sess, x_, y_, batch_size):
         y_pred_class, loss, acc = sess.run([model.y_pred_cls, model.loss, model.acc], feed_dict=feed_dict)
         total_loss += loss * batch_len
         total_acc += acc * batch_len
-
     return y_pred_class, total_loss / data_len, total_acc / data_len
 
 
@@ -226,14 +215,31 @@ def test():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--type', dest='type', default="train", type=str, required=True, choices=['train', 'test'], help="类型")
+    parser.add_argument('--type', dest='type', default="train", type=str, choices=['train', 'test'], help="类型")
     parser.add_argument('--model', dest='model', default="RNN", type=str, required=True, choices=['RNN', 'BiRNN'], help="模型")
     args = parser.parse_args()
     _type = args.type
     _model = args.model
 
-    print("Configuring RNN Model")
+    base_dir = "../data/cnews"
+    train_dir = os.path.join(base_dir, "cnews.train.txt")
+    test_dir = os.path.join(base_dir, "cnews.test.txt")
+    val_dir = os.path.join(base_dir, "cnews.val.txt")
+    vocab_dir = os.path.join(base_dir, "cnews.vocab.txt")
+
+    print("Configuring Model Path")
+    model_name = ''
     if _model == 'RNN':
+        model_name = "textrnn"
+    if _model == 'BiRNN':
+        model_name = "textbirnn"
+    save_dir = '../checkpoints/' + model_name
+    save_path = os.path.join(save_dir, 'best_validation')
+    tensorboard_dir = '../tensorboard/' + model_name
+
+    print("Configuring RNN Model")
+    config = {}
+    if _model == 'BiRNN':
         config = TRNNConfig()
     if _model == 'BiRNN':
         config = TBRNNConfig()
@@ -241,7 +247,6 @@ if __name__ == '__main__':
     categories, cat_to_id = read_category()
     words, word_to_id = read_vocab(vocab_dir)
     config.vocab_size = len(words)
-
     if not os.path.exists(vocab_dir):
         build_vocab(train_dir, vocab_dir, config.vocab_size)
 
