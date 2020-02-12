@@ -24,6 +24,7 @@ class TBRNNConfig(object):
     hidden_dim = 128  # 隐藏神经单元个数
     rnn = 'gru'  # lstm 或 gru
 
+    attention = True
     attention_size = 50
 
     dropout_keep_prob = 0.8
@@ -49,7 +50,7 @@ class TextBiRNN(object):
         return tf.contrib.rnn.GRUCell(self.config.hidden_dim)
 
     def _build_graph(self):
-        with tf.variable_scope("Input_data"):
+        with tf.variable_scope("InputData"):
             # input_x:[batch_size, seq_length]
             self.input_x = tf.placeholder(tf.int32, [None, self.config.seq_length], name='input_x')
             # input_y:[batch_size, num_classes]
@@ -83,21 +84,28 @@ class TextBiRNN(object):
             # 4.1 average
             # self.output_rnn_last=tf.reduce_mean(output_rnn,axis=1) #[batch_size, hidden_size*2]
             # 4.2 last output
-            output_rnn_last = self.output_rnn[:, -1, :]  # [batch_size, hidden_size*2]
+            # output_rnn_last = self.output_rnn[:, -1, :]  # [batch_size, hidden_size*2]
             # print("output_rnn_last:", output_rnn_last)  # <tf.Tensor 'strided_slice:0' shape=(?, 200) dtype=float32>
             # 5. logits(use linear layer)
 
-        with tf.name_scope('Attention_layer'):
-            # Attention layer
-            attention_output, self.alphas = attention(self.output_rnn, self.config.attention_size, return_alphas=True)
-            output_rnn_last = tf.nn.dropout(attention_output, self.dropout_keep_prob)
+        if self.config.attention is True:
+            with tf.name_scope('AttentionLayer'):
+                # Attention layer
+                attention_output, self.alphas = attention(self.output_rnn, self.config.attention_size, return_alphas=True)
+                output_rnn_last = tf.nn.dropout(attention_output, self.dropout_keep_prob)
+
+        else:
+            # 4.1 average
+            # self.output_rnn_last=tf.reduce_mean(output_rnn,axis=1) #[batch_size, hidden_size*2]
+            # 4.2 last output
+            output_rnn_last = self.output_rnn[:, -1, :]  # [batch_size, hidden_size*2]
 
         with tf.name_scope("Score"):
             # Fully connected layer
             fc = tf.layers.dense(output_rnn_last, self.config.hidden_dim, name='fc1')
             fc = tf.contrib.layers.dropout(fc, self.dropout_keep_prob)
             fc = tf.nn.relu(fc)
-
+            # 5. logits(use linear layer)
             self.logits = tf.layers.dense(fc, self.config.num_classes, name='fc2')
             self.y_pred_cls = tf.argmax(tf.nn.softmax(self.logits), 1)
 

@@ -57,7 +57,7 @@ class TextRNN(object):
         return tf.contrib.rnn.DropoutWrapper(cell, output_keep_prob=self.dropout_keep_prob)
 
     def _build_graph(self):
-        with tf.variable_scope("Input_data"):
+        with tf.variable_scope("InputData"):
             # input_x:[batch_size, seq_length]
             self.input_x = tf.placeholder(tf.int32, [None, self.config.seq_length], name='input_x')
             # input_y:[batch_size, num_classes]
