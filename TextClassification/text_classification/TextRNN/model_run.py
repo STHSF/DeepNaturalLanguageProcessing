@@ -19,7 +19,7 @@ import tensorflow as tf
 from sklearn import metrics
 
 import numpy as np
-from rnn_model import TRNNConfig, TextRNN
+from rnn_model_attention import TRNNConfig, TextRNN
 from bi_rnn_model import TBRNNConfig, TextBiRNN
 from cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
 
