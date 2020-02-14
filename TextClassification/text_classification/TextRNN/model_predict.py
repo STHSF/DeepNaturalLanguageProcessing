@@ -26,12 +26,6 @@ try:
 except NameError:
     unicode = str
 
-base_dir = '../data/cnews'
-vocab_dir = os.path.join(base_dir, 'cnews.vocab.txt')
-
-save_dir = './checkpoints/textbirnn'
-save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保存路径
-
 
 class RNNModel:
     def __init__(self):
@@ -61,6 +55,19 @@ class RNNModel:
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', dest='model', default="RNN", type=str, required=True, choices=['RNN', 'BiRNN'],
+                        help="模型")
+    args = parser.parse_args()
+    _model = args.model
+
+    base_dir = '../data/cnews'
+    vocab_dir = os.path.join(base_dir, 'cnews.vocab.txt')
+    save_dir = './checkpoints/textrnn'
+    if _model == "BiRNN":
+        save_dir = './checkpoints/textbirnn'
+    save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保存路径
+
     rnn_model = RNNModel()
     test_demo = ['三星ST550以全新的拍摄方式超越了以往任何一款数码相机',
                  '热火vs骑士前瞻：皇帝回乡二番战 东部次席唾手可得新浪体育讯北京时间3月30日7:00']
