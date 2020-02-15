@@ -25,4 +25,4 @@ smart-open==1.5.3
 tensorflow==1.15.2
 tensorflow-tensorboard==0.1.8
 urllib3==1.22
-Werkzeug==0.12.2
+Werkzeug==0.15.3
