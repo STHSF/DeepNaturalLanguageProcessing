@@ -150,5 +150,3 @@ ChineseSegmentation/src/bi_lstm_crf/data/*
 /TextClassification/text_classification/data/vocab_list.txt
 /TextClassification/text_classification/checkpoints/
 /TextClassification/text_classification/tensorboard/
-/NER/requirements.txt
-*/requirements.txt
