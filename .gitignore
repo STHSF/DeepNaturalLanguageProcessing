@@ -143,6 +143,8 @@ NER/src/CH/data.pkl
 /NER/src/CH/data/predict.txt
 NER/src/CH/mRMR.ipynb
 /NER/src/CH/te.py
+/ChineseSegmentation/src/bi_lstm_crf/data/
+ChineseSegmentation/src/bi_lstm_crf/data/
 /ChineseSegmentation/src/bi_lstm_crf/data/*
 ChineseSegmentation/src/bi_lstm_crf/data/*
 /TextClassification/text_classification/data/cnews/*

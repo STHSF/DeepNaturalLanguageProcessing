@@ -7,11 +7,14 @@
 @file: rnn_model.py
 @time: 2018/3/27 下午5:41
 """
+
 import tensorflow as tf
+import os
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 
 class TRNNConfig(object):
-    embedding_dim = 50  # 词向量维度
+    embedding_dim = 64  # 词向量维度
     seq_length = 600  # 序列长度
     num_classes = 10   # 类别数
     vocab_size = 5000  # 词汇表大小
@@ -47,7 +50,11 @@ class TextRNN(object):
             cell = self.lstm_cell()
         else:
             cell = self.gru_cell()
+<<<<<<< HEAD
+        return tf.contrib.rnn.DropoutWrapper(cell, output_keep_prob=self.dropout_keep_prob)
+=======
         return tf.contrib.nn.rnn_cell.DropoutWrapper(cell, output_keep_prob=self.keep_prob)
+>>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
 
     def _build_graph(self):
         with tf.variable_scope("input_data"):
@@ -55,7 +62,7 @@ class TextRNN(object):
             self.input_x = tf.placeholder(tf.int32, [None, self.config.seq_length], name='input_x')
             # input_y:[batch_size, num_classes]
             self.input_y = tf.placeholder(tf.int32, [None, self.config.num_classes], name='input_y')
-            self.keep_prob = tf.placeholder(tf.float32, name='keep_prob')
+            self.dropout_keep_prob = tf.placeholder(tf.float32, name='dropout_keep_prob')
 
         with tf.variable_scope('embedding'):
             # embedding:[vocab_size, embedding_dim]
@@ -72,11 +79,15 @@ class TextRNN(object):
         with tf.name_scope("score"):
             # 全连接层
             fc = tf.layers.dense(last, self.config.hidden_dim, name='fc1')
+<<<<<<< HEAD
+            fc = tf.contrib.layers.dropout(fc, self.dropout_keep_prob)
+=======
             fc = tf.nn.dropout(fc, self.keep_prob)
+>>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
             fc = tf.nn.relu(fc)
 
-            self.logits = tf.layers.dense(fc, self.config.num_classes, name='f2')
-            self.y_pred_cls = tf.arg_max(tf.nn.softmax(self.logits), 1)
+            self.logits = tf.layers.dense(fc, self.config.num_classes, name='fc2')
+            self.y_pred_cls = tf.argmax(tf.nn.softmax(self.logits), 1)
 
         with tf.name_scope("optimizer"):
             cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.logits, labels=self.input_y)
