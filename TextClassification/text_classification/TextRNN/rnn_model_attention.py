@@ -4,11 +4,12 @@
 """
 @version: ??
 @author: li
-@file: rnn_model.py
+@file: rnn_model_attention.py
 @time: 2018/3/27 下午5:41
 """
 
 import tensorflow as tf
+from attention import attention
 import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
@@ -22,6 +23,9 @@ class TRNNConfig(object):
     num_layers = 2  # 隐藏层层数
     hidden_dim = 128  # 隐藏神经单元个数
     rnn = 'gru'  # lstm 或 gru
+
+    attention = True
+    attention_size = 50
 
     dropout_keep_prob = 0.8
     learning_rate = 1e-3
@@ -40,61 +44,63 @@ class TextRNN(object):
         self._build_graph()
 
     def lstm_cell(self):
-        return tf.contrib.nn.rnn_cell.BasicLSTMCell(self.config.hidden_dim, state_is_tuple=True)
+        return tf.contrib.rnn.BasicLSTMCell(self.config.hidden_dim, state_is_tuple=True)
 
     def gru_cell(self):
-        return tf.contrib.nn.rnn_cell.GRUCell(self.config.hidden_dim)
+        return tf.contrib.rnn.GRUCell(self.config.hidden_dim)
 
     def dropout(self):
         if self.config.rnn == 'lstm':
             cell = self.lstm_cell()
         else:
             cell = self.gru_cell()
-<<<<<<< HEAD
         return tf.contrib.rnn.DropoutWrapper(cell, output_keep_prob=self.dropout_keep_prob)
-=======
-        return tf.contrib.nn.rnn_cell.DropoutWrapper(cell, output_keep_prob=self.keep_prob)
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
 
     def _build_graph(self):
-        with tf.variable_scope("input_data"):
+        with tf.variable_scope("InputData"):
             # input_x:[batch_size, seq_length]
             self.input_x = tf.placeholder(tf.int32, [None, self.config.seq_length], name='input_x')
             # input_y:[batch_size, num_classes]
             self.input_y = tf.placeholder(tf.int32, [None, self.config.num_classes], name='input_y')
             self.dropout_keep_prob = tf.placeholder(tf.float32, name='dropout_keep_prob')
 
-        with tf.variable_scope('embedding'):
+        with tf.device('/cpu:0'), tf.name_scope('embedding_layer'):
             # embedding:[vocab_size, embedding_dim]
-            embedding = tf.get_variable('embedding', [self.config.vocab_size, self.config.embedding_dim])
-            embedding_imputs = tf.nn.embedding_lookup(embedding, self.input_x)
+            self.embedding = tf.get_variable('embedding', [self.config.vocab_size, self.config.embedding_dim])
+            embedding_inputs = tf.nn.embedding_lookup(self.embedding, self.input_x)
 
-        with tf.name_scope("rnn"):
+        with tf.name_scope("RNN"):
             cells = [self.dropout() for _ in range(self.config.num_layers)]
-            rnn_cell = tf.contrib.nn.rnn_cell.MultiRNNCell(cells, state_is_tuple=True)
+            rnn_cell = tf.contrib.rnn.MultiRNNCell(cells, state_is_tuple=True)
 
-            _outputs, _ = tf.nn.dynamic_rnn(cell=rnn_cell, inputs=embedding_imputs, dtype=tf.float32)
-            last = _outputs[:, -1, :]
+            self._outputs, _ = tf.nn.dynamic_rnn(cell=rnn_cell, inputs=embedding_inputs, dtype=tf.float32)
+            print('shape_of_outputs: %s' % self._outputs.get_shape())
 
-        with tf.name_scope("score"):
-            # 全连接层
+        if self.config.attention is True:
+            with tf.name_scope('AttentionLayer'):
+                # Attention layer
+                attention_output, self.alphas = attention(self._outputs, self.config.attention_size, return_alphas=True)
+                last = tf.nn.dropout(attention_output, self.dropout_keep_prob)
+        else:
+            last = self._outputs[:, -1, :]    # 取最后一个时序输出作为结果
+            # print('shape_of_outputs: %s' % last.get_shape())
+
+        with tf.name_scope("ScoreLayer"):
+            # Fully connected layer
             fc = tf.layers.dense(last, self.config.hidden_dim, name='fc1')
-<<<<<<< HEAD
             fc = tf.contrib.layers.dropout(fc, self.dropout_keep_prob)
-=======
-            fc = tf.nn.dropout(fc, self.keep_prob)
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
             fc = tf.nn.relu(fc)
 
             self.logits = tf.layers.dense(fc, self.config.num_classes, name='fc2')
             self.y_pred_cls = tf.argmax(tf.nn.softmax(self.logits), 1)
 
-        with tf.name_scope("optimizer"):
-            cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.logits, labels=self.input_y)
+        with tf.name_scope("OptimizerLayer"):
+            # 损失函数，交叉熵
+            cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.input_y)
             self.loss = tf.reduce_mean(cross_entropy)
-
+            # 优化器
             self.optim = tf.train.AdamOptimizer(learning_rate=self.config.learning_rate).minimize(self.loss)
 
-        with tf.name_scope("accuracy"):
+        with tf.name_scope("Accuracy"):
             correct_pred = tf.equal(tf.argmax(self.input_y, 1), self.y_pred_cls)
             self.acc = tf.reduce_mean(tf.cast(correct_pred, tf.float32))

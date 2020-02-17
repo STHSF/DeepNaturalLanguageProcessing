@@ -4,7 +4,7 @@
 """
 @version: ??
 @author: li
-@file: model_running.py
+@file: model_run.py
 @time: 2018/3/27 下午5:10
 """
 
@@ -13,16 +13,9 @@ import sys
 import numpy as np
 from collections import Counter
 import tensorflow.contrib.keras as ks
+from config import config
 reload(sys)
 sys.setdefaultencoding("utf-8")
-
-
-class config(object):
-    train_file_patch = './data/cnews/cnews.train.txt'
-    val_file_patch = './data/cnews/cnews.val.txt'
-    test_file_path = './data/cnews/cnews.test.txt'
-    vocab_path = "./data/vocab_list.txt"
-    test_path = "./data/cnews/test.txt"
 
 
 class data_utils(object):
@@ -53,11 +46,30 @@ class data_utils(object):
         :param vocab_size:
         :return:
         """
+        # 停用词
+        try:
+            stopwords = open(config.stop_words_path, 'r')
+            stopword_list = [key.strip(' \n') for key in stopwords]
+        except Exception as e:
+            print(e)
+            stopword_list = None
+
+        # 读取文件
         _, contents = self.read_file(file_patch)
-        all_data = []
+        all_data_list = []
         # 拼接
         for content in contents:
-            all_data.extend(list(content.decode('utf-8')))
+            all_data_list.extend(list(content.decode('utf-8')))
+
+        # 去停用词
+        all_data = []
+        if stopword_list:
+            for i in range(len(all_data_list)):
+                if str(all_data_list[i]) not in stopword_list:
+                    all_data.append(all_data_list[i])
+        else:
+            all_data = all_data_list
+
         # 统计中文字符出现的次数
         counter = Counter(all_data)
         # 挑选前vocab_size个中文字符

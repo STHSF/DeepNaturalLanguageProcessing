@@ -4,10 +4,18 @@
 """
 @version: ??
 @author: li
+<<<<<<< HEAD
 @file: rnn_model.py
 @time: 2018/3/27 下午5:41
 """
 import tensorflow as tf
+=======
+@file: rnn_model_attention.py
+@time: 2018/3/27 下午5:41
+"""
+import tensorflow as tf
+from attention import attention
+>>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
 import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
@@ -23,6 +31,12 @@ class TBRNNConfig(object):
     hidden_dim = 128  # 隐藏神经单元个数
     rnn = 'gru'  # lstm 或 gru
 
+<<<<<<< HEAD
+=======
+    attention = True
+    attention_size = 50
+
+>>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
     dropout_keep_prob = 0.8
     learning_rate = 1e-3
 
@@ -46,11 +60,16 @@ class TextBiRNN(object):
         return tf.contrib.rnn.GRUCell(self.config.hidden_dim)
 
     def _build_graph(self):
+<<<<<<< HEAD
         with tf.variable_scope("input_data"):
+=======
+        with tf.variable_scope("InputData"):
+>>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
             # input_x:[batch_size, seq_length]
             self.input_x = tf.placeholder(tf.int32, [None, self.config.seq_length], name='input_x')
             # input_y:[batch_size, num_classes]
             self.input_y = tf.placeholder(tf.int32, [None, self.config.num_classes], name='input_y')
+<<<<<<< HEAD
             self.dropout_keep_prob = tf.placeholder(tf.float32, name='keep_prob')
 
         with tf.variable_scope('embedding'):
@@ -59,6 +78,16 @@ class TextBiRNN(object):
             self.embedding_inputs = tf.nn.embedding_lookup(embedding, self.input_x)
 
         with tf.name_scope("birnn"):
+=======
+            self.dropout_keep_prob = tf.placeholder(tf.float32, name='dropout_keep_prob')
+
+        with tf.device('/cpu:0'):
+            # embedding:[vocab_size, embedding_dim]
+            self.embedding = tf.get_variable('embedding', [self.config.vocab_size, self.config.embedding_dim])
+            self.embedding_inputs = tf.nn.embedding_lookup(self.embedding, self.input_x)
+
+        with tf.name_scope("BiRNN"):
+>>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
             # define lstm cess:get lstm cell output
             if self.config.rnn == 'lstm':
                 rnn_fw_cell = self.lstm_cell()  # forward direction cell
@@ -76,6 +105,7 @@ class TextBiRNN(object):
             outputs, _ = tf.nn.bidirectional_dynamic_rnn(rnn_fw_cell, rnn_bw_cell, self.embedding_inputs, dtype=tf.float32)  # [batch_size,sequence_length,hidden_size] #creates a dynamic bidirectional recurrent neural network
             print("outputs:===>", outputs)  # outputs:(<tf.Tensor 'bidirectional_rnn/fw/fw/transpose:0' shape=(?, 5, 100) dtype=float32>, <tf.Tensor 'ReverseV2:0' shape=(?, 5, 100) dtype=float32>))
             # 3. concat output
+<<<<<<< HEAD
             output_rnn = tf.concat(outputs, axis=2)  # [batch_size, sequence_length, hidden_size*2]
             # 4.1 average
             # self.output_rnn_last=tf.reduce_mean(output_rnn,axis=1) #[batch_size, hidden_size*2]
@@ -94,11 +124,47 @@ class TextBiRNN(object):
             self.y_pred_cls = tf.argmax(tf.nn.softmax(self.logits), 1)
 
         with tf.name_scope("optimizer"):
+=======
+            self.output_rnn = tf.concat(outputs, axis=2)  # [batch_size, sequence_length, hidden_size*2]
+            # 4.1 average
+            # self.output_rnn_last=tf.reduce_mean(output_rnn,axis=1) #[batch_size, hidden_size*2]
+            # 4.2 last output
+            # output_rnn_last = self.output_rnn[:, -1, :]  # [batch_size, hidden_size*2]
+            # print("output_rnn_last:", output_rnn_last)  # <tf.Tensor 'strided_slice:0' shape=(?, 200) dtype=float32>
+            # 5. logits(use linear layer)
+
+        if self.config.attention is True:
+            with tf.name_scope('AttentionLayer'):
+                # Attention layer
+                attention_output, self.alphas = attention(self.output_rnn, self.config.attention_size, return_alphas=True)
+                output_rnn_last = tf.nn.dropout(attention_output, self.dropout_keep_prob)
+
+        else:
+            # 4.1 average
+            # self.output_rnn_last=tf.reduce_mean(output_rnn,axis=1) #[batch_size, hidden_size*2]
+            # 4.2 last output
+            output_rnn_last = self.output_rnn[:, -1, :]  # [batch_size, hidden_size*2]
+
+        with tf.name_scope("Score"):
+            # Fully connected layer
+            fc = tf.layers.dense(output_rnn_last, self.config.hidden_dim, name='fc1')
+            fc = tf.contrib.layers.dropout(fc, self.dropout_keep_prob)
+            fc = tf.nn.relu(fc)
+            # 5. logits(use linear layer)
+            self.logits = tf.layers.dense(fc, self.config.num_classes, name='fc2')
+            self.y_pred_cls = tf.argmax(tf.nn.softmax(self.logits), 1)
+
+        with tf.name_scope("Optimizer"):
+>>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
             cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.input_y)
             self.loss = tf.reduce_mean(cross_entropy)
 
             self.optim = tf.train.AdamOptimizer(learning_rate=self.config.learning_rate).minimize(self.loss)
 
+<<<<<<< HEAD
         with tf.name_scope("accuracy"):
+=======
+        with tf.name_scope("Accuracy"):
+>>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
             correct_pred = tf.equal(tf.argmax(self.input_y, 1), self.y_pred_cls)
             self.acc = tf.reduce_mean(tf.cast(correct_pred, tf.float32))

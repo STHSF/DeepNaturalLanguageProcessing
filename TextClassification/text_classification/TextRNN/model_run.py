@@ -2,67 +2,55 @@
 # -*- coding: utf-8 -*-
 
 """
-@version: 1.0
+@version: ??
 @author: li
 @file: model_run.py
-@time: 2020/1/8 2:52 下午
+@time: 2018/3/27 下午5:10
 """
-<<<<<<< HEAD
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-=======
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
-from __future__ import print_function
-
-import os
 import sys
 sys.path.append('../')
 sys.path.append('../../')
 sys.path.append('../../../')
+import os
 import time
-<<<<<<< HEAD
-=======
 import argparse
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
 from datetime import timedelta
-
-import numpy as np
 import tensorflow as tf
 from sklearn import metrics
 
-from cnn_model import TCNNConfig, TextCNN
+import numpy as np
+# from rnn_model import TextRNN
+from rnn_model_attention import TRNNConfig
+from rnn_model_attention import TextRNN
+from bi_rnn_model import TBRNNConfig, TextBiRNN
 from cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
 
-<<<<<<< HEAD
-base_dir = '../data/cnews'
-train_dir = os.path.join(base_dir, 'cnews.train.txt')
-test_dir = os.path.join(base_dir, 'cnews.test.txt')
-val_dir = os.path.join(base_dir, 'cnews.val.txt')
-vocab_dir = os.path.join(base_dir, 'cnews.vocab.txt')
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
-save_dir = 'checkpoints/textcnn'
-save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保存路径
-
-=======
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
 
 def get_time_dif(start_time):
-    """获取已使用时间"""
+    """
+    耗时计算
+    :param start_time:
+    :return:
+    """
     end_time = time.time()
     time_dif = end_time - start_time
     return timedelta(seconds=int(round(time_dif)))
 
 
 def feed_data(x_batch, y_batch, keep_prob):
+    """
+    将模型需要feed的参数
+    :param x_batch:
+    :param y_batch:
+    :param keep_prob:
+    :return: 返回一个数据字典
+    """
     feed_dict = {
         model.input_x: x_batch,
         model.input_y: y_batch,
-<<<<<<< HEAD
-        model.keep_prob: keep_prob
-=======
         model.dropout_keep_prob: keep_prob
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
     }
     return feed_dict
 
@@ -73,57 +61,60 @@ def evaluate(sess, x_, y_, batch_size):
     batch_eval = batch_iter(x_, y_, batch_size)
     total_loss = 0.0
     total_acc = 0.0
+    y_pred_class = None
     for x_batch, y_batch in batch_eval:
         batch_len = len(x_batch)
         feed_dict = feed_data(x_batch, y_batch, 1.0)
-        loss, acc = sess.run([model.loss, model.acc], feed_dict=feed_dict)
+        # 在测试时不用进行dropout
+        y_pred_class, loss, acc = sess.run([model.y_pred_cls, model.loss, model.acc], feed_dict=feed_dict)
         total_loss += loss * batch_len
         total_acc += acc * batch_len
-
-    return total_loss / data_len, total_acc / data_len
+    return y_pred_class, total_loss / data_len, total_acc / data_len
 
 
 def train():
+    """
+    model training
+    :return:
+    """
     print("Configuring TensorBoard and Saver...")
-    # 配置 Tensorboard，重新训练时，请将tensorboard文件夹删除，不然图会覆盖
-    tensorboard_dir = '../tensorboard/textcnn'
     if not os.path.exists(tensorboard_dir):
         os.makedirs(tensorboard_dir)
 
     tf.summary.scalar("loss", model.loss)
     tf.summary.scalar("accuracy", model.acc)
+    tf.summary.histogram("embedding_var", model.embedding)
+    tf.summary.histogram("alphas", model.alphas)
 
-    # 配置 Saver
     saver = tf.train.Saver()
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
-    print("Loading training and validation data...")
-    # 载入训练集与验证集
+    print("Loading training and validation data ...")
+
     start_time = time.time()
     x_train, y_train = process_file(train_dir, word_to_id, cat_to_id, config.seq_length)
     x_val, y_val = process_file(val_dir, word_to_id, cat_to_id, config.seq_length)
     time_dif = get_time_dif(start_time)
     print("Time usage:", time_dif)
 
-    # 创建session
+    # print(x_train)
+    # print(type(x_train), np.shape(x_train))
+    # print(y_train)
+    # print(type(y_train), np.shape(y_train))
     with tf.Session() as session:
         session.run(tf.global_variables_initializer())
         merged_summary = tf.summary.merge_all()
-<<<<<<< HEAD
-        writer = tf.summary.FileWriter(tensorboard_dir)
-        writer.add_graph(session.graph)
-=======
         writer_train = tf.summary.FileWriter(tensorboard_dir + '/train', session.graph)
         writer_valid = tf.summary.FileWriter(tensorboard_dir + '/valid')
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
+        # writer_train.add_graph(session.graph)
 
-        print('Training and evaluating...')
+        print("Training and evaluating...")
         start_time = time.time()
-        total_batch = 0  # 总批次
-        best_acc_val = 0.0  # 最佳验证集准确率
-        last_improved = 0  # 记录上一次提升批次
-        require_improvement = 1000  # 如果超过1000轮未提升，提前结束训练
+        total_batch = 0
+        best_acc_val = 0.0
+        last_improved = 0
+        require_improvement = 1000
 
         flag = False
         for epoch in range(config.num_epochs):
@@ -131,22 +122,11 @@ def train():
             batch_train = batch_iter(x_train, y_train, config.batch_size)
             for x_batch, y_batch in batch_train:
                 feed_dict = feed_data(x_batch, y_batch, config.dropout_keep_prob)
-
                 if total_batch % config.save_per_batch == 0:
                     # 每多少轮次将训练结果写入tensorboard scalar
-<<<<<<< HEAD
-                    s = session.run(merged_summary, feed_dict=feed_dict)
-                    writer.add_summary(s, total_batch)
-
-                if total_batch % config.print_per_batch == 0:
-                    # 每多少轮次输出在训练集和验证集上的性能
-                    feed_dict[model.keep_prob] = 1.0
-                    loss_train, acc_train = session.run([model.loss, model.acc], feed_dict=feed_dict)
-                    loss_val, acc_val = evaluate(session, x_val, y_val, config.batch_size)  # todo
-=======
                     # train
-                    summary_train = session.run(merged_summary, feed_dict=feed_dict)
-                    writer_train.add_summary(summary_train, total_batch)
+                    summary_str = session.run(merged_summary, feed_dict=feed_dict)
+                    writer_train.add_summary(summary_str, total_batch)
                     # valid
                     batch_eval = batch_iter(x_val, y_val, config.batch_size)
                     for _x_batch, _y_batch in batch_eval:
@@ -155,11 +135,11 @@ def train():
                     writer_valid.add_summary(summary_valid, total_batch)
 
                 if total_batch % config.print_per_batch == 0:
-                    # 每多少轮次输出在训练集和验证集上的性能
                     feed_dict[model.dropout_keep_prob] = 1.0
                     loss_train, acc_train = session.run([model.loss, model.acc], feed_dict=feed_dict)
-                    loss_val, acc_val = evaluate(session, x_val, y_val, config.batch_size)
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
+                    y_pred_cls_1, loss_val, acc_val = evaluate(session, x_val, y_val, config.batch_size)
+                    # print("prediction %s" % session.run(tf.cast(tf.arg_max(model.y_pred_cls, 1), tf.int32)))
+                    # print("y_batch %s" % session.run(tf.reshape(model.input_y, [-1])))
 
                     if acc_val > best_acc_val:
                         # 保存最好结果
@@ -171,30 +151,22 @@ def train():
                         improved_str = ''
 
                     time_dif = get_time_dif(start_time)
-                    msg = 'Iter: {0:>6}, Train Loss: {1:>6.2}, Train Acc: {2:>7.2%},' \
-                          + ' Val Loss: {3:>6.2}, Val Acc: {4:>7.2%}, Time: {5} {6}'
+                    msg = 'Iter: {0:>6}, Train Loss: {1:>6.2}, Train Acc: {2:>7.2%}, Val Loss: {3:>6.2}, Val Acc: {4:>7.2%}, Time: {5} {6}'
                     print(msg.format(total_batch, loss_train, acc_train, loss_val, acc_val, time_dif, improved_str))
 
-<<<<<<< HEAD
-                feed_dict[model.keep_prob] = config.dropout_keep_prob
-=======
-                feed_dict[model.dropout_keep_prob] = config.dropout_keep_prob
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
-                session.run(model.optim, feed_dict=feed_dict)  # 运行优化
+                session.run(model.optim, feed_dict=feed_dict)
                 total_batch += 1
+                # print('y_pre', session.run(model.y_pred_cls, feed_dict=feed_dict))
+                # print('input_y', session.run(tf.arg_max(model.input_y, 1), feed_dict=feed_dict))
 
                 if total_batch - last_improved > require_improvement:
-                    # 验证集正确率长期不提升，提前结束训练
-                    print("No optimization for a long time, auto-stopping...")
+                    print("No optimization for a long time ,auto-stoppping...")
                     flag = True
-                    break  # 跳出循环
-            if flag:  # 同上
-                break
-<<<<<<< HEAD
-=======
+                    break
+                if flag:
+                    break
     writer_train.close()
     writer_valid.close()
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
 
 
 def test():
@@ -205,10 +177,11 @@ def test():
     session = tf.Session()
     session.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
-    saver.restore(sess=session, save_path=save_path)  # 读取保存的模型
+    saver.restore(sess=session, save_path=save_path)
+    # 读取保存的模型
 
     print('Testing...')
-    loss_test, acc_test = evaluate(session, x_test, y_test, config.batch_size)
+    y_pred_cls_1, loss_test, acc_test = evaluate(session, x_test, y_test, config.batch_size)
     msg = 'Test Loss: {0:>6.2}, Test Acc: {1:>7.2%}'
     print(msg.format(loss_test, acc_test))
 
@@ -217,17 +190,13 @@ def test():
     num_batch = int((data_len - 1) / batch_size) + 1
 
     y_test_cls = np.argmax(y_test, 1)
-    y_pred_cls = np.zeros(shape=len(x_test), dtype=np.int32)  # 保存预测结果
-    for i in range(num_batch):  # 逐批次处理
+    y_pred_cls = np.zeros(shape=len(x_test), dtype=np.int32)
+    for i in range(num_batch):
         start_id = i * batch_size
         end_id = min((i + 1) * batch_size, data_len)
         feed_dict = {
             model.input_x: x_test[start_id:end_id],
-<<<<<<< HEAD
-            model.keep_prob: 1.0
-=======
             model.dropout_keep_prob: 1.0
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
         }
         y_pred_cls[start_id:end_id] = session.run(model.y_pred_cls, feed_dict=feed_dict)
 
@@ -245,42 +214,50 @@ def test():
 
 
 if __name__ == '__main__':
-<<<<<<< HEAD
-    if len(sys.argv) != 2 or sys.argv[1] not in ['train', 'test']:
-        raise ValueError("""usage: python run_cnn.py [train / test]""")
-=======
     parser = argparse.ArgumentParser()
     parser.add_argument('--type', dest='type', default="train", type=str, choices=['train', 'test'], help="类型")
+    parser.add_argument('--model', dest='model', default="RNN", type=str, required=True, choices=['RNN', 'BiRNN'], help="模型")
     args = parser.parse_args()
     _type = args.type
+    _model = args.model
 
-    base_dir = './data/cnews'
-    train_dir = os.path.join(base_dir, 'cnews.train.txt')
-    test_dir = os.path.join(base_dir, 'cnews.test.txt')
-    val_dir = os.path.join(base_dir, 'cnews.val.txt')
-    vocab_dir = os.path.join(base_dir, 'cnews.vocab.txt')
+    base_dir = "../data/cnews"
+    train_dir = os.path.join(base_dir, "cnews.train.txt")
+    test_dir = os.path.join(base_dir, "cnews.test.txt")
+    val_dir = os.path.join(base_dir, "cnews.val.txt")
+    vocab_dir = os.path.join(base_dir, "cnews.vocab.txt")
 
-    save_dir = './checkpoints/textcnn'
-    save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保存路径
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
+    print("Configuring Model Path")
+    model_name = ''
+    if _model == 'RNN':
+        model_name = "textrnn"
+    if _model == 'BiRNN':
+        model_name = "textbirnn"
+    save_dir = './checkpoints/' + model_name
+    save_path = os.path.join(save_dir, 'best_validation')
+    tensorboard_dir = './tensorboard/' + model_name
 
-    print('Configuring CNN model...')
-    config = TCNNConfig()
-    if not os.path.exists(vocab_dir):  # 如果不存在词汇表，重建
-        build_vocab(train_dir, vocab_dir, config.vocab_size)
+    print("Configuring RNN Model")
+    config = {}
+    if _model == 'RNN':
+        config = TRNNConfig()
+    if _model == 'BiRNN':
+        config = TBRNNConfig()
+
     categories, cat_to_id = read_category()
     words, word_to_id = read_vocab(vocab_dir)
     config.vocab_size = len(words)
-    model = TextCNN(config)
-<<<<<<< HEAD
-    train()
-    if sys.argv[1] == 'train':
-        train()
-    else:
-=======
+    if not os.path.exists(vocab_dir):
+        build_vocab(train_dir, vocab_dir, config.vocab_size)
+
+    if _model == 'RNN':
+        # TextRNN
+        model = TextRNN(config)
+    if _model == 'BiRNN':
+        # TextBiRNN
+        model = TextBiRNN(config)
 
     if _type == 'train':
         train()
     if _type == 'test':
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
         test()

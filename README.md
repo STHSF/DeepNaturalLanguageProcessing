@@ -9,10 +9,16 @@
 使用深度学习模型建立文本生成，模仿安娜卡列琳娜这篇文章风格写文章。
 
 ## TextClassification
-文本分类
-### sentiment_analysis
-文本情感分析
-### [SentimentAnalysis_zh](https://github.com/STHSF/DeepNaturalLanguageProcessing/tree/master/sentiment_analysis/sentiment_analysis_zh)
+### 文本分类(text_classification)
+#### [TextRNN(lstm, bilstm)](https://github.com/STHSF/DeepNaturalLanguageProcessing/tree/master/TextClassification/text_classification/TextRNN)
+1、Embedding-> LSTM（GRU）—dropout—LSTM（GRU）—dropout—全连接层—输出层
+
+2、Embedding—> bi-directional lstm(GRU)—> concat output—> average/last output -> softmax layer
+
+#### [TextCNN](https://github.com/STHSF/DeepNaturalLanguageProcessing/tree/master/TextClassification/text_classification/TextCNN)
+
+### 文本情感分析(sentiment_analysis)
+#### [SentimentAnalysis_zh](https://github.com/STHSF/DeepNaturalLanguageProcessing/tree/master/sentiment_analysis/sentiment_analysis_zh)
 主要是结合embedding word进行文本的情感分析。
 
 ## Segmentation

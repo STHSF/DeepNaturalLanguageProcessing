@@ -143,9 +143,21 @@ NER/src/CH/data.pkl
 /NER/src/CH/data/predict.txt
 NER/src/CH/mRMR.ipynb
 /NER/src/CH/te.py
+<<<<<<< HEAD
 /ChineseSegmentation/src/bi_lstm_crf/data/
 ChineseSegmentation/src/bi_lstm_crf/data/
 /TextClassification/text_classification/data/cnews/
 /TextClassification/text_classification/data/vocab_list.txt
 /TextClassification/text_classification/checkpoints/
 /TextClassification/text_classification/tensorboard/
+=======
+/ChineseSegmentation/src/bi_lstm_crf/data/*
+ChineseSegmentation/src/bi_lstm_crf/data/*
+/TextClassification/text_classification/data/cnews/*
+/TextClassification/text_classification/data/cnews/cnews.train.txt
+/TextClassification/text_classification/data/vocab_list.txt
+/TextClassification/text_classification/checkpoints/
+/TextClassification/text_classification/tensorboard/
+/NER/requirements.txt
+*/requirements.txt
+>>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2

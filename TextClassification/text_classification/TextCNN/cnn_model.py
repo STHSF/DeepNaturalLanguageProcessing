@@ -21,6 +21,10 @@ class TCNNConfig(object):
     num_classes = 10  # 类别数
     num_filters = 256  # 卷积核数目
     kernel_size = 5  # 卷积核尺寸
+<<<<<<< HEAD
+=======
+    kernel_size_list = [3, 4, 5]
+>>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
     vocab_size = 5000  # 词汇表达小
 
     hidden_dim = 128  # 全连接层神经元
@@ -40,6 +44,7 @@ class TextCNN(object):
 
     def __init__(self, config):
         self.config = config
+<<<<<<< HEAD
 
         # 三个待输入的数据
         self.input_x = tf.placeholder(tf.int32, [None, self.config.seq_length], name='input_x')
@@ -65,20 +70,79 @@ class TextCNN(object):
             # 全连接层，后面接dropout以及relu激活
             fc = tf.layers.dense(gmp, self.config.hidden_dim, name='fc1')
             fc = tf.contrib.layers.dropout(fc, self.keep_prob)
+=======
+        self._build_graph()
+
+    def _build_graph(self):
+        """CNN模型"""
+        with tf.variable_scope("Input_data"):
+            # 三个待输入的数据
+            self.input_x = tf.placeholder(tf.int32, [None, self.config.seq_length], name='input_x')
+            self.input_y = tf.placeholder(tf.float32, [None, self.config.num_classes], name='input_y')
+            self.dropout_keep_prob = tf.placeholder(tf.float32, name='dropout_keep_prob')
+
+        # 词向量映射
+        with tf.device('/cpu:0'), tf.name_scope('Embedding'):
+            embedding = tf.get_variable('embedding', [self.config.vocab_size, self.config.embedding_dim])
+            embedding_inputs = tf.nn.embedding_lookup(embedding, self.input_x)
+            self.embedding_inputs_expanded = tf.expand_dims(embedding_inputs, -1)
+
+        # with tf.name_scope("CNN"):
+        #     # CNN layer
+        #     conv = tf.layers.conv1d(embedding_inputs, self.config.num_filters, self.config.kernel_size, name='conv')
+        #     # global max pooling layer
+        #     gmp = tf.reduce_max(conv, reduction_indices=[1], name='gmp')
+
+        with tf.name_scope('CNN'):
+            pooled_outputs = []
+            for i, filter_size in enumerate(self.config.kernel_size_list):
+                with tf.name_scope("conv-maxpool-%s" % filter_size):
+                    filter_shape = [filter_size, self.config.embedding_dim, 1, self.config.num_filters]
+                    W = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.1), name="W")
+                    b = tf.Variable(tf.constant(0.1, shape=[self.config.num_filters]), name="b")
+                    conv = tf.nn.conv2d(self.embedding_inputs_expanded, W,
+                                        strides=[1, 1, 1, 1],
+                                        padding="VALID",
+                                        name="conv")
+                    h = tf.nn.relu(tf.nn.bias_add(conv, b), name="relu")
+                    pooled = tf.nn.max_pool(h, ksize=[1, self.config.seq_length - filter_size + 1, 1, 1],
+                                            strides=[1, 1, 1, 1],
+                                            padding='VALID',
+                                            name="pool")
+                    pooled_outputs.append(pooled)
+            num_filter_total = self.config.num_filters * len(self.config.kernel_size_list)
+            self.h_pool = tf.concat(pooled_outputs, 3)
+            gmp = tf.reshape(self.h_pool, [-1, num_filter_total])
+
+        with tf.name_scope("Score"):
+            # 全连接层，后面接dropout以及relu激活
+            fc = tf.layers.dense(gmp, self.config.hidden_dim, name='fc1')
+            fc = tf.contrib.layers.dropout(fc, self.dropout_keep_prob)
+>>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
             fc = tf.nn.relu(fc)
 
             # 分类器
             self.logits = tf.layers.dense(fc, self.config.num_classes, name='fc2')
             self.y_pred_cls = tf.argmax(tf.nn.softmax(self.logits), 1)  # 预测类别
 
+<<<<<<< HEAD
         with tf.name_scope("optimize"):
             # 损失函数，交叉熵
             cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.input_y)
+=======
+        with tf.name_scope("Optimize"):
+            # 损失函数，交叉熵
+            cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.logits, labels=self.input_y)
+>>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
             self.loss = tf.reduce_mean(cross_entropy)
             # 优化器
             self.optim = tf.train.AdamOptimizer(learning_rate=self.config.learning_rate).minimize(self.loss)
 
+<<<<<<< HEAD
         with tf.name_scope("accuracy"):
+=======
+        with tf.name_scope("Accuracy"):
+>>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
             # 准确率
             correct_pred = tf.equal(tf.argmax(self.input_y, 1), self.y_pred_cls)
             self.acc = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
