@@ -19,13 +19,8 @@ import tensorflow as tf
 from sklearn import metrics
 
 import numpy as np
-<<<<<<< a2aad2f721cde589ee854cd3eb130e1a5ddd225d
 from rnn_model import TRNNConfig, TextRNN
 from bi_rnn_model import TBRNNConfig, TextBiRNN
-=======
-# from rnn_model import TRNNConfig, TextRNN
-from bi_rnn_model import TRNNConfig, TextBiRNN
->>>>>>> code updat
 from cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -235,13 +230,10 @@ if __name__ == '__main__':
     categories, cat_to_id = read_category()
     words, word_to_id = read_vocab(vocab_dir)
     config.vocab_size = len(words)
-<<<<<<< a2aad2f721cde589ee854cd3eb130e1a5ddd225d
-=======
     # TextRNN
     # model = TextRNN(config)
     # TextBiRNN
     model = TextBiRNN(config)
->>>>>>> code updat
 
     if _model == 'RNN':
         # TextRNN
