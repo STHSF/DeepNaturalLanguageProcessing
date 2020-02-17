@@ -7,12 +7,6 @@
 @file: model_run.py
 @time: 2020/1/8 2:52 下午
 """
-<<<<<<< HEAD
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-=======
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
 from __future__ import print_function
 
 import os
@@ -21,10 +15,7 @@ sys.path.append('../')
 sys.path.append('../../')
 sys.path.append('../../../')
 import time
-<<<<<<< HEAD
-=======
 import argparse
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
 from datetime import timedelta
 
 import numpy as np
@@ -34,18 +25,6 @@ from sklearn import metrics
 from cnn_model import TCNNConfig, TextCNN
 from cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
 
-<<<<<<< HEAD
-base_dir = '../data/cnews'
-train_dir = os.path.join(base_dir, 'cnews.train.txt')
-test_dir = os.path.join(base_dir, 'cnews.test.txt')
-val_dir = os.path.join(base_dir, 'cnews.val.txt')
-vocab_dir = os.path.join(base_dir, 'cnews.vocab.txt')
-
-save_dir = 'checkpoints/textcnn'
-save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保存路径
-
-=======
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
 
 def get_time_dif(start_time):
     """获取已使用时间"""
@@ -58,11 +37,7 @@ def feed_data(x_batch, y_batch, keep_prob):
     feed_dict = {
         model.input_x: x_batch,
         model.input_y: y_batch,
-<<<<<<< HEAD
-        model.keep_prob: keep_prob
-=======
         model.dropout_keep_prob: keep_prob
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
     }
     return feed_dict
 
@@ -110,13 +85,8 @@ def train():
     with tf.Session() as session:
         session.run(tf.global_variables_initializer())
         merged_summary = tf.summary.merge_all()
-<<<<<<< HEAD
-        writer = tf.summary.FileWriter(tensorboard_dir)
-        writer.add_graph(session.graph)
-=======
         writer_train = tf.summary.FileWriter(tensorboard_dir + '/train', session.graph)
         writer_valid = tf.summary.FileWriter(tensorboard_dir + '/valid')
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
 
         print('Training and evaluating...')
         start_time = time.time()
@@ -134,16 +104,6 @@ def train():
 
                 if total_batch % config.save_per_batch == 0:
                     # 每多少轮次将训练结果写入tensorboard scalar
-<<<<<<< HEAD
-                    s = session.run(merged_summary, feed_dict=feed_dict)
-                    writer.add_summary(s, total_batch)
-
-                if total_batch % config.print_per_batch == 0:
-                    # 每多少轮次输出在训练集和验证集上的性能
-                    feed_dict[model.keep_prob] = 1.0
-                    loss_train, acc_train = session.run([model.loss, model.acc], feed_dict=feed_dict)
-                    loss_val, acc_val = evaluate(session, x_val, y_val, config.batch_size)  # todo
-=======
                     # train
                     summary_train = session.run(merged_summary, feed_dict=feed_dict)
                     writer_train.add_summary(summary_train, total_batch)
@@ -159,7 +119,6 @@ def train():
                     feed_dict[model.dropout_keep_prob] = 1.0
                     loss_train, acc_train = session.run([model.loss, model.acc], feed_dict=feed_dict)
                     loss_val, acc_val = evaluate(session, x_val, y_val, config.batch_size)
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
 
                     if acc_val > best_acc_val:
                         # 保存最好结果
@@ -175,11 +134,7 @@ def train():
                           + ' Val Loss: {3:>6.2}, Val Acc: {4:>7.2%}, Time: {5} {6}'
                     print(msg.format(total_batch, loss_train, acc_train, loss_val, acc_val, time_dif, improved_str))
 
-<<<<<<< HEAD
-                feed_dict[model.keep_prob] = config.dropout_keep_prob
-=======
                 feed_dict[model.dropout_keep_prob] = config.dropout_keep_prob
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
                 session.run(model.optim, feed_dict=feed_dict)  # 运行优化
                 total_batch += 1
 
@@ -190,11 +145,8 @@ def train():
                     break  # 跳出循环
             if flag:  # 同上
                 break
-<<<<<<< HEAD
-=======
     writer_train.close()
     writer_valid.close()
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
 
 
 def test():
@@ -223,11 +175,7 @@ def test():
         end_id = min((i + 1) * batch_size, data_len)
         feed_dict = {
             model.input_x: x_test[start_id:end_id],
-<<<<<<< HEAD
-            model.keep_prob: 1.0
-=======
             model.dropout_keep_prob: 1.0
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
         }
         y_pred_cls[start_id:end_id] = session.run(model.y_pred_cls, feed_dict=feed_dict)
 
@@ -245,10 +193,6 @@ def test():
 
 
 if __name__ == '__main__':
-<<<<<<< HEAD
-    if len(sys.argv) != 2 or sys.argv[1] not in ['train', 'test']:
-        raise ValueError("""usage: python run_cnn.py [train / test]""")
-=======
     parser = argparse.ArgumentParser()
     parser.add_argument('--type', dest='type', default="train", type=str, choices=['train', 'test'], help="类型")
     args = parser.parse_args()
@@ -262,7 +206,6 @@ if __name__ == '__main__':
 
     save_dir = './checkpoints/textcnn'
     save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保存路径
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
 
     print('Configuring CNN model...')
     config = TCNNConfig()
@@ -272,15 +215,8 @@ if __name__ == '__main__':
     words, word_to_id = read_vocab(vocab_dir)
     config.vocab_size = len(words)
     model = TextCNN(config)
-<<<<<<< HEAD
-    train()
-    if sys.argv[1] == 'train':
-        train()
-    else:
-=======
 
     if _type == 'train':
         train()
     if _type == 'test':
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
         test()
