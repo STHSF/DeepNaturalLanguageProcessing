@@ -47,7 +47,7 @@ ordereddict==1.1
 packaging==16.8
 pandas==0.19.2
 pandocfilters==1.4.1
-paramiko==2.2.1
+paramiko==2.2.4
 pathtools==0.1.2
 pexpect==4.2.1
 pickleshare==0.7.4
