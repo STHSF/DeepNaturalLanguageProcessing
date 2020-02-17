@@ -7,19 +7,19 @@
 @file: rnn_model.py
 @time: 2018/3/27 下午5:41
 """
-
 import tensorflow as tf
 import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 
-class TRNNConfig(object):
+class TBRNNConfig(object):
     embedding_dim = 64  # 词向量维度
     seq_length = 600  # 序列长度
     num_classes = 10   # 类别数
     vocab_size = 5000  # 词汇表大小
 
     num_layers = 2  # 隐藏层层数
+    hidden_size = 2
     hidden_dim = 128  # 隐藏神经单元个数
     rnn = 'gru'  # lstm 或 gru
 
@@ -33,7 +33,7 @@ class TRNNConfig(object):
     save_per_batch = 10
 
 
-class TextRNN(object):
+class TextBiRNN(object):
 
     def __init__(self, config):
         self.config = config
@@ -45,38 +45,48 @@ class TextRNN(object):
     def gru_cell(self):
         return tf.contrib.rnn.GRUCell(self.config.hidden_dim)
 
-    def dropout(self):
-        if self.config.rnn == 'lstm':
-            cell = self.lstm_cell()
-        else:
-            cell = self.gru_cell()
-        return tf.contrib.rnn.DropoutWrapper(cell, output_keep_prob=self.dropout_keep_prob)
-
     def _build_graph(self):
         with tf.variable_scope("input_data"):
             # input_x:[batch_size, seq_length]
             self.input_x = tf.placeholder(tf.int32, [None, self.config.seq_length], name='input_x')
             # input_y:[batch_size, num_classes]
             self.input_y = tf.placeholder(tf.int32, [None, self.config.num_classes], name='input_y')
-            self.dropout_keep_prob = tf.placeholder(tf.float32, name='dropout_keep_prob')
+            self.dropout_keep_prob = tf.placeholder(tf.float32, name='keep_prob')
 
         with tf.variable_scope('embedding'):
             # embedding:[vocab_size, embedding_dim]
             embedding = tf.get_variable('embedding', [self.config.vocab_size, self.config.embedding_dim])
-            embedding_imputs = tf.nn.embedding_lookup(embedding, self.input_x)
+            self.embedding_inputs = tf.nn.embedding_lookup(embedding, self.input_x)
 
-        with tf.name_scope("rnn"):
-            cells = [self.dropout() for _ in range(self.config.num_layers)]
-            rnn_cell = tf.contrib.rnn.MultiRNNCell(cells, state_is_tuple=True)
-
-            self._outputs, _ = tf.nn.dynamic_rnn(cell=rnn_cell, inputs=embedding_imputs, dtype=tf.float32)
-            print('shape_of_outputs: %s' % self._outputs.get_shape())
-            last = self._outputs[:, -1, :]    # 取最后一个时序输出作为结果
-            # print('shape_of_outputs: %s' % last.get_shape())
+        with tf.name_scope("birnn"):
+            # define lstm cess:get lstm cell output
+            if self.config.rnn == 'lstm':
+                rnn_fw_cell = self.lstm_cell()  # forward direction cell
+                rnn_bw_cell = self.lstm_cell()  # backward direction cell
+            else:
+                rnn_fw_cell = self.gru_cell()  # forward direction cell
+                rnn_bw_cell = self.gru_cell()  # backward direction cell
+            if self.dropout_keep_prob is not None:
+                rnn_fw_cell = tf.contrib.rnn.DropoutWrapper(rnn_fw_cell, output_keep_prob=self.dropout_keep_prob)
+                rnn_bw_cell = tf.contrib.rnn.DropoutWrapper(rnn_bw_cell, output_keep_prob=self.dropout_keep_prob)
+            # bidirectional_dynamic_rnn:
+            # input: [batch_size, max_time, input_size]
+            # output: A tuple (outputs, output_states)
+            # where:outputs: A tuple (output_fw, output_bw) containing the forward and the backward rnn output `Tensor`.
+            outputs, _ = tf.nn.bidirectional_dynamic_rnn(rnn_fw_cell, rnn_bw_cell, self.embedding_inputs, dtype=tf.float32)  # [batch_size,sequence_length,hidden_size] #creates a dynamic bidirectional recurrent neural network
+            print("outputs:===>", outputs)  # outputs:(<tf.Tensor 'bidirectional_rnn/fw/fw/transpose:0' shape=(?, 5, 100) dtype=float32>, <tf.Tensor 'ReverseV2:0' shape=(?, 5, 100) dtype=float32>))
+            # 3. concat output
+            output_rnn = tf.concat(outputs, axis=2)  # [batch_size, sequence_length, hidden_size*2]
+            # 4.1 average
+            # self.output_rnn_last=tf.reduce_mean(output_rnn,axis=1) #[batch_size, hidden_size*2]
+            # 4.2 last output
+            self.output_rnn_last = output_rnn[:, -1, :]  # [batch_size, hidden_size*2]
+            print("output_rnn_last:", self.output_rnn_last)  # <tf.Tensor 'strided_slice:0' shape=(?, 200) dtype=float32>
+            # 5. logits(use linear layer)
 
         with tf.name_scope("score"):
             # 全连接层
-            fc = tf.layers.dense(last, self.config.hidden_dim, name='fc1')
+            fc = tf.layers.dense(self.output_rnn_last, self.config.hidden_dim, name='fc1')
             fc = tf.contrib.layers.dropout(fc, self.dropout_keep_prob)
             fc = tf.nn.relu(fc)
 

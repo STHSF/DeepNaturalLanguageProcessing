@@ -43,8 +43,8 @@ def open_file(filename, mode='r'):
     常用文件操作，可在python2和python3间切换.
     mode: 'r' or 'w' for read or write
     """
-    if is_py3:
-        return open(filename, mode, encoding='utf-8', errors='ignore')
+    if not is_py3:
+        return open(filename, mode)
     else:
         return open(filename, mode)
 
@@ -85,11 +85,11 @@ def read_vocab(vocab_dir):
     # words = open_file(vocab_dir).read().strip().split('\n')
     with open(vocab_dir) as fp:
         # 如果是py2 则每个值都转化为unicode
-        # words = [native_content(_.strip()) for _ in fp.readlines()]
-        words = [word.decode('utf-8').strip() for word in fp.readlines()]
+        if is_py3:
+            words = [native_content(_.strip()) for _ in fp.readlines()]
+        else:
+            words = [word.decode('utf-8').strip() for word in fp.readlines()]
     word_to_id = dict(zip(words, range(len(words))))
-    for i in word_to_id.items():
-        print(i)
     return words, word_to_id
 
 
