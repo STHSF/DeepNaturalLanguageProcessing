@@ -54,14 +54,13 @@ def evaluate(sess, x_, y_, batch_size):
         loss, acc = sess.run([model.loss, model.acc], feed_dict=feed_dict)
         total_loss += loss * batch_len
         total_acc += acc * batch_len
-
     return total_loss / data_len, total_acc / data_len
 
 
 def train():
     print("Configuring TensorBoard and Saver...")
     # 配置 Tensorboard，重新训练时，请将tensorboard文件夹删除，不然图会覆盖
-    tensorboard_dir = '../tensorboard/textcnn'
+    tensorboard_dir = './tensorboard/textcnn'
     if not os.path.exists(tensorboard_dir):
         os.makedirs(tensorboard_dir)
 
