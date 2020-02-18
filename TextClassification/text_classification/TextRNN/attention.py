@@ -7,12 +7,13 @@
 @file: attention.py
 @time: 2020/1/15 3:09 下午
 """
-
+import os
 import tensorflow as tf
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 def attention(inputs, attention_size, time_major=False, return_alphas=False):
-
     if isinstance(inputs, tuple):
         # In case of Bi-RNN, concatenate the forward and the backward RNN outputs.
         inputs = tf.concat(inputs, axis=2)
@@ -35,7 +36,7 @@ def attention(inputs, attention_size, time_major=False, return_alphas=False):
 
     # For each of the timestamps its vector of size A from `v` is reduced with `u` vector
     vu = tf.tensordot(v, u_omega, axes=1, name='vu')  # (B,T) shape
-    alphas = tf.nn.softmax(vu, name='alphas')         # (B,T) shape
+    alphas = tf.nn.softmax(vu, name='alphas')  # (B,T) shape
 
     # Output of (Bi-)RNN is reduced with attention vector; the result has (B,D) shape
     output = tf.reduce_sum(inputs * tf.expand_dims(alphas, -1), 1)

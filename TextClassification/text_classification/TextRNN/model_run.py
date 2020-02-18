@@ -24,7 +24,7 @@ from rnn_model_attention import TRNNConfig, TextRNN
 from bi_rnn_model import TBRNNConfig, TextBiRNN
 from cnnews_loder import read_vocab, read_category, batch_iter, process_file, build_vocab
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
 
 
 def get_time_dif(start_time):

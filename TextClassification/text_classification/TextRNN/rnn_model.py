@@ -50,11 +50,8 @@ class TextRNN(object):
             cell = self.lstm_cell()
         else:
             cell = self.gru_cell()
-<<<<<<< HEAD
         return tf.contrib.rnn.DropoutWrapper(cell, output_keep_prob=self.dropout_keep_prob)
-=======
-        return tf.contrib.nn.rnn_cell.DropoutWrapper(cell, output_keep_prob=self.keep_prob)
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
+        # return tf.contrib.nn.rnn_cell.DropoutWrapper(cell, output_keep_prob=self.keep_prob)
 
     def _build_graph(self):
         with tf.variable_scope("input_data"):
@@ -79,11 +76,8 @@ class TextRNN(object):
         with tf.name_scope("score"):
             # 全连接层
             fc = tf.layers.dense(last, self.config.hidden_dim, name='fc1')
-<<<<<<< HEAD
-            fc = tf.contrib.layers.dropout(fc, self.dropout_keep_prob)
-=======
-            fc = tf.nn.dropout(fc, self.keep_prob)
->>>>>>> 399ebf561f889434dadaf01b9d4e6f0b7bb4c6c2
+            # fc = tf.contrib.layers.dropout(fc, self.dropout_keep_prob)
+            fc = tf.nn.dropout(fc, self.dropout_keep_prob)
             fc = tf.nn.relu(fc)
 
             self.logits = tf.layers.dense(fc, self.config.num_classes, name='fc2')
