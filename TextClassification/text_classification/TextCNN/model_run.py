@@ -197,7 +197,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     _type = args.type
 
-    base_dir = './data/cnews'
+    base_dir = '../data/cnews'
     train_dir = os.path.join(base_dir, 'cnews.train.txt')
     test_dir = os.path.join(base_dir, 'cnews.test.txt')
     val_dir = os.path.join(base_dir, 'cnews.val.txt')
