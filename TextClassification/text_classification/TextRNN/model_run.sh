@@ -1,1 +1,3 @@
-python model_run.py --type test --model BNN ;
+python model_run.py \
+--type test \
+--model RNN ;
