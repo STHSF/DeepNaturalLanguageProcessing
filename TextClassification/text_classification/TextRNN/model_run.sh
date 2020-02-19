@@ -1,3 +1,1 @@
-python model_run.py \
---type test \
---model RNN ;
+python model_run.py --type test --model RNN ;
