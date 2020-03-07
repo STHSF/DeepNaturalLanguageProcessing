@@ -77,7 +77,10 @@ class TextBiRNN(object):
             # input: [batch_size, max_time, input_size]
             # output: A tuple (outputs, output_states)
             # where:outputs: A tuple (output_fw, output_bw) containing the forward and the backward rnn output `Tensor`.
-            outputs, _ = tf.nn.bidirectional_dynamic_rnn(rnn_fw_cell, rnn_bw_cell, self.embedding_inputs, dtype=tf.float32)  # [batch_size,sequence_length,hidden_size] #creates a dynamic bidirectional recurrent neural network
+            outputs, _ = tf.nn.bidirectional_dynamic_rnn(rnn_fw_cell,
+                                                         rnn_bw_cell,
+                                                         self.embedding_inputs,
+                                                         dtype=tf.float32)  # [batch_size,sequence_length,hidden_size] #creates a dynamic bidirectional recurrent neural network
             print("outputs:===>", outputs)  # outputs:(<tf.Tensor 'bidirectional_rnn/fw/fw/transpose:0' shape=(?, 5, 100) dtype=float32>, <tf.Tensor 'ReverseV2:0' shape=(?, 5, 100) dtype=float32>))
             # 3. concat output
             self.output_rnn = tf.concat(outputs, axis=2)  # [batch_size, sequence_length, hidden_size*2]
