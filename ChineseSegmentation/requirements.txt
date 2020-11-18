@@ -41,7 +41,7 @@ mistune==0.8.1
 msgpack-python==0.4.8
 nbconvert==5.2.1
 nbformat==4.3.0
-notebook==5.7.8
+notebook==6.1.5
 numpy==1.13.1
 ordereddict==1.1
 packaging==16.8
