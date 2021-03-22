@@ -33,7 +33,7 @@ jupyter-client==5.1.0
 jupyter-console==5.1.0
 jupyter-core==4.3.0
 Keras==2.0.5
-lxml==3.8.0
+lxml==4.6.3
 Markdown==2.6.9
 MarkupSafe==1.0
 matplotlib==2.0.0
