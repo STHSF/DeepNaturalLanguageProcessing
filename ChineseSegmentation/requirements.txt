@@ -73,7 +73,7 @@ simplegeneric==0.8.1
 six==1.10.0
 sklearn==0.0
 smart-open==1.5.3
-tensorflow==1.15.2
+tensorflow==2.5.0
 tensorflow-tensorboard==0.1.6
 terminado==0.6
 testpath==0.3.1
