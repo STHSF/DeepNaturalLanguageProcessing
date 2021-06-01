@@ -83,7 +83,7 @@ tqdm==4.15.0
 traitlets==4.3.2
 tushare==0.8.2
 tzlocal==1.2
-urllib3==1.24.2
+urllib3==1.26.5
 virtualenv==15.0.3
 watchdog==0.8.3
 wcwidth==0.1.7
