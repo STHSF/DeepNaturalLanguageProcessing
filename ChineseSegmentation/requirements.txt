@@ -42,7 +42,7 @@ msgpack-python==0.4.8
 nbconvert==5.2.1
 nbformat==4.3.0
 notebook==5.7.8
-numpy==1.13.1
+numpy==1.21.0
 ordereddict==1.1
 packaging==16.8
 pandas==0.19.2
